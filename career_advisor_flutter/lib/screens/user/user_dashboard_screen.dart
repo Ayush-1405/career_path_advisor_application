@@ -54,13 +54,13 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
       parent: _animationController,
       curve: Curves.easeIn,
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutQuart,
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutQuart,
+          ),
+        );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
@@ -162,7 +162,8 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
       if (!skillsAssessed) {
         try {
           final prefs = await SharedPreferences.getInstance();
-          skillsAssessed = prefs.getBool('skills_assessment_completed') ?? false;
+          skillsAssessed =
+              prefs.getBool('skills_assessment_completed') ?? false;
         } catch (_) {}
       }
 
@@ -172,15 +173,17 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
       final parsedRate = (rawRate is int)
           ? rawRate
           : (rawRate is num)
-              ? (rawRate as num).round()
-              : null;
+          ? (rawRate).round()
+          : null;
       final rawTotal = stats['totalActivities'];
-      final activitiesList = activities is List ? List<dynamic>.from(activities) : <dynamic>[];
+      final activitiesList = activities is List
+          ? List<dynamic>.from(activities)
+          : <dynamic>[];
       final parsedTotal = (rawTotal is int)
           ? rawTotal
           : (rawTotal is num)
-              ? (rawTotal as num).toInt()
-              : null;
+          ? (rawTotal).toInt()
+          : null;
 
       // Backend completionRate from UserProfileCompletion (resume+skills+career+edu).
       // When backend returns 0 or null, use profile form completion so user sees accurate status.
@@ -281,7 +284,8 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
         'type': 'profile_viewed',
         'activityType': 'profile_viewed',
         'description': 'Profile viewed',
-        'message': 'Welcome! Complete your profile to get personalized suggestions.',
+        'message':
+            'Welcome! Complete your profile to get personalized suggestions.',
         'timestamp': now,
         'status': 'pending',
       });
@@ -318,10 +322,10 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
       );
     }
 
-    final completionRate =
-        (_stats['completionRate'] as num?)?.round() ?? 0;
-    final recentActivities =
-        _stats['recentActivities'] is List ? _stats['recentActivities'] as List : <dynamic>[];
+    final completionRate = (_stats['completionRate'] as num?)?.round() ?? 0;
+    final recentActivities = _stats['recentActivities'] is List
+        ? _stats['recentActivities'] as List
+        : <dynamic>[];
 
     return AnimatedScreen(
       child: Scaffold(
@@ -347,417 +351,450 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
           color: AppTheme.userPrimaryBlue,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. Profile Completion Card
-              _buildAnimatedCard(
-                index: 0,
-                child: _buildProfileCompletionCard(completionRate),
-              ),
-
-              const SizedBox(height: 24),
-
-              // 2. Key Stats Grid
-              _buildAnimatedCard(
-                index: 1,
-                child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: 1.5,
-                children: [
-                  _buildStatCard(
-                    title: 'Resumes',
-                    value: '${_stats['resumeCount']}',
-                    icon: Icons.description,
-                    color: (_stats['resumeCount'] as int) > 0
-                        ? Colors.green
-                        : Colors.orange,
-                    onTap: () => context.push('/my-resumes'),
-                  ),
-                  _buildStatCard(
-                    title: 'Skills',
-                    value: _stats['skillsAssessed'] ? 'Done' : 'Not Done',
-                    icon: Icons.psychology,
-                    color: _stats['skillsAssessed']
-                        ? AppTheme.userPrimaryPurple
-                        : Colors.blue,
-                    onTap: () => context.push('/skills-assessment'),
-                  ),
-                  _buildStatCard(
-                    title: 'Applied Careers',
-                    value: '${_stats['appliedCount']}',
-                    icon: Icons.send,
-                    color: (_stats['appliedCount'] as int) > 0
-                        ? Colors.deepOrange
-                        : Colors.grey,
-                    onTap: () => context.push('/my-applications'),
-                  ),
-                  _buildStatCard(
-                    title: 'Activities',
-                    value: '${_stats['totalActivities']}',
-                    icon: Icons.history_edu,
-                    color: Colors.indigo,
-                    onTap: () => _showAllActivities(context),
-                  ),
-                ],
-              ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // 3. Quick Actions
-              _buildAnimatedCard(
-                index: 2,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Quick Actions',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.gray900,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio:
-                    1.3, // Slightly taller for better touch target
-                children: [
-                  _buildActionCard(
-                    title: 'My Resumes',
-                    icon: Icons.folder_shared_outlined,
-                    color: Colors.blue,
-                    onTap: () => context.push('/my-resumes'),
-                  ),
-                  _buildActionCard(
-                    title: 'Resume Builder',
-                    icon: Icons.description_outlined,
-                    color: Colors.indigo,
-                    onTap: () => context.push('/resume-builder'),
-                  ),
-                  _buildActionCard(
-                    title: 'Career Paths',
-                    icon: Icons.explore_outlined,
-                    color: AppTheme.userPrimaryPurple,
-                    onTap: () => context.push('/suggestions'),
-                  ),
-                  // _buildActionCard(
-                  //   title: 'My Applications',
-                  //   icon: Icons.assignment,
-                  //   color: Colors.amber.shade700,
-                  //   onTap: () => context.push('/my-applications'),
-                  // ),
-                  // _buildActionCard(
-                  //   title: 'Saved Careers',
-                  //   icon: Icons.bookmark_border,
-                  //   color: Colors.deepOrange,
-                  //   onTap: () => context.pushNamed('saved_careers'),
-                  // ),
-                  _buildActionCard(
-                    title: 'Skills Assessment',
-                    icon: Icons.assignment_outlined,
-                    color: Colors.teal,
-                    onTap: () => context.push('/skills-assessment'),
-                  ),
-                  _buildActionCard(
-                    title: 'AI Assistant',
-                    icon: Icons.smart_toy_outlined,
-                    color: Colors.pink,
-                    onTap: () => context.push('/ai-assistant'),
-                  ),
-                ],
-              ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // 4. Recommended Career Paths
-              if (_suggestions.isNotEmpty) ...[
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Profile Completion Card
                 _buildAnimatedCard(
-                  index: 3,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  index: 0,
+                  child: _buildProfileCompletionCard(completionRate),
+                ),
+
+                const SizedBox(height: 24),
+
+                // 2. Key Stats Grid
+                _buildAnimatedCard(
+                  index: 1,
+                  child: GridView.count(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    childAspectRatio: 1.5,
                     children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Recommended For You',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.gray900,
+                      _buildStatCard(
+                        title: 'Resumes',
+                        value: '${_stats['resumeCount']}',
+                        icon: Icons.description,
+                        color: (_stats['resumeCount'] as int) > 0
+                            ? Colors.green
+                            : Colors.orange,
+                        onTap: () => context.push('/my-resumes'),
                       ),
-                    ),
-                    TextButton(
-                      onPressed: () => context.push('/suggestions'),
-                      child: const Text('View All'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 160,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _suggestions.length,
-                    itemBuilder: (context, index) {
-                      final suggestion = _suggestions[index];
-                      return TweenAnimationBuilder<double>(
-                        tween: Tween(begin: 0, end: 1),
-                        duration: Duration(milliseconds: 400 + (index * 100)),
-                        curve: Curves.easeOutCubic,
-                        builder: (context, value, child) {
-                          return Opacity(
-                            opacity: value,
-                            child: Transform.translate(
-                              offset: Offset(30 * (1 - value), 0),
-                              child: child,
-                            ),
-                          );
-                        },
-                        child: Container(
-                        width: 200,
-                        margin: const EdgeInsets.only(right: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => context.push('/suggestions'),
-                            borderRadius: BorderRadius.circular(16),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.userPrimaryBlue
-                                          .withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Icon(
-                                      Icons.work_outline,
-                                      color: AppTheme.userPrimaryBlue,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Text(
-                                    suggestion['careerPath'] ?? 'Career Path',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${suggestion['matchScore'] ?? 0}% Match',
-                                    style: TextStyle(
-                                      color: Colors.green.shade700,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                      _buildStatCard(
+                        title: 'Skills',
+                        value: _stats['skillsAssessed'] ? 'Done' : 'Not Done',
+                        icon: Icons.psychology,
+                        color: _stats['skillsAssessed']
+                            ? AppTheme.userPrimaryPurple
+                            : Colors.blue,
+                        onTap: () => context.push('/skills-assessment'),
+                      ),
+                      _buildStatCard(
+                        title: 'Applied Careers',
+                        value: '${_stats['appliedCount']}',
+                        icon: Icons.send,
+                        color: (_stats['appliedCount'] as int) > 0
+                            ? Colors.deepOrange
+                            : Colors.grey,
+                        onTap: () => context.push('/my-applications'),
+                      ),
+                      _buildStatCard(
+                        title: 'Activities',
+                        value: '${_stats['totalActivities']}',
+                        icon: Icons.history_edu,
+                        color: Colors.indigo,
+                        onTap: () => _showAllActivities(context),
+                      ),
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 32),
-              ],
 
-              // 5. Recent Activity
-              _buildAnimatedCard(
-                index: 4,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-              const Text(
-                'Recent Activity',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.gray900,
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (recentActivities.isEmpty)
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.gray200),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'No recent activity yet. Start by uploading your resume!',
-                      style: TextStyle(color: AppTheme.gray500),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                )
-              else
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: recentActivities.take(5).length,
-                  separatorBuilder: (context, index) => const Divider(),
-                  itemBuilder: (context, index) {
-                    final activity = recentActivities[index];
-                    final timestamp = activity['timestamp'];
-                    final type = activity['type']?.toString().toLowerCase();
-                    final status = (activity['status'] ?? 'completed')
-                        .toString()
-                        .toLowerCase();
-                    final message =
-                        activity['message'] ??
-                        activity['description'] ??
-                        'Activity';
-
-                    IconData iconData = Icons.history;
-                    Color iconColor = AppTheme.gray600;
-
-                    if (type != null) {
-                      if (type.contains('resume')) {
-                        iconData = Icons.description;
-                        iconColor = Colors.green;
-                      } else if (type.contains('skill')) {
-                        iconData = Icons.psychology;
-                        iconColor = Colors.purple;
-                      } else if (type.contains('apply') ||
-                          type.contains('application')) {
-                        iconData = Icons.send;
-                        iconColor = Colors.indigo;
-                      } else if (type.contains('save')) {
-                        iconData = Icons.bookmark;
-                        iconColor = Colors.pink;
-                      } else if (type.contains('login') ||
-                          type.contains('dashboard_visit')) {
-                        iconData = Icons.login;
-                        iconColor = Colors.blue;
-                      } else if (type.contains('profile')) {
-                        iconData = Icons.person_outline;
-                        iconColor = Colors.orange;
-                      } else if (type.contains('email_verified') ||
-                          type.contains('verification')) {
-                        iconData = Icons.mark_email_read;
-                        iconColor = Colors.teal;
-                      } else if (type.contains('registration') ||
-                          type.contains('user_registration')) {
-                        iconData = Icons.person_add;
-                        iconColor = Colors.green;
-                      }
-                    }
-
-                    return TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0, end: 1),
-                      duration: Duration(milliseconds: 300 + (index * 80)),
-                      curve: Curves.easeOut,
-                      builder: (context, value, child) {
-                        return Opacity(
-                          opacity: value,
-                          child: Transform.translate(
-                            offset: Offset(0, 8 * (1 - value)),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: iconColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(iconData, color: iconColor, size: 20),
+                // 3. Quick Actions
+                _buildAnimatedCard(
+                  index: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Quick Actions',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.gray900,
                         ),
-                        title: Row(
+                      ),
+                      const SizedBox(height: 16),
+                      GridView.count(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        childAspectRatio:
+                            1.3, // Slightly taller for better touch target
+                        children: [
+                          _buildActionCard(
+                            title: 'My Resumes',
+                            icon: Icons.folder_shared_outlined,
+                            color: Colors.blue,
+                            onTap: () => context.push('/my-resumes'),
+                          ),
+                          _buildActionCard(
+                            title: 'Resume Builder',
+                            icon: Icons.description_outlined,
+                            color: Colors.indigo,
+                            onTap: () => context.push('/resume-builder'),
+                          ),
+                          _buildActionCard(
+                            title: 'Career Paths',
+                            icon: Icons.explore_outlined,
+                            color: AppTheme.userPrimaryPurple,
+                            onTap: () => context.push('/suggestions'),
+                          ),
+                          // _buildActionCard(
+                          //   title: 'My Applications',
+                          //   icon: Icons.assignment,
+                          //   color: Colors.amber.shade700,
+                          //   onTap: () => context.push('/my-applications'),
+                          // ),
+                          // _buildActionCard(
+                          //   title: 'Saved Careers',
+                          //   icon: Icons.bookmark_border,
+                          //   color: Colors.deepOrange,
+                          //   onTap: () => context.pushNamed('saved_careers'),
+                          // ),
+                          _buildActionCard(
+                            title: 'Skills Assessment',
+                            icon: Icons.assignment_outlined,
+                            color: Colors.teal,
+                            onTap: () => context.push('/skills-assessment'),
+                          ),
+                          _buildActionCard(
+                            title: 'AI Assistant',
+                            icon: Icons.smart_toy_outlined,
+                            color: Colors.pink,
+                            onTap: () => context.push('/ai-assistant'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+
+                // 4. Recommended Career Paths
+                if (_suggestions.isNotEmpty) ...[
+                  _buildAnimatedCard(
+                    index: 3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Expanded(child: Text(
-                              message,
-                              style: const TextStyle(fontWeight: FontWeight.w500),
-                            )),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: status.contains('completed') || status == 'done'
-                                    ? Colors.green.withValues(alpha: 0.15)
-                                    : Colors.orange.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(12),
+                            const Text(
+                              'Recommended For You',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.gray900,
                               ),
-                              child: Text(
-                                status.contains('completed') || status == 'done'
-                                    ? 'Completed'
-                                    : (status.contains('pending') ? 'Pending' : status),
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  color: status.contains('completed') || status == 'done'
-                                      ? Colors.green.shade700
-                                      : Colors.orange.shade700,
-                                ),
-                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => context.push('/suggestions'),
+                              child: const Text('View All'),
                             ),
                           ],
                         ),
-                        subtitle: timestamp != null
-                            ? Text(
-                                timestamp.toString(),
-                                style: const TextStyle(
-                                  color: AppTheme.gray500,
-                                  fontSize: 12,
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 160,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _suggestions.length,
+                            itemBuilder: (context, index) {
+                              final suggestion = _suggestions[index];
+                              return TweenAnimationBuilder<double>(
+                                tween: Tween(begin: 0, end: 1),
+                                duration: Duration(
+                                  milliseconds: 400 + (index * 100),
                                 ),
-                              )
-                            : null,
-                      ),
-                    );
-                  },
-                ),
-                  ],
-                ),
-              ),
+                                curve: Curves.easeOutCubic,
+                                builder: (context, value, child) {
+                                  return Opacity(
+                                    opacity: value,
+                                    child: Transform.translate(
+                                      offset: Offset(30 * (1 - value), 0),
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  width: 200,
+                                  margin: const EdgeInsets.only(right: 16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
+                                        ),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: () => context.push('/suggestions'),
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: AppTheme.userPrimaryBlue
+                                                    .withValues(alpha: 0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: const Icon(
+                                                Icons.work_outline,
+                                                color: AppTheme.userPrimaryBlue,
+                                                size: 20,
+                                              ),
+                                            ),
+                                            const Spacer(),
+                                            Text(
+                                              suggestion['careerPath'] ??
+                                                  'Career Path',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              '${suggestion['matchScore'] ?? 0}% Match',
+                                              style: TextStyle(
+                                                color: Colors.green.shade700,
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
 
-              const SizedBox(height: 80),
-            ],
+                // 5. Recent Activity
+                _buildAnimatedCard(
+                  index: 4,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Recent Activity',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.gray900,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      if (recentActivities.isEmpty)
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppTheme.gray200),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'No recent activity yet. Start by uploading your resume!',
+                              style: TextStyle(color: AppTheme.gray500),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        )
+                      else
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: recentActivities.take(5).length,
+                          separatorBuilder: (context, index) => const Divider(),
+                          itemBuilder: (context, index) {
+                            final activity = recentActivities[index];
+                            final timestamp = activity['timestamp'];
+                            final type = activity['type']
+                                ?.toString()
+                                .toLowerCase();
+                            final status = (activity['status'] ?? 'completed')
+                                .toString()
+                                .toLowerCase();
+                            final message =
+                                activity['message'] ??
+                                activity['description'] ??
+                                'Activity';
+
+                            IconData iconData = Icons.history;
+                            Color iconColor = AppTheme.gray600;
+
+                            if (type != null) {
+                              if (type.contains('resume')) {
+                                iconData = Icons.description;
+                                iconColor = Colors.green;
+                              } else if (type.contains('skill')) {
+                                iconData = Icons.psychology;
+                                iconColor = Colors.purple;
+                              } else if (type.contains('apply') ||
+                                  type.contains('application')) {
+                                iconData = Icons.send;
+                                iconColor = Colors.indigo;
+                              } else if (type.contains('save')) {
+                                iconData = Icons.bookmark;
+                                iconColor = Colors.pink;
+                              } else if (type.contains('login') ||
+                                  type.contains('dashboard_visit')) {
+                                iconData = Icons.login;
+                                iconColor = Colors.blue;
+                              } else if (type.contains('profile')) {
+                                iconData = Icons.person_outline;
+                                iconColor = Colors.orange;
+                              } else if (type.contains('email_verified') ||
+                                  type.contains('verification')) {
+                                iconData = Icons.mark_email_read;
+                                iconColor = Colors.teal;
+                              } else if (type.contains('registration') ||
+                                  type.contains('user_registration')) {
+                                iconData = Icons.person_add;
+                                iconColor = Colors.green;
+                              }
+                            }
+
+                            return TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0, end: 1),
+                              duration: Duration(
+                                milliseconds: 300 + (index * 80),
+                              ),
+                              curve: Curves.easeOut,
+                              builder: (context, value, child) {
+                                return Opacity(
+                                  opacity: value,
+                                  child: Transform.translate(
+                                    offset: Offset(0, 8 * (1 - value)),
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              child: ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: iconColor.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    iconData,
+                                    color: iconColor,
+                                    size: 20,
+                                  ),
+                                ),
+                                title: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        message,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            status.contains('completed') ||
+                                                status == 'done'
+                                            ? Colors.green.withValues(
+                                                alpha: 0.15,
+                                              )
+                                            : Colors.orange.withValues(
+                                                alpha: 0.15,
+                                              ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        status.contains('completed') ||
+                                                status == 'done'
+                                            ? 'Completed'
+                                            : (status.contains('pending')
+                                                  ? 'Pending'
+                                                  : status),
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500,
+                                          color:
+                                              status.contains('completed') ||
+                                                  status == 'done'
+                                              ? Colors.green.shade700
+                                              : Colors.orange.shade700,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                subtitle: timestamp != null
+                                    ? Text(
+                                        timestamp.toString(),
+                                        style: const TextStyle(
+                                          color: AppTheme.gray500,
+                                          fontSize: 12,
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                            );
+                          },
+                        ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 80),
+              ],
+            ),
           ),
-        ),
         ),
       ),
     );
@@ -766,10 +803,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
   Widget _buildShimmerLoading() {
     return Scaffold(
       backgroundColor: AppTheme.gray50,
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-        centerTitle: false,
-      ),
+      appBar: AppBar(title: const Text('Dashboard'), centerTitle: false),
       body: Shimmer.fromColors(
         baseColor: Colors.grey.shade300,
         highlightColor: Colors.grey.shade100,
@@ -802,11 +836,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                 ],
               ),
               const SizedBox(height: 32),
-              Container(
-                height: 20,
-                width: 120,
-                color: Colors.white,
-              ),
+              Container(height: 20, width: 120, color: Colors.white),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -934,29 +964,32 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                             border: Border.all(color: Colors.white, width: 2),
                           ),
                           child: ClipOval(
-                            child: _user?.profilePictureUrl != null &&
+                            child:
+                                _user?.profilePictureUrl != null &&
                                     (_user!.profilePictureUrl ?? '').isNotEmpty
                                 ? Image.network(
                                     _resolveImageUrl(_user!.profilePictureUrl!),
                                     fit: BoxFit.cover,
                                     loadingBuilder:
                                         (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return Center(
-                                        child: CircularProgressIndicator(
-                                          value: loadingProgress
-                                                      .expectedTotalBytes !=
-                                                  null
-                                              ? loadingProgress
-                                                      .cumulativeBytesLoaded /
+                                          if (loadingProgress == null)
+                                            return child;
+                                          return Center(
+                                            child: CircularProgressIndicator(
+                                              value:
                                                   loadingProgress
-                                                      .expectedTotalBytes!
-                                              : null,
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      );
-                                    },
+                                                          .expectedTotalBytes !=
+                                                      null
+                                                  ? loadingProgress
+                                                            .cumulativeBytesLoaded /
+                                                        loadingProgress
+                                                            .expectedTotalBytes!
+                                                  : null,
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          );
+                                        },
                                     errorBuilder: (context, error, stackTrace) {
                                       return _buildProfileAvatarFallback();
                                     },
@@ -980,16 +1013,16 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
     if (url.isEmpty) return url;
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
     final base = ref.read(baseUrlProvider);
-    final baseClean = base.endsWith('/') ? base.substring(0, base.length - 1) : base;
+    final baseClean = base.endsWith('/')
+        ? base.substring(0, base.length - 1)
+        : base;
     return url.startsWith('/') ? '$baseClean$url' : '$baseClean/$url';
   }
 
   Widget _buildProfileAvatarFallback() {
     return Center(
       child: Text(
-        _user?.name.isNotEmpty == true
-            ? _user!.name[0].toUpperCase()
-            : 'U',
+        _user?.name.isNotEmpty == true ? _user!.name[0].toUpperCase() : 'U',
         style: const TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
@@ -999,10 +1032,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
     );
   }
 
-  Widget _buildAnimatedCard({
-    required int index,
-    required Widget child,
-  }) {
+  Widget _buildAnimatedCard({required int index, required Widget child}) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
       duration: Duration(milliseconds: 400 + _staggerDelay(index)),

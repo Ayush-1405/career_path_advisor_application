@@ -41,8 +41,8 @@ class ResumeProfile {
     final user = json['user'];
     final userId =
         (user is Map ? (user['id'] ?? user['userId']) : null)?.toString() ??
-            json['userId']?.toString() ??
-            '';
+        json['userId']?.toString() ??
+        '';
 
     return ResumeProfile(
       id: json['id']?.toString() ?? '',
@@ -62,25 +62,29 @@ class ResumeProfile {
           : const [],
       education: (json['education'] is List)
           ? (json['education'] as List)
-              .map((e) => EducationEntry.fromJson(Map<String, dynamic>.from(e)))
-              .toList()
+                .map(
+                  (e) => EducationEntry.fromJson(Map<String, dynamic>.from(e)),
+                )
+                .toList()
           : const [],
       experience: (json['experience'] is List)
           ? (json['experience'] as List)
-              .map((e) => ExperienceEntry.fromJson(Map<String, dynamic>.from(e)))
-              .toList()
+                .map(
+                  (e) => ExperienceEntry.fromJson(Map<String, dynamic>.from(e)),
+                )
+                .toList()
           : const [],
       projects: (json['projects'] is List)
           ? (json['projects'] as List)
-              .map((e) => ProjectEntry.fromJson(Map<String, dynamic>.from(e)))
-              .toList()
+                .map((e) => ProjectEntry.fromJson(Map<String, dynamic>.from(e)))
+                .toList()
           : const [],
     );
   }
 
   Map<String, dynamic> toUpdatePayload({String? overrideUserId}) {
     return {
-      if (overrideUserId != null) 'userId': overrideUserId,
+      'userId': ?overrideUserId,
       'name': name,
       'email': email,
       'phone': phone,
@@ -111,22 +115,22 @@ class EducationEntry {
   });
 
   factory EducationEntry.fromJson(Map<String, dynamic> json) => EducationEntry(
-        degree: json['degree']?.toString(),
-        institute: json['institute']?.toString(),
-        startYear: json['startYear']?.toString(),
-        endYear: json['endYear']?.toString(),
-        score: json['score']?.toString(),
-        details: json['details']?.toString(),
-      );
+    degree: json['degree']?.toString(),
+    institute: json['institute']?.toString(),
+    startYear: json['startYear']?.toString(),
+    endYear: json['endYear']?.toString(),
+    score: json['score']?.toString(),
+    details: json['details']?.toString(),
+  );
 
   Map<String, dynamic> toJson() => {
-        'degree': degree,
-        'institute': institute,
-        'startYear': startYear,
-        'endYear': endYear,
-        'score': score,
-        'details': details,
-      };
+    'degree': degree,
+    'institute': institute,
+    'startYear': startYear,
+    'endYear': endYear,
+    'score': score,
+    'details': details,
+  };
 }
 
 class ExperienceEntry {
@@ -146,7 +150,8 @@ class ExperienceEntry {
     this.highlights = const [],
   });
 
-  factory ExperienceEntry.fromJson(Map<String, dynamic> json) => ExperienceEntry(
+  factory ExperienceEntry.fromJson(Map<String, dynamic> json) =>
+      ExperienceEntry(
         title: json['title']?.toString(),
         company: json['company']?.toString(),
         startDate: json['startDate']?.toString(),
@@ -160,13 +165,13 @@ class ExperienceEntry {
       );
 
   Map<String, dynamic> toJson() => {
-        'title': title,
-        'company': company,
-        'startDate': startDate,
-        'endDate': endDate,
-        'location': location,
-        'highlights': highlights,
-      };
+    'title': title,
+    'company': company,
+    'startDate': startDate,
+    'endDate': endDate,
+    'location': location,
+    'highlights': highlights,
+  };
 }
 
 class ProjectEntry {
@@ -183,21 +188,20 @@ class ProjectEntry {
   });
 
   factory ProjectEntry.fromJson(Map<String, dynamic> json) => ProjectEntry(
-        title: json['title']?.toString(),
-        link: json['link']?.toString(),
-        description: json['description']?.toString(),
-        technologies: (json['technologies'] is List)
-            ? List<String>.from(
-                (json['technologies'] as List).map((e) => e.toString()),
-              )
-            : const [],
-      );
+    title: json['title']?.toString(),
+    link: json['link']?.toString(),
+    description: json['description']?.toString(),
+    technologies: (json['technologies'] is List)
+        ? List<String>.from(
+            (json['technologies'] as List).map((e) => e.toString()),
+          )
+        : const [],
+  );
 
   Map<String, dynamic> toJson() => {
-        'title': title,
-        'link': link,
-        'description': description,
-        'technologies': technologies,
-      };
+    'title': title,
+    'link': link,
+    'description': description,
+    'technologies': technologies,
+  };
 }
-

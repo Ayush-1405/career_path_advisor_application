@@ -2,7 +2,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
 import '../../utils/theme.dart';
 import '../../services/api_service.dart';
@@ -64,7 +63,9 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
 
       // Fetch resume profile from backend (real stored data)
       try {
-        final data = await ref.read(apiServiceProvider).fetchResumeProfile(userId);
+        final data = await ref
+            .read(apiServiceProvider)
+            .fetchResumeProfile(userId);
         final profile = ResumeProfile.fromJson(
           Map<String, dynamic>.from(data as Map),
         );
@@ -102,8 +103,10 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
     _skillsController.text = profile.skills.join(', ');
 
     // Use details-only view for editable textareas
-    _educationController.text =
-        profile.education.map((e) => e.details ?? '').where((e) => e.isNotEmpty).join('\n');
+    _educationController.text = profile.education
+        .map((e) => e.details ?? '')
+        .where((e) => e.isNotEmpty)
+        .join('\n');
     _experienceController.text = profile.experience
         .map((e) => e.title ?? '')
         .where((e) => e.isNotEmpty)
@@ -127,14 +130,17 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
       if (path == null || path.isEmpty) {
         throw Exception('Could not read file path');
       }
-      final resp = await ref.read(apiServiceProvider).uploadResumeFile(
-            filePath: path,
-            fileName: file.name,
-          );
-      final map = resp is Map ? Map<String, dynamic>.from(resp) : <String, dynamic>{};
+      final resp = await ref
+          .read(apiServiceProvider)
+          .uploadResumeFile(filePath: path, fileName: file.name);
+      final map = resp is Map
+          ? Map<String, dynamic>.from(resp)
+          : <String, dynamic>{};
       final resumeMap = map['resume'];
       if (resumeMap is Map) {
-        final profile = ResumeProfile.fromJson(Map<String, dynamic>.from(resumeMap));
+        final profile = ResumeProfile.fromJson(
+          Map<String, dynamic>.from(resumeMap),
+        );
         _resume = profile;
         _fillControllers(profile);
       }
@@ -187,18 +193,22 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
         'summary': _summaryController.text.trim(),
         'skills': skills,
         'education': educationLines.map((l) => {'details': l}).toList(),
-        'experience': expLines.map((l) => {'title': l, 'highlights': []}).toList(),
+        'experience': expLines
+            .map((l) => {'title': l, 'highlights': []})
+            .toList(),
         'projects': [],
       };
 
-      final updated = await ref.read(apiServiceProvider).updateResumeProfile(payload);
+      final updated = await ref
+          .read(apiServiceProvider)
+          .updateResumeProfile(payload);
       if (updated is Map) {
         _resume = ResumeProfile.fromJson(Map<String, dynamic>.from(updated));
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Resume data saved')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Resume data saved')));
     } catch (e) {
       setState(() => _error = 'Save failed: $e');
     } finally {
@@ -217,7 +227,9 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
     try {
       // Ensure latest edits are persisted before PDF generation
       await _saveResumeData();
-      final bytes = await ref.read(apiServiceProvider).generateResumePdf(userId);
+      final bytes = await ref
+          .read(apiServiceProvider)
+          .generateResumePdf(userId);
       if (!mounted) return;
       setState(() {
         _generatedPdfBytes = bytes;
@@ -248,10 +260,9 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
 
       final fileName =
           'resume_generated_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      final resp = await ref.read(apiServiceProvider).uploadResumeBytes(
-            bytes: _generatedPdfBytes!,
-            fileName: fileName,
-          );
+      final resp = await ref
+          .read(apiServiceProvider)
+          .uploadResumeBytes(bytes: _generatedPdfBytes!, fileName: fileName);
       final map = resp is Map
           ? Map<String, dynamic>.from(resp)
           : <String, dynamic>{};
@@ -306,249 +317,267 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (_error != null) ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.shade100),
-                  ),
-                  child: Text(_error!, style: const TextStyle(color: Colors.red)),
-                ),
-                const SizedBox(height: 12),
-              ],
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _isUploading ? null : _pickAndUploadResume,
-                      icon: const Icon(Icons.upload_file),
-                      label: Text(_isUploading ? 'Uploading...' : 'Upload PDF/DOCX'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  OutlinedButton.icon(
-                    onPressed: _initLoad,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Reload'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Form(
-                key: _formKey,
+                padding: const EdgeInsets.all(20),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Full Name',
-                        helperText: 'Use the name you want shown to employers',
+                    if (_error != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.red.shade100),
+                        ),
+                        child: Text(
+                          _error!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
                       ),
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                      const SizedBox(height: 12),
+                    ],
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _isUploading
+                                ? null
+                                : _pickAndUploadResume,
+                            icon: const Icon(Icons.upload_file),
+                            label: Text(
+                              _isUploading ? 'Uploading...' : 'Upload PDF/DOCX',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        OutlinedButton.icon(
+                          onPressed: _initLoad,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Reload'),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        helperText: 'Example: yourname@example.com',
+                    const SizedBox(height: 16),
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            controller: _nameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Full Name',
+                              helperText:
+                                  'Use the name you want shown to employers',
+                            ),
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Required'
+                                : null,
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: const InputDecoration(
+                              labelText: 'Email',
+                              helperText: 'Example: yourname@example.com',
+                            ),
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Required'
+                                : null,
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            decoration: const InputDecoration(
+                              labelText: 'Phone',
+                              helperText:
+                                  'Include country code if applying abroad',
+                            ),
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Required'
+                                : null,
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _summaryController,
+                            maxLines: 3,
+                            decoration: const InputDecoration(
+                              labelText: 'Professional Summary',
+                              helperText:
+                                  '2–3 sentences about your experience and goals',
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _skillsController,
+                            decoration: const InputDecoration(
+                              labelText: 'Skills (comma separated)',
+                              helperText:
+                                  'Example: Flutter, Dart, REST APIs, Firebase',
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _educationController,
+                            decoration: const InputDecoration(
+                              labelText: 'Education',
+                              helperText:
+                                  'Example: BCA, XYZ University, 2022 (8.5 CGPA)',
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _experienceController,
+                            maxLines: 5,
+                            decoration: const InputDecoration(
+                              labelText: 'Experience',
+                              helperText:
+                                  'List your roles, companies, dates, and key achievements',
+                            ),
+                          ),
+                        ],
                       ),
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Required' : null,
                     ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone',
-                        helperText: 'Include country code if applying abroad',
+                    const SizedBox(height: 24),
+                    Container(
+                      height: 420,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppTheme.gray200),
                       ),
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                      child: _generatedPdfBytes == null
+                          ? Center(
+                              child: Text(
+                                'Generate a PDF to preview it here.',
+                                style: TextStyle(color: Colors.grey.shade600),
+                              ),
+                            )
+                          : PdfPreview(
+                              build: (format) async => _generatedPdfBytes!,
+                              canChangeOrientation: false,
+                              canChangePageFormat: false,
+                              allowSharing: true,
+                              allowPrinting: true,
+                              pdfFileName: 'resume.pdf',
+                            ),
                     ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _summaryController,
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: 'Professional Summary',
-                        helperText:
-                            '2–3 sentences about your experience and goals',
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _skillsController,
-                      decoration: const InputDecoration(
-                        labelText: 'Skills (comma separated)',
-                        helperText:
-                            'Example: Flutter, Dart, REST APIs, Firebase',
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _educationController,
-                      decoration: const InputDecoration(
-                        labelText: 'Education',
-                        helperText:
-                            'Example: BCA, XYZ University, 2022 (8.5 CGPA)',
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _experienceController,
-                      maxLines: 5,
-                      decoration: const InputDecoration(
-                        labelText: 'Experience',
-                        helperText:
-                            'List your roles, companies, dates, and key achievements',
-                      ),
+                    const SizedBox(height: 16),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isNarrow = constraints.maxWidth < 420;
+                        if (isNarrow) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: _isSaving ? null : _saveResumeData,
+                                icon: const Icon(Icons.save),
+                                label: Text(_isSaving ? 'Saving...' : 'Save'),
+                              ),
+                              const SizedBox(height: 12),
+                              OutlinedButton.icon(
+                                onPressed: _isGenerating ? null : _generatePdf,
+                                icon: const Icon(Icons.picture_as_pdf),
+                                label: Text(
+                                  _isGenerating
+                                      ? 'Generating...'
+                                      : 'Generate PDF',
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              OutlinedButton.icon(
+                                onPressed:
+                                    (_generatedPdfBytes == null || _isUploading)
+                                    ? null
+                                    : _uploadGeneratedPdf,
+                                icon: const Icon(Icons.cloud_upload_outlined),
+                                label: Text(
+                                  _isUploading
+                                      ? 'Uploading...'
+                                      : 'Upload Generated PDF',
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              OutlinedButton.icon(
+                                onPressed: _generatedPdfBytes == null
+                                    ? null
+                                    : () async {
+                                        await Printing.sharePdf(
+                                          bytes: _generatedPdfBytes!,
+                                          filename: 'resume.pdf',
+                                        );
+                                      },
+                                icon: const Icon(Icons.share),
+                                label: const Text('Share PDF'),
+                              ),
+                            ],
+                          );
+                        }
+
+                        return Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          alignment: WrapAlignment.spaceBetween,
+                          children: [
+                            SizedBox(
+                              width: (constraints.maxWidth - 24) / 2,
+                              child: ElevatedButton.icon(
+                                onPressed: _isSaving ? null : _saveResumeData,
+                                icon: const Icon(Icons.save),
+                                label: Text(_isSaving ? 'Saving...' : 'Save'),
+                              ),
+                            ),
+                            SizedBox(
+                              width: (constraints.maxWidth - 24) / 2,
+                              child: OutlinedButton.icon(
+                                onPressed: _isGenerating ? null : _generatePdf,
+                                icon: const Icon(Icons.picture_as_pdf),
+                                label: Text(
+                                  _isGenerating
+                                      ? 'Generating...'
+                                      : 'Generate PDF',
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: constraints.maxWidth,
+                              child: OutlinedButton.icon(
+                                onPressed:
+                                    (_generatedPdfBytes == null || _isUploading)
+                                    ? null
+                                    : _uploadGeneratedPdf,
+                                icon: const Icon(Icons.cloud_upload_outlined),
+                                label: Text(
+                                  _isUploading
+                                      ? 'Uploading...'
+                                      : 'Upload Generated PDF',
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: constraints.maxWidth,
+                              child: OutlinedButton.icon(
+                                onPressed: _generatedPdfBytes == null
+                                    ? null
+                                    : () async {
+                                        await Printing.sharePdf(
+                                          bytes: _generatedPdfBytes!,
+                                          filename: 'resume.pdf',
+                                        );
+                                      },
+                                icon: const Icon(Icons.share),
+                                label: const Text('Share PDF'),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-              Container(
-                height: 420,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.gray200),
-                ),
-                child: _generatedPdfBytes == null
-                    ? Center(
-                        child: Text(
-                          'Generate a PDF to preview it here.',
-                          style: TextStyle(color: Colors.grey.shade600),
-                        ),
-                      )
-                    : PdfPreview(
-                        build: (format) async => _generatedPdfBytes!,
-                        canChangeOrientation: false,
-                        canChangePageFormat: false,
-                        allowSharing: true,
-                        allowPrinting: true,
-                        pdfFileName: 'resume.pdf',
-                      ),
-              ),
-              const SizedBox(height: 16),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final isNarrow = constraints.maxWidth < 420;
-                  if (isNarrow) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: _isSaving ? null : _saveResumeData,
-                          icon: const Icon(Icons.save),
-                          label: Text(_isSaving ? 'Saving...' : 'Save'),
-                        ),
-                        const SizedBox(height: 12),
-                        OutlinedButton.icon(
-                          onPressed: _isGenerating ? null : _generatePdf,
-                          icon: const Icon(Icons.picture_as_pdf),
-                          label: Text(
-                            _isGenerating ? 'Generating...' : 'Generate PDF',
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        OutlinedButton.icon(
-                          onPressed: (_generatedPdfBytes == null || _isUploading)
-                              ? null
-                              : _uploadGeneratedPdf,
-                          icon: const Icon(Icons.cloud_upload_outlined),
-                          label: Text(
-                            _isUploading
-                                ? 'Uploading...'
-                                : 'Upload Generated PDF',
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        OutlinedButton.icon(
-                          onPressed: _generatedPdfBytes == null
-                              ? null
-                              : () async {
-                                  await Printing.sharePdf(
-                                    bytes: _generatedPdfBytes!,
-                                    filename: 'resume.pdf',
-                                  );
-                                },
-                          icon: const Icon(Icons.share),
-                          label: const Text('Share PDF'),
-                        ),
-                      ],
-                    );
-                  }
-
-                  return Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    alignment: WrapAlignment.spaceBetween,
-                    children: [
-                      SizedBox(
-                        width: (constraints.maxWidth - 24) / 2,
-                        child: ElevatedButton.icon(
-                          onPressed: _isSaving ? null : _saveResumeData,
-                          icon: const Icon(Icons.save),
-                          label: Text(_isSaving ? 'Saving...' : 'Save'),
-                        ),
-                      ),
-                      SizedBox(
-                        width: (constraints.maxWidth - 24) / 2,
-                        child: OutlinedButton.icon(
-                          onPressed: _isGenerating ? null : _generatePdf,
-                          icon: const Icon(Icons.picture_as_pdf),
-                          label: Text(
-                            _isGenerating ? 'Generating...' : 'Generate PDF',
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: constraints.maxWidth,
-                        child: OutlinedButton.icon(
-                          onPressed: (_generatedPdfBytes == null || _isUploading)
-                              ? null
-                              : _uploadGeneratedPdf,
-                          icon: const Icon(Icons.cloud_upload_outlined),
-                          label: Text(
-                            _isUploading
-                                ? 'Uploading...'
-                                : 'Upload Generated PDF',
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: constraints.maxWidth,
-                        child: OutlinedButton.icon(
-                          onPressed: _generatedPdfBytes == null
-                              ? null
-                              : () async {
-                                  await Printing.sharePdf(
-                                    bytes: _generatedPdfBytes!,
-                                    filename: 'resume.pdf',
-                                  );
-                                },
-                          icon: const Icon(Icons.share),
-                          label: const Text('Share PDF'),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

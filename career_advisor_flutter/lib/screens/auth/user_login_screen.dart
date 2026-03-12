@@ -105,10 +105,11 @@ class _UserLoginScreenState extends ConsumerState<UserLoginScreen> {
               controller: controller,
               decoration: const InputDecoration(
                 labelText: 'API Base URL',
-                hintText: 'http://192.168.x.x:8080',
+                hintText:
+                    'https://careeradvisoraiapplication-production.up.railway.app',
                 helperText:
-                    'For Android Emulator: http://10.0.2.2:8080\nFor Physical Device: Use computer LAN IP',
-                helperMaxLines: 3,
+                    'Production: https://careeradvisoraiapplication-production.up.railway.app\nLocal: http://10.0.2.2:8080 or http://192.168.x.x:8080',
+                helperMaxLines: 4,
               ),
             ),
           ],
