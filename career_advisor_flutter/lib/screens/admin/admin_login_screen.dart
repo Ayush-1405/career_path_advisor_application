@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:career_advisor_flutter/providers/app_auth_provider.dart';
-import 'package:career_advisor_flutter/providers/base_url_provider.dart';
 import 'package:career_advisor_flutter/services/auth_service.dart';
-import 'package:career_advisor_flutter/utils/config.dart';
 import 'package:career_advisor_flutter/utils/theme.dart';
 import '../../widgets/animated_screen.dart';
 
@@ -29,62 +25,6 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
-  }
-
-  void _showServerUrlDialog() {
-    final currentUrl = ref.read(baseUrlProvider);
-    final controller = TextEditingController(text: currentUrl);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Server URL'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'API Base URL',
-                hintText:
-                    'https://careerpathadvisorapplication-production.up.railway.app',
-                helperText:
-                    'Production: https://careerpathadvisorapplication-production.up.railway.app\nLocal: http://10.0.2.2:8080 or http://192.168.x.x:8080',
-                helperMaxLines: 4,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              controller.text = AppConfig.baseUrl;
-            },
-            child: const Text('Reset to Default'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              String newUrl = controller.text.trim();
-              if (newUrl.isNotEmpty) {
-                // Strip trailing slash to avoid double slashes in paths
-                if (newUrl.endsWith('/')) {
-                  newUrl = newUrl.substring(0, newUrl.length - 1);
-                }
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setString('api_base_url', newUrl);
-                ref.read(baseUrlProvider.notifier).state = newUrl;
-                if (context.mounted) Navigator.pop(context);
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> _handleLogin() async {
@@ -131,26 +71,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          if (e is DioException) {
-            final url = e.requestOptions.uri.toString();
-            if (e.type == DioExceptionType.connectionTimeout ||
-                e.type == DioExceptionType.receiveTimeout ||
-                e.type == DioExceptionType.connectionError) {
-              _error = 'Connection error to $url. Check Settings.';
-            } else if (e.response?.statusCode == 401) {
-              _error = 'Invalid admin credentials.';
-            } else if (e.response?.statusCode == 404) {
-              _error = 'Endpoint not found (404) at $url. Check Settings.';
-            } else if (e.response != null) {
-              _error =
-                  e.response?.data?['message'] ??
-                  'Server error (${e.response?.statusCode}) at $url';
-            } else {
-              _error = 'Network error at $url. Please try again.';
-            }
-          } else {
-            _error = e.toString().replaceAll('Exception: ', '');
-          }
+          _error = e.toString().replaceAll('Exception: ', '');
           _isLoading = false;
         });
       }
@@ -162,21 +83,6 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     return AnimatedScreen(
       child: Scaffold(
         backgroundColor: AppTheme.gray50,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppTheme.gray900),
-            onPressed: () => context.go('/landing'),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings, color: AppTheme.gray900),
-              tooltip: 'Server Settings',
-              onPressed: _showServerUrlDialog,
-            ),
-          ],
-        ),
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),

@@ -23,11 +23,7 @@ Dio dio(Ref ref) {
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) async {
-        // Log the request for debugging
-        debugPrint(
-          '--- API Request: ${options.method} ${options.baseUrl}${options.path} ---',
-        );
-
+        debugPrint('--- API Request: ${options.method} ${options.uri} ---');
         // Use admin token for /api/admin/* or when explicitly set
         final path = options.path.startsWith('/')
             ? options.path
@@ -49,11 +45,17 @@ Dio dio(Ref ref) {
 
         return handler.next(options);
       },
+      onResponse: (response, handler) {
+        debugPrint(
+          '--- API Response: ${response.statusCode} ${response.requestOptions.uri} ---',
+        );
+        return handler.next(response);
+      },
       onError: (DioException e, handler) async {
         debugPrint(
           '--- API Error: ${e.response?.statusCode} ${e.requestOptions.uri} ---',
         );
-        if (e.response != null) {
+        if (e.response?.data != null) {
           debugPrint('--- API Error Response: ${e.response?.data} ---');
         }
         if (e.response?.statusCode == 401) {
