@@ -106,9 +106,9 @@ class _UserLoginScreenState extends ConsumerState<UserLoginScreen> {
               decoration: const InputDecoration(
                 labelText: 'API Base URL',
                 hintText:
-                    'https://careeradvisoraiapplication-production.up.railway.app',
+                    'https://careerpathadvisorapplication-production.up.railway.app',
                 helperText:
-                    'Production: https://careeradvisoraiapplication-production.up.railway.app\nLocal: http://10.0.2.2:8080 or http://192.168.x.x:8080',
+                    'Production: https://careerpathadvisorapplication-production.up.railway.app\nLocal: http://10.0.2.2:8080 or http://192.168.x.x:8080',
                 helperMaxLines: 4,
               ),
             ),
