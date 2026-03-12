@@ -1,0 +1,217 @@
+package com.advisor.service;
+
+import com.advisor.dto.*;
+import com.advisor.entity.*;
+import com.advisor.repository.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class AdminUserManagementService {
+
+    private final UserRepository userRepository;
+    private final ResumeRepository resumeRepository;
+    private final ResumeAnalysisRepository resumeAnalysisRepository;
+    private final UserActivityRepository userActivityRepository;
+
+    public Page<UserProfileDto> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable)
+                .map(this::convertToUserProfileDto);
+    }
+
+    public UserProfileDto getUserById(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return convertToUserProfileDto(user);
+    }
+
+    public UserProfileDto updateUserProfile(String userId, UpdateUserProfileRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Only update email if provided and different
+        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+            if (!user.getEmail().equals(request.getEmail()) && 
+                userRepository.existsByEmail(request.getEmail())) {
+                throw new RuntimeException("Email already exists");
+            }
+            user.setEmail(request.getEmail());
+        }
+
+        if (request.getName() != null && !request.getName().isEmpty()) {
+            user.setName(request.getName());
+        }
+        if (request.getPhoneNumber() != null) {
+            user.setPhoneNumber(request.getPhoneNumber());
+        }
+        if (request.getBio() != null) {
+            user.setBio(request.getBio());
+        }
+        if (request.getLocation() != null) {
+            user.setLocation(request.getLocation());
+        }
+        if (request.getLinkedinUrl() != null) {
+            user.setLinkedinUrl(request.getLinkedinUrl());
+        }
+        if (request.getGithubUrl() != null) {
+            user.setGithubUrl(request.getGithubUrl());
+        }
+        if (request.getWebsiteUrl() != null) {
+            user.setWebsiteUrl(request.getWebsiteUrl());
+        }
+        if (request.getProfilePictureUrl() != null) {
+            user.setProfilePictureUrl(request.getProfilePictureUrl());
+        }
+        user.setUpdatedAt(LocalDateTime.now());
+
+        User savedUser = userRepository.save(user);
+        return convertToUserProfileDto(savedUser);
+    }
+
+    public UserProfileDto updateUserRoleAndStatus(AdminUserManagementRequest request) {
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (request.getRole() != null) {
+            user.setRole(request.getRole());
+        }
+        if (request.getIsActive() != null) {
+            user.setIsActive(request.getIsActive());
+        }
+        if (request.getEmailVerified() != null) {
+            user.setEmailVerified(request.getEmailVerified());
+        }
+        user.setUpdatedAt(LocalDateTime.now());
+
+        User savedUser = userRepository.save(user);
+        return convertToUserProfileDto(savedUser);
+    }
+
+    public void deleteUser(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        userRepository.delete(user);
+    }
+
+    public AdminReportResponse generateAdminReport() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startOfMonth = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+
+        Long totalUsers = userRepository.count();
+        Long activeUsers = userRepository.countByIsActiveTrue();
+        Long newUsersThisMonth = userRepository.countByCreatedAtAfter(startOfMonth);
+        Long totalResumes = resumeRepository.count();
+        Long totalAnalyses = resumeAnalysisRepository.count();
+
+        // Calculate average resume score
+        List<ResumeAnalysis> analyses = resumeAnalysisRepository.findAll();
+        Double averageResumeScore = analyses.stream()
+                .filter(a -> a.getOverallScore() != null)
+                .mapToDouble(ResumeAnalysis::getOverallScore)
+                .average()
+                .orElse(0.0);
+
+        // Get user activities (limit to recent 50)
+        List<UserActivity> activities = userActivityRepository.findAllByOrderByCreatedAtDesc();
+        if (activities.size() > 50) {
+            activities = activities.subList(0, 50);
+        }
+        List<AdminReportResponse.UserActivityReport> userActivityReports = activities.stream()
+                .map(activity -> {
+                    User user = activity.getUser();
+                    return new AdminReportResponse.UserActivityReport(
+                        user != null ? user.getId() : "Unknown",
+                        user != null ? user.getName() : "Unknown",
+                        user != null ? user.getEmail() : "Unknown",
+                        activity.getActivityType(),
+                        activity.getActivityData(),
+                        activity.getTimestamp()
+                    );
+                })
+                .collect(Collectors.toList());
+
+        // Get resume analyses (limit to recent 50)
+        List<ResumeAnalysis> analysesForReport = analyses;
+        if (analysesForReport.size() > 50) {
+            analysesForReport = analysesForReport.subList(analysesForReport.size() - 50, analysesForReport.size());
+        }
+        List<AdminReportResponse.ResumeAnalysisReport> resumeAnalysisReports = analysesForReport.stream()
+                .map(analysis -> {
+                    Resume resume = analysis.getResume();
+                    User user = analysis.getUser();
+                    return new AdminReportResponse.ResumeAnalysisReport(
+                        analysis.getId(),
+                        user != null ? user.getId() : (resume != null && resume.getUser() != null ? resume.getUser().getId() : "Unknown"),
+                        user != null ? user.getName() : "Unknown",
+                        resume != null ? resume.getFileName() : "Unknown",
+                        analysis.getOverallScore() != null ? analysis.getOverallScore().doubleValue() : 0.0,
+                        analysis.getStrengths(),
+                        analysis.getWeaknesses(),
+                        analysis.getAnalyzedAt()
+                    );
+                })
+                .collect(Collectors.toList());
+
+        // Get user registrations by month
+        Map<String, Long> userRegistrationsByMonth = userRepository.findAll().stream()
+                .collect(Collectors.groupingBy(
+                        user -> user.getCreatedAt().getYear() + "-" + 
+                               String.format("%02d", user.getCreatedAt().getMonthValue()),
+                        Collectors.counting()
+                ));
+
+        // Get role distribution
+        Map<String, Long> roleDistribution = userRepository.findAll().stream()
+                .collect(Collectors.groupingBy(
+                        user -> user.getRole().name(),
+                        Collectors.counting()
+                ));
+
+        return new AdminReportResponse(
+                totalUsers,
+                activeUsers,
+                newUsersThisMonth,
+                totalResumes,
+                totalAnalyses,
+                averageResumeScore,
+                userActivityReports,
+                resumeAnalysisReports,
+                userRegistrationsByMonth,
+                roleDistribution,
+                now
+        );
+    }
+
+    public UserProfileDto convertToUserProfileDto(User user) {
+        return new UserProfileDto(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getPhoneNumber(),
+                user.getProfilePictureUrl(),
+                user.getBio(),
+                user.getLocation(),
+                user.getLinkedinUrl(),
+                user.getGithubUrl(),
+                user.getWebsiteUrl(),
+                user.getIsActive(),
+                user.getEmailVerified(),
+                user.getLastLogin(),
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
+                user.getRole().name()
+        );
+    }
+}
+
+

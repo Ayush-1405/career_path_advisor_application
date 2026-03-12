@@ -1,0 +1,209 @@
+<<<<<<< HEAD
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+              http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="career_report" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20"
+              rightMargin="20" topMargin="20" bottomMargin="20" uuid="career-report-uuid">
+
+    <!-- Define Fields -->
+    <field name="careerName" class="java.lang.String"/>
+    <field name="description" class="java.lang.String"/>
+    <field name="skills" class="java.lang.String"/>
+    <field name="averageSalary" class="java.lang.Double"/>
+
+    <!-- Define Parameters -->
+    <parameter name="username" class="java.lang.String"/>
+    <parameter name="email" class="java.lang.String"/>
+
+    <!-- Title Band -->
+    <title>
+        <band height="70">
+            <staticText>
+                <reportElement x="0" y="0" width="555" height="30" uuid="title1"/>
+                <textElement textAlignment="Center">
+                    <font size="18" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Career Path Report]]></text>
+            </staticText>
+
+            <textField>
+                <reportElement x="0" y="35" width="555" height="20" uuid="user-info"/>
+                <textElement textAlignment="Center">
+                    <font size="12"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Generated for: " + $P{username} + " (" + $P{email} + ")"]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <!-- Column Headers -->
+    <columnHeader>
+        <band height="25">
+            <staticText>
+                <reportElement x="0" y="0" width="140" height="25" uuid="ch1"/>
+                <textElement textAlignment="Left">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Career Name]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="145" y="0" width="200" height="25" uuid="ch2"/>
+                <textElement textAlignment="Left">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Description]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="350" y="0" width="120" height="25" uuid="ch3"/>
+                <textElement textAlignment="Left">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Skills]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="475" y="0" width="80" height="25" uuid="ch4"/>
+                <textElement textAlignment="Right">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Salary]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+
+    <!-- Detail Rows -->
+    <detail>
+        <band height="20">
+            <textField>
+                <reportElement x="0" y="0" width="140" height="20" uuid="d1"/>
+                <textFieldExpression><![CDATA[$F{careerName}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="145" y="0" width="200" height="20" uuid="d2"/>
+                <textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="350" y="0" width="120" height="20" uuid="d3"/>
+                <textFieldExpression><![CDATA[$F{skills}]]></textFieldExpression>
+            </textField>
+
+            <textField pattern="###,###.##">
+                <reportElement x="475" y="0" width="80" height="20" uuid="d4"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA[$F{averageSalary}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+
+</jasperReport>
+=======
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+              http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="career_report" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20"
+              rightMargin="20" topMargin="20" bottomMargin="20" uuid="career-report-uuid">
+
+    <!-- Define Fields -->
+    <field name="careerName" class="java.lang.String"/>
+    <field name="description" class="java.lang.String"/>
+    <field name="skills" class="java.lang.String"/>
+    <field name="averageSalary" class="java.lang.Double"/>
+
+    <!-- Define Parameters -->
+    <parameter name="username" class="java.lang.String"/>
+    <parameter name="email" class="java.lang.String"/>
+
+    <!-- Title Band -->
+    <title>
+        <band height="70">
+            <staticText>
+                <reportElement x="0" y="0" width="555" height="30" uuid="title1"/>
+                <textElement textAlignment="Center">
+                    <font size="18" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Career Path Report]]></text>
+            </staticText>
+
+            <textField>
+                <reportElement x="0" y="35" width="555" height="20" uuid="user-info"/>
+                <textElement textAlignment="Center">
+                    <font size="12"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Generated for: " + $P{username} + " (" + $P{email} + ")"]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <!-- Column Headers -->
+    <columnHeader>
+        <band height="25">
+            <staticText>
+                <reportElement x="0" y="0" width="140" height="25" uuid="ch1"/>
+                <textElement textAlignment="Left">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Career Name]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="145" y="0" width="200" height="25" uuid="ch2"/>
+                <textElement textAlignment="Left">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Description]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="350" y="0" width="120" height="25" uuid="ch3"/>
+                <textElement textAlignment="Left">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Skills]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="475" y="0" width="80" height="25" uuid="ch4"/>
+                <textElement textAlignment="Right">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Salary]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+
+    <!-- Detail Rows -->
+    <detail>
+        <band height="20">
+            <textField>
+                <reportElement x="0" y="0" width="140" height="20" uuid="d1"/>
+                <textFieldExpression><![CDATA[$F{careerName}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="145" y="0" width="200" height="20" uuid="d2"/>
+                <textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="350" y="0" width="120" height="20" uuid="d3"/>
+                <textFieldExpression><![CDATA[$F{skills}]]></textFieldExpression>
+            </textField>
+
+            <textField pattern="###,###.##">
+                <reportElement x="475" y="0" width="80" height="20" uuid="d4"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA[$F{averageSalary}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+
+</jasperReport>
+>>>>>>> 9c3495dfddaf30f5f49bcae2a62b9d6f7d0a15ca
