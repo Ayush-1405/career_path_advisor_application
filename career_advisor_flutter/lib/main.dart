@@ -10,11 +10,12 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   String? savedUrl = prefs.getString('api_base_url');
 
-  // If the saved URL is a local IP, clear it to favor the new production URL
+  // If the saved URL is a local IP or an old production URL, clear it to favor the new one
   if (savedUrl != null &&
       (savedUrl.contains('10.0.2.2') ||
           savedUrl.contains('172.20.10.2') ||
-          savedUrl.contains('localhost'))) {
+          savedUrl.contains('localhost') ||
+          savedUrl.contains('careeradvisoraiapplication'))) {
     await prefs.remove('api_base_url');
     savedUrl = null;
   }

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../services/token_service.dart';
@@ -9,7 +10,7 @@ part 'dio_provider.g.dart';
 @Riverpod(keepAlive: true)
 Dio dio(Ref ref) {
   final baseUrl = ref.watch(baseUrlProvider);
-  
+
   final dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,
@@ -22,10 +23,17 @@ Dio dio(Ref ref) {
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) async {
+        // Log the request for debugging
+        debugPrint(
+          '--- API Request: ${options.method} ${options.baseUrl}${options.path} ---',
+        );
+
         // Use admin token for /api/admin/* or when explicitly set
-        final path = options.path.startsWith('/') ? options.path : '/${options.path}';
-        final isAdmin = options.extra['isAdmin'] == true ||
-            path.startsWith('/api/admin');
+        final path = options.path.startsWith('/')
+            ? options.path
+            : '/${options.path}';
+        final isAdmin =
+            options.extra['isAdmin'] == true || path.startsWith('/api/admin');
         final tokenService = ref.read(tokenServiceProvider.notifier);
 
         String? token;
@@ -42,10 +50,20 @@ Dio dio(Ref ref) {
         return handler.next(options);
       },
       onError: (DioException e, handler) async {
+        debugPrint(
+          '--- API Error: ${e.response?.statusCode} ${e.requestOptions.uri} ---',
+        );
+        if (e.response != null) {
+          debugPrint('--- API Error Response: ${e.response?.data} ---');
+        }
         if (e.response?.statusCode == 401) {
           final tokenService = ref.read(tokenServiceProvider.notifier);
-          final path = e.requestOptions.path.startsWith('/') ? e.requestOptions.path : '/${e.requestOptions.path}';
-          final isAdmin = e.requestOptions.extra['isAdmin'] == true || path.startsWith('/api/admin');
+          final path = e.requestOptions.path.startsWith('/')
+              ? e.requestOptions.path
+              : '/${e.requestOptions.path}';
+          final isAdmin =
+              e.requestOptions.extra['isAdmin'] == true ||
+              path.startsWith('/api/admin');
           if (isAdmin) {
             await tokenService.clearAdminAuth();
           } else {

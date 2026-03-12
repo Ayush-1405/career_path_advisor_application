@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:career_advisor_flutter/providers/app_auth_provider.dart';
 import 'package:career_advisor_flutter/providers/base_url_provider.dart';
 import 'package:career_advisor_flutter/services/api_service.dart';
+import 'package:career_advisor_flutter/utils/config.dart';
 import 'package:career_advisor_flutter/utils/theme.dart';
 import '../../widgets/animated_screen.dart';
 
@@ -81,18 +82,20 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
       if (mounted) {
         String msg = e.toString().replaceAll('Exception: ', '');
         if (e is DioException) {
+          final url = e.requestOptions.uri.toString();
           if (e.type == DioExceptionType.connectionTimeout ||
               e.type == DioExceptionType.receiveTimeout ||
               e.type == DioExceptionType.connectionError) {
-            msg = 'Connection error. Check Settings > Server URL.';
+            msg = 'Connection error to $url. Check Settings.';
+          } else if (e.response?.statusCode == 404) {
+            msg = 'Endpoint not found (404) at $url. Check Settings.';
           } else if (e.response?.data is Map &&
               (e.response?.data as Map).containsKey('message')) {
             msg = (e.response?.data as Map)['message']?.toString() ?? msg;
           } else if (e.response?.data is String) {
             msg = e.response?.data as String;
           } else if (e.response?.statusCode == 400) {
-            msg =
-                'Bad request. Ensure name, email, password are valid and unused.';
+            msg = 'Bad request at $url. Ensure data is valid.';
           }
         }
         setState(() {
@@ -119,9 +122,9 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
               decoration: const InputDecoration(
                 labelText: 'API Base URL',
                 hintText:
-                    'https://careerpathadvisorapplication-production.up.railway.app/',
+                    'https://careerpathadvisorapplication-production.up.railway.app',
                 helperText:
-                    'Production: https://careerpathadvisorapplication-production.up.railway.app/\nLocal: http://10.0.2.2:8080 or http://192.168.x.x:8080',
+                    'Production: https://careerpathadvisorapplication-production.up.railway.app\nLocal: http://10.0.2.2:8080 or http://192.168.x.x:8080',
                 helperMaxLines: 4,
               ),
             ),
@@ -129,13 +132,24 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
         ),
         actions: [
           TextButton(
+            onPressed: () {
+              controller.text = AppConfig.baseUrl;
+            },
+            child: const Text('Reset to Default'),
+          ),
+          const Spacer(),
+          TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () async {
-              final newUrl = controller.text.trim();
+              String newUrl = controller.text.trim();
               if (newUrl.isNotEmpty) {
+                // Strip trailing slash to avoid double slashes in paths
+                if (newUrl.endsWith('/')) {
+                  newUrl = newUrl.substring(0, newUrl.length - 1);
+                }
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.setString('api_base_url', newUrl);
                 ref.read(baseUrlProvider.notifier).state = newUrl;

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:career_advisor_flutter/providers/app_auth_provider.dart';
 import 'package:career_advisor_flutter/providers/base_url_provider.dart';
 import 'package:career_advisor_flutter/services/auth_service.dart';
+import 'package:career_advisor_flutter/utils/config.dart';
 import 'package:career_advisor_flutter/utils/theme.dart';
 import '../../widgets/animated_screen.dart';
 
@@ -68,18 +69,21 @@ class _UserLoginScreenState extends ConsumerState<UserLoginScreen> {
       if (mounted) {
         setState(() {
           if (e is DioException) {
+            final url = e.requestOptions.uri.toString();
             if (e.type == DioExceptionType.connectionTimeout ||
                 e.type == DioExceptionType.receiveTimeout ||
                 e.type == DioExceptionType.connectionError) {
-              _error = 'Connection timeout. Check Settings > Server URL.';
+              _error = 'Connection error to $url. Check Settings.';
             } else if (e.response?.statusCode == 401) {
               _error = 'Invalid email or password.';
+            } else if (e.response?.statusCode == 404) {
+              _error = 'Endpoint not found (404) at $url. Check Settings.';
             } else if (e.response != null) {
               _error =
                   e.response?.data?['message'] ??
-                  'Server error occurred: ${e.response?.statusCode}';
+                  'Server error (${e.response?.statusCode}) at $url';
             } else {
-              _error = 'Network error occurred. Please try again.';
+              _error = 'Network error at $url. Please try again.';
             }
           } else {
             _error = e.toString().replaceAll('Exception: ', '');
@@ -106,9 +110,9 @@ class _UserLoginScreenState extends ConsumerState<UserLoginScreen> {
               decoration: const InputDecoration(
                 labelText: 'API Base URL',
                 hintText:
-                    'https://careerpathadvisorapplication-production.up.railway.app/',
+                    'https://careerpathadvisorapplication-production.up.railway.app',
                 helperText:
-                    'Production: https://careerpathadvisorapplication-production.up.railway.app/\nLocal: http://10.0.2.2:8080 or http://192.168.x.x:8080',
+                    'Production: https://careerpathadvisorapplication-production.up.railway.app\nLocal: http://10.0.2.2:8080 or http://192.168.x.x:8080',
                 helperMaxLines: 4,
               ),
             ),
@@ -116,13 +120,23 @@ class _UserLoginScreenState extends ConsumerState<UserLoginScreen> {
         ),
         actions: [
           TextButton(
+            onPressed: () {
+              controller.text = AppConfig.baseUrl;
+            },
+            child: const Text('Reset to Default'),
+          ),
+          TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () async {
-              final newUrl = controller.text.trim();
+              String newUrl = controller.text.trim();
               if (newUrl.isNotEmpty) {
+                // Strip trailing slash to avoid double slashes in paths
+                if (newUrl.endsWith('/')) {
+                  newUrl = newUrl.substring(0, newUrl.length - 1);
+                }
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.setString('api_base_url', newUrl);
                 ref.read(baseUrlProvider.notifier).state = newUrl;
