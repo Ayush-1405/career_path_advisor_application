@@ -11,7 +11,6 @@ import '../../services/api_service.dart';
 import '../../models/user.dart';
 import '../../widgets/animated_screen.dart';
 
-/// Staggered delay for entrance animations (ms)
 int _staggerDelay(int index) => 50 + (index * 60);
 
 class UserDashboardScreen extends ConsumerStatefulWidget {
@@ -167,8 +166,6 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
         } catch (_) {}
       }
 
-      // Prefer backend completionRate; use profile-based when backend returns 0/empty
-      // blend with profile-based completion for better UX
       final rawRate = stats['completionRate'];
       final parsedRate = (rawRate is int)
           ? rawRate
@@ -185,8 +182,6 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
           ? (rawTotal).toInt()
           : null;
 
-      // Backend completionRate from UserProfileCompletion (resume+skills+career+edu).
-      // When backend returns 0 or null, use profile form completion so user sees accurate status.
       final profileBasedRate = _user != null
           ? (_user!.calculatedCompletionPercentage * 100).round()
           : 0;
