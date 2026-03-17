@@ -406,15 +406,15 @@ class _UserLoginScreenState extends ConsumerState<UserLoginScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  TextButton(
-                    onPressed: () {
-                      context.push('/admin/login');
-                    },
-                    child: const Text(
-                      'Admin Login',
-                      style: TextStyle(color: AppTheme.gray500),
-                    ),
-                  ),
+                  // TextButton(
+                  //   onPressed: () {
+                  //     context.push('/admin/login');
+                  //   // }, child: null,
+                  //   // child: const Text(
+                  //   //   'Admin Login',
+                  //   //   style: TextStyle(color: AppTheme.gray500),
+                  //   // ),
+                  // ),
                 ],
               ),
             ),

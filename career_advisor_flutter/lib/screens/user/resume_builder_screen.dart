@@ -364,76 +364,118 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                         children: [
                           TextFormField(
                             controller: _nameController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Full Name',
-                              helperText:
-                                  'Use the name you want shown to employers',
+                              hintText: 'Enter your full name',
+                              helperText: 'Use the name you want shown to employers',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              prefixIcon: const Icon(Icons.person_outline),
                             ),
                             validator: (v) => (v == null || v.trim().isEmpty)
-                                ? 'Required'
+                                ? 'Full name is required'
                                 : null,
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 16),
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Email',
+                              hintText: 'Enter your email address',
                               helperText: 'Example: yourname@example.com',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              prefixIcon: const Icon(Icons.email_outlined),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty)
-                                ? 'Required'
-                                : null,
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Email is required';
+                              }
+                              final emailRegex = RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
+                              if (!emailRegex.hasMatch(v.trim())) {
+                                return 'Enter a valid email address';
+                              }
+                              return null;
+                            },
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 16),
                           TextFormField(
                             controller: _phoneController,
                             keyboardType: TextInputType.phone,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Phone',
-                              helperText:
-                                  'Include country code if applying abroad',
+                              hintText: 'Enter your phone number',
+                              helperText: 'Include country code if applying abroad',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              prefixIcon: const Icon(Icons.phone_outlined),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty)
-                                ? 'Required'
-                                : null,
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Phone number is required';
+                              }
+                              if (v.trim().length < 10) {
+                                return 'Enter a valid phone number';
+                              }
+                              return null;
+                            },
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 16),
                           TextFormField(
                             controller: _summaryController,
                             maxLines: 3,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Professional Summary',
-                              helperText:
-                                  '2–3 sentences about your experience and goals',
+                              hintText: 'Briefly describe your background',
+                              helperText: '2–3 sentences about your experience and goals',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              alignLabelWithHint: true,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 16),
                           TextFormField(
                             controller: _skillsController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Skills (comma separated)',
-                              helperText:
-                                  'Example: Flutter, Dart, REST APIs, Firebase',
+                              hintText: 'e.g. Flutter, Java, Python',
+                              helperText: 'Example: Flutter, Dart, REST APIs, Firebase',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              prefixIcon: const Icon(Icons.extension_outlined),
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 16),
                           TextFormField(
                             controller: _educationController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Education',
-                              helperText:
-                                  'Example: BCA, XYZ University, 2022 (8.5 CGPA)',
+                              hintText: 'Enter your educational background',
+                              helperText: 'Example: BCA, XYZ University, 2022 (8.5 CGPA)',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              prefixIcon: const Icon(Icons.school_outlined),
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 16),
                           TextFormField(
                             controller: _experienceController,
                             maxLines: 5,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Experience',
-                              helperText:
-                                  'List your roles, companies, dates, and key achievements',
+                              hintText: 'Describe your work experience',
+                              helperText: 'List your roles, companies, dates, and key achievements',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              alignLabelWithHint: true,
                             ),
                           ),
                         ],

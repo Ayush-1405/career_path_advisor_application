@@ -1,0 +1,71 @@
+name: career_advisor_admin
+description: "A separate Flutter project for Career Path Advisor Admin."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  
+  # HTTP client for API calls
+  dio: ^5.4.3+1
+
+  # Local storage
+  shared_preferences: ^2.2.2
+
+  # State management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Navigation
+  go_router: ^14.2.0
+  
+  # File picker for resume upload
+  file_picker: ^8.0.0
+  
+  # JSON serialization
+  json_annotation: ^4.8.1
+  
+  # Icons
+  flutter_svg: ^2.0.9
+  font_awesome_flutter: ^10.6.0
+  
+  # PDF viewer/downloader
+  pdf: ^3.10.7
+  printing: ^5.12.0
+  
+  # Image picker
+  image_picker: ^1.0.7
+  
+  # URL launcher
+  url_launcher: ^6.2.3
+  fl_chart: ^1.1.1
+  remixicon: ^1.4.1
+  flutter_secure_storage: ^8.0.0
+  intl: ^0.20.2
+  share_plus: ^7.2.2
+  shimmer: ^3.0.0
+  animations: ^2.0.11
+
+dependency_overrides:
+   path_provider_foundation: 2.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+  
+  # JSON serialization code generation
+  build_runner: ^2.4.8
+  json_serializable: ^6.7.1
+  riverpod_generator: ^2.4.0
+
+flutter:
+  uses-material-design: true

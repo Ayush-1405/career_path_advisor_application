@@ -947,7 +947,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           label,
           style: const TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
             color: AppTheme.gray700,
           ),
         ),
@@ -962,30 +962,62 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           ),
           decoration: InputDecoration(
             filled: !enabled,
-            fillColor: enabled ? Colors.white : Colors.grey.shade100,
+            fillColor: enabled ? Colors.white : Colors.grey.shade50,
+            hintText: 'Enter your $label',
+            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppTheme.primaryColor),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red, width: 1),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
-              vertical: 12,
+              vertical: 14,
             ),
           ),
           validator: (value) {
-            if (label == 'Full Name' && (value == null || value.isEmpty)) {
-              return 'Please enter your name';
-            }
-            if (label == 'Email' && (value == null || value.isEmpty)) {
-              return 'Please enter your email';
+            if (enabled) {
+              if (label == 'Full Name' && (value == null || value.trim().isEmpty)) {
+                return 'Please enter your name';
+              }
+              if (label == 'Email') {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Please enter your email';
+                }
+                final emailRegex = RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
+                if (!emailRegex.hasMatch(value.trim())) {
+                  return 'Please enter a valid email address';
+                }
+              }
+              if (label == 'Phone Number' && value != null && value.isNotEmpty) {
+                if (value.length < 10) {
+                  return 'Phone number must be at least 10 digits';
+                }
+              }
+              if (label.contains('URL') && value != null && value.isNotEmpty) {
+                if (!value.startsWith('http')) {
+                  return 'URL must start with http:// or https://';
+                }
+              }
             }
             return null;
           },
