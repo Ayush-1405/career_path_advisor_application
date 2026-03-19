@@ -24,6 +24,7 @@ class _UserLoginScreenState extends ConsumerState<UserLoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _error;
+  String? _passwordError;
 
   @override
   void dispose() {
@@ -39,6 +40,7 @@ class _UserLoginScreenState extends ConsumerState<UserLoginScreen> {
     setState(() {
       _isLoading = true;
       _error = null;
+      _passwordError = null;
     });
 
     try {
@@ -76,7 +78,7 @@ class _UserLoginScreenState extends ConsumerState<UserLoginScreen> {
                 e.type == DioExceptionType.connectionError) {
               _error = 'Connection error to $url. Check Settings.';
             } else if (e.response?.statusCode == 401) {
-              _error = 'Invalid email or password.';
+              _passwordError = 'Invalid email or password.';
             } else if (e.response?.statusCode == 404) {
               _error = 'Endpoint not found (404) at $url. Check Settings.';
             } else if (e.response != null) {
@@ -282,7 +284,15 @@ class _UserLoginScreenState extends ConsumerState<UserLoginScreen> {
                           width: 2,
                         ),
                       ),
+                      errorText: _passwordError,
                     ),
+                    onChanged: (value) {
+                      if (_passwordError != null) {
+                        setState(() {
+                          _passwordError = null;
+                        });
+                      }
+                    },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your password';

@@ -20,6 +20,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _error;
+  String? _passwordError;
 
   @override
   void dispose() {
@@ -35,6 +36,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     setState(() {
       _isLoading = true;
       _error = null;
+      _passwordError = null;
     });
 
     try {
@@ -72,7 +74,13 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = e.toString().replaceAll('Exception: ', '');
+          final errorMsg = e.toString().replaceAll('Exception: ', '');
+          if (errorMsg.toLowerCase().contains('invalid') && 
+              (errorMsg.toLowerCase().contains('password') || errorMsg.toLowerCase().contains('credentials'))) {
+            _passwordError = errorMsg;
+          } else {
+            _error = errorMsg;
+          }
           _isLoading = false;
         });
       }
@@ -273,10 +281,16 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                             width: 2,
                           ),
                         ),
+                        errorText: _passwordError,
                         contentPadding: const EdgeInsets.symmetric(
                           vertical: 16,
                         ),
                       ),
+                      onChanged: (value) {
+                        if (_passwordError != null) {
+                          setState(() => _passwordError = null);
+                        }
+                      },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your password';
