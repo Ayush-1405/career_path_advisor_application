@@ -152,7 +152,10 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
     return AnimatedScreen(
       child: Scaffold(
       backgroundColor: AppTheme.gray50,
-      appBar: AppBar(title: const Text('Resume Analyzer')),
+      appBar: AppBar(
+        title: const Text('Resume Analyzer'),
+        automaticallyImplyLeading: false,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(

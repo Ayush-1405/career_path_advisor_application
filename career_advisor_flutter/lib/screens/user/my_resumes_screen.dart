@@ -161,7 +161,10 @@ class _MyResumesScreenState extends ConsumerState<MyResumesScreen> {
   Widget build(BuildContext context) {
     return AnimatedScreen(
       child: Scaffold(
-      appBar: AppBar(title: const Text('My Resumes')),
+      appBar: AppBar(
+        title: const Text('My Resumes'),
+        automaticallyImplyLeading: false,
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null

@@ -160,17 +160,7 @@ class _UserLoginScreenState extends ConsumerState<UserLoginScreen> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppTheme.gray900),
-            onPressed: () => context.pop(),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings, color: AppTheme.gray900),
-              tooltip: 'Server Settings',
-              onPressed: _showServerUrlDialog,
-            ),
-          ],
+          automaticallyImplyLeading: false,
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -220,55 +210,7 @@ class _UserLoginScreenState extends ConsumerState<UserLoginScreen> {
                   ),
                   const SizedBox(height: 40),
 
-                  if (_error != null)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      margin: const EdgeInsets.only(bottom: 24),
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.error_outline,
-                                color: Colors.red.shade700,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  _error!,
-                                  style: TextStyle(color: Colors.red.shade700),
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (_error!.contains('Connection timeout') ||
-                              _error!.contains('Network error'))
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                top: 8.0,
-                                left: 36.0,
-                              ),
-                              child: TextButton.icon(
-                                onPressed: _showServerUrlDialog,
-                                icon: const Icon(Icons.settings, size: 16),
-                                label: const Text('Configure Server URL'),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.red.shade700,
-                                  padding: EdgeInsets.zero,
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
+                  // Error message moved below fields
 
                   TextFormField(
                     controller: _emailController,
@@ -362,6 +304,55 @@ class _UserLoginScreenState extends ConsumerState<UserLoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  if (_error != null)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 24),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.red.shade200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                color: Colors.red.shade700,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _error!,
+                                  style: TextStyle(color: Colors.red.shade700),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_error!.contains('Connection timeout') ||
+                              _error!.contains('Network error'))
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                top: 8.0,
+                                left: 36.0,
+                              ),
+                              child: TextButton.icon(
+                                onPressed: _showServerUrlDialog,
+                                icon: const Icon(Icons.settings, size: 16),
+                                label: const Text('Configure Server URL'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.red.shade700,
+                                  padding: EdgeInsets.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(

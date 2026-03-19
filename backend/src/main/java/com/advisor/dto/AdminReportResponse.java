@@ -21,6 +21,7 @@ public class AdminReportResponse {
     private List<ResumeAnalysisReport> resumeAnalyses;
     private Map<String, Long> userRegistrationsByMonth;
     private Map<String, Long> roleDistribution;
+    private Double systemUptime;
     private LocalDateTime generatedAt;
     
     @Data

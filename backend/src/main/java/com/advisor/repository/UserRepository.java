@@ -18,4 +18,5 @@ List<User> findByRole(Role role);
 long countByIsActiveTrue();
 long countByCreatedAtAfter(LocalDateTime date);
 long countByLastLoginAfter(LocalDateTime date);
+long countByEmailVerifiedTrue();
 }

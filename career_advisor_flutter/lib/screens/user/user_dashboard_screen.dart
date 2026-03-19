@@ -297,7 +297,10 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
     if (_error != null) {
       return AnimatedScreen(
         child: Scaffold(
-          appBar: AppBar(title: const Text('Dashboard')),
+          appBar: AppBar(
+            title: const Text('Dashboard'),
+            automaticallyImplyLeading: false,
+          ),
           body: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -328,6 +331,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
         appBar: AppBar(
           title: const Text('Dashboard'),
           centerTitle: false,
+          automaticallyImplyLeading: false,
           actions: [
             IconButton(
               icon: _isLoading

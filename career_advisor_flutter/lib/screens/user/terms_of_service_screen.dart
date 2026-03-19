@@ -10,7 +10,10 @@ class TermsOfServiceScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return AnimatedScreen(
       child: Scaffold(
-      appBar: AppBar(title: const Text('Terms of Service')),
+      appBar: AppBar(
+        title: const Text('Terms of Service'),
+        automaticallyImplyLeading: false,
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

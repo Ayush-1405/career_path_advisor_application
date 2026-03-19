@@ -292,6 +292,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Resume Builder'),
+          automaticallyImplyLeading: false,
           actions: [
             IconButton(
               tooltip: 'Upload Resume (PDF/DOCX)',

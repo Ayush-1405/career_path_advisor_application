@@ -65,10 +65,9 @@ class _AdminResumesScreenState extends ConsumerState<AdminResumesScreen> {
           userEmail.contains(query) ||
           fileName.contains(query);
 
-      // Backend might not return status, so we default to 'processed' for existing records
+      // Backend might not return status, so we default to 'PROCESSED' for existing records
       // or check if there's an error field if implemented.
-      // For now, assuming all fetched resumes are processed successfully.
-      final status = 'processed';
+      final status = (resume['status'] ?? 'PROCESSED').toString().toLowerCase();
       final matchesStatus = _statusFilter == 'all' || status == _statusFilter;
 
       return matchesSearch && matchesStatus;
@@ -91,296 +90,322 @@ class _AdminResumesScreenState extends ConsumerState<AdminResumesScreen> {
 
     return AnimatedScreen(
       child: Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text(
-          'Resume Logs',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadResumes,
-            tooltip: 'Refresh',
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          title: const Text(
+            'Resume Logs',
+            style: TextStyle(
+              color: Color(0xFF0F172A), // Slate 900
+              fontWeight: FontWeight.w700,
+              fontSize: 20,
+              letterSpacing: -0.5,
+            ),
           ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Error: $_error',
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadResumes,
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            )
-          : LayoutBuilder(
-              builder: (context, constraints) {
-                final isSmallScreen = constraints.maxWidth < 900;
+          iconTheme: const IconThemeData(color: Color(0xFF64748B)),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: Container(color: const Color(0xFFE2E8F0), height: 1),
+          ),
+          actions: const [],
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Error: $_error',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _loadResumes,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              )
+            : LayoutBuilder(
+                builder: (context, constraints) {
+                  final isSmallScreen = constraints.maxWidth < 900;
 
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header Stats
-                      if (isSmallScreen)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildHeaderTitle(),
-                            const SizedBox(height: 16),
-                            _buildTotalCountCard(),
-                          ],
-                        )
-                      else
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(child: _buildHeaderTitle()),
-                            const SizedBox(width: 16),
-                            _buildTotalCountCard(),
-                          ],
-                        ),
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header Stats
+                        if (isSmallScreen)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildHeaderTitle(),
+                              const SizedBox(height: 16),
+                              _buildTotalCountCard(),
+                            ],
+                          )
+                        else
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(child: _buildHeaderTitle()),
+                              const SizedBox(width: 16),
+                              _buildTotalCountCard(),
+                            ],
+                          ),
 
-                      const SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
-                      // Filters
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: isSmallScreen
-                            ? Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  _buildSearchField(),
-                                  const SizedBox(height: 16),
-                                  _buildStatusFilter(),
-                                ],
-                              )
-                            : Row(
-                                children: [
-                                  Expanded(flex: 2, child: _buildSearchField()),
-                                  const SizedBox(width: 24),
-                                  Expanded(child: _buildStatusFilter()),
-                                ],
+                        // Filters
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFF0F172A,
+                                ).withValues(alpha: 0.02),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Table
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.grey.shade200),
+                            ],
+                          ),
+                          child: isSmallScreen
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildSearchField(),
+                                    const SizedBox(height: 16),
+                                    _buildStatusFilter(),
+                                  ],
+                                )
+                              : Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 2,
+                                      child: _buildSearchField(),
+                                    ),
+                                    const SizedBox(width: 24),
+                                    Expanded(child: _buildStatusFilter()),
+                                  ],
+                                ),
                         ),
-                        child: Column(
-                          children: [
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: DataTable(
-                                horizontalMargin: 24,
-                                columnSpacing: 40,
-                                columns: const [
-                                  DataColumn(label: Text('USER')),
-                                  DataColumn(label: Text('FILE')),
-                                  DataColumn(label: Text('STATUS')),
-                                  DataColumn(label: Text('UPLOAD DATE')),
-                                  DataColumn(label: Text('ACTIONS')),
-                                ],
-                                rows: currentResumes.map((resume) {
-                                  final user = resume['user'] ?? {};
-                                  final userName = user['name'] ?? 'Unknown';
-                                  final userEmail = user['email'] ?? '';
-                                  final fileName =
-                                      resume['fileName'] ?? 'Unknown';
-                                  final fileSize =
-                                      resume['fileSize']?.toString() ?? '';
-                                  final uploadDate =
-                                      resume['uploadedAt'] != null
-                                      ? _formatDateStr(resume['uploadedAt'])
-                                      : 'N/A';
+                        const SizedBox(height: 24),
 
-                                  const status = 'processed';
+                        // Table
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFF0F172A,
+                                ).withValues(alpha: 0.02),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: DataTable(
+                                  horizontalMargin: 24,
+                                  columnSpacing: 40,
+                                  columns: const [
+                                    DataColumn(label: Text('USER')),
+                                    DataColumn(label: Text('FILE')),
+                                    DataColumn(label: Text('STATUS')),
+                                    DataColumn(label: Text('UPLOAD DATE')),
+                                    DataColumn(label: Text('ACTIONS')),
+                                  ],
+                                  rows: currentResumes.map((resume) {
+                                    final user = resume['user'] ?? {};
+                                    final userName = user['name'] ?? 'Unknown';
+                                    final userEmail = user['email'] ?? '';
+                                    final fileName =
+                                        resume['fileName'] ?? 'Unknown';
+                                    final fileSize =
+                                        resume['fileSize']?.toString() ?? '';
+                                    final uploadDate =
+                                        resume['uploadedAt'] != null
+                                        ? _formatDateStr(resume['uploadedAt'])
+                                        : 'N/A';
 
-                                  return DataRow(
-                                    cells: [
-                                      DataCell(
-                                        Row(
-                                          children: [
-                                            CircleAvatar(
-                                              backgroundColor: Colors.red[100],
-                                              child: Text(
-                                                userName.isNotEmpty
-                                                    ? userName[0].toUpperCase()
-                                                    : '?',
-                                                style: TextStyle(
-                                                  color: Colors.red[800],
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Text(
-                                                  userName,
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                                Text(
-                                                  userEmail,
-                                                  style: TextStyle(
-                                                    color: Colors.grey[500],
-                                                    fontSize: 12,
-                                                  ),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      DataCell(
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              fileName,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            Text(
-                                              fileSize.isNotEmpty
-                                                  ? '$fileSize bytes'
-                                                  : '',
-                                              style: TextStyle(
-                                                color: Colors.grey[500],
-                                                fontSize: 12,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      DataCell(
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.green[100],
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
+                                    final status =
+                                        (resume['status'] ?? 'PROCESSED')
+                                            .toString();
+
+                                    return DataRow(
+                                      cells: [
+                                        DataCell(
+                                          Row(
                                             children: [
-                                              Icon(
-                                                Icons.check,
-                                                size: 14,
-                                                color: Colors.green[800],
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                status.toUpperCase(),
-                                                style: TextStyle(
-                                                  color: Colors.green[800],
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
+                                              CircleAvatar(
+                                                backgroundColor:
+                                                    Colors.red[100],
+                                                child: Text(
+                                                  userName.isNotEmpty
+                                                      ? userName[0]
+                                                            .toUpperCase()
+                                                      : '?',
+                                                  style: TextStyle(
+                                                    color: Colors.red[800],
+                                                  ),
                                                 ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    userName,
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                  Text(
+                                                    userEmail,
+                                                    style: TextStyle(
+                                                      color: Colors.grey[500],
+                                                      fontSize: 12,
+                                                    ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ),
                                         ),
-                                      ),
-                                      DataCell(Text(uploadDate)),
-                                      DataCell(
-                                        TextButton.icon(
-                                          icon: const Icon(
-                                            Icons.visibility_outlined,
-                                            size: 18,
+                                        DataCell(
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                fileName,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              Text(
+                                                fileSize.isNotEmpty
+                                                    ? '$fileSize bytes'
+                                                    : '',
+                                                style: TextStyle(
+                                                  color: Colors.grey[500],
+                                                  fontSize: 12,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
                                           ),
-                                          label: const Text('View Details'),
-                                          style: TextButton.styleFrom(
-                                            foregroundColor: Colors.red[600],
-                                          ),
-                                          onPressed: () =>
-                                              _showResumeDetails(resume),
                                         ),
-                                      ),
-                                    ],
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                            if (totalPages > 1)
-                              Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    TextButton(
-                                      onPressed: _currentPage > 1
-                                          ? () => setState(() => _currentPage--)
-                                          : null,
-                                      child: const Text('Previous'),
-                                    ),
-                                    Text('Page $_currentPage of $totalPages'),
-                                    TextButton(
-                                      onPressed: _currentPage < totalPages
-                                          ? () => setState(() => _currentPage++)
-                                          : null,
-                                      child: const Text('Next'),
-                                    ),
-                                  ],
+                                        DataCell(
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.green[100],
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.check,
+                                                  size: 14,
+                                                  color: Colors.green[800],
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  status.toUpperCase(),
+                                                  style: TextStyle(
+                                                    color: Colors.green[800],
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(Text(uploadDate)),
+                                        DataCell(
+                                          TextButton.icon(
+                                            icon: const Icon(
+                                              Icons.visibility_outlined,
+                                              size: 18,
+                                            ),
+                                            label: const Text('View Details'),
+                                            style: TextButton.styleFrom(
+                                              foregroundColor: Colors.red[600],
+                                            ),
+                                            onPressed: () =>
+                                                _showResumeDetails(resume),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }).toList(),
                                 ),
                               ),
-                          ],
+                              if (totalPages > 1)
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      TextButton(
+                                        onPressed: _currentPage > 1
+                                            ? () =>
+                                                  setState(() => _currentPage--)
+                                            : null,
+                                        child: const Text('Previous'),
+                                      ),
+                                      Text('Page $_currentPage of $totalPages'),
+                                      TextButton(
+                                        onPressed: _currentPage < totalPages
+                                            ? () =>
+                                                  setState(() => _currentPage++)
+                                            : null,
+                                        child: const Text('Next'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-    ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+      ),
     );
   }
 
@@ -406,8 +431,15 @@ class _AdminResumesScreenState extends ConsumerState<AdminResumesScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -441,11 +473,28 @@ class _AdminResumesScreenState extends ConsumerState<AdminResumesScreen> {
           },
           decoration: InputDecoration(
             hintText: 'Search by user name, email, or filename...',
-            prefixIcon: const Icon(Icons.search),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+            prefixIcon: const Icon(
+              Icons.search_rounded,
+              color: Color(0xFF64748B),
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+            ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
-              vertical: 12,
+              vertical: 14,
             ),
           ),
         ),
@@ -464,16 +513,34 @@ class _AdminResumesScreenState extends ConsumerState<AdminResumesScreen> {
         const SizedBox(height: 8),
         InputDecorator(
           decoration: InputDecoration(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
-              vertical: 12,
+              vertical: 12, // slightly less to fit
             ),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: _statusFilter,
               isExpanded: true,
+              icon: const Icon(
+                Icons.expand_more_rounded,
+                color: Color(0xFF64748B),
+              ),
+              style: const TextStyle(
+                color: Color(0xFF0F172A),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
               items: const [
                 DropdownMenuItem(value: 'all', child: Text('All Status')),
                 DropdownMenuItem(value: 'processed', child: Text('Processed')),

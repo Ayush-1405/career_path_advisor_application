@@ -10,7 +10,10 @@ class PrivacyPolicyScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return AnimatedScreen(
       child: Scaffold(
-      appBar: AppBar(title: const Text('Privacy Policy')),
+      appBar: AppBar(
+        title: const Text('Privacy Policy'),
+        automaticallyImplyLeading: false,
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

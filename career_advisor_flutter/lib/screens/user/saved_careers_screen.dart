@@ -176,6 +176,7 @@ class _SavedCareersScreenState extends ConsumerState<SavedCareersScreen>
       child: Scaffold(
       backgroundColor: AppTheme.gray50,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('My Career Paths'),
         elevation: 0,
         backgroundColor: Colors.white,

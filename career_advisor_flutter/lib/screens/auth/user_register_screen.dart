@@ -8,6 +8,7 @@ import 'package:career_advisor_flutter/providers/base_url_provider.dart';
 import 'package:career_advisor_flutter/services/api_service.dart';
 import 'package:career_advisor_flutter/utils/theme.dart';
 import '../../widgets/animated_screen.dart';
+import '../../widgets/password_requirement_checklist.dart';
 
 class UserRegisterScreen extends ConsumerStatefulWidget {
   const UserRegisterScreen({super.key});
@@ -164,17 +165,7 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
           centerTitle: true,
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppTheme.gray900),
-            onPressed: () => context.pop(),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings, color: AppTheme.gray900),
-              tooltip: 'Server Settings',
-              onPressed: _showServerUrlDialog,
-            ),
-          ],
+          automaticallyImplyLeading: false,
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -227,29 +218,7 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Error Message
-                  if (_error != null)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      margin: const EdgeInsets.only(bottom: 24),
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade50,
-                        border: Border.all(color: Colors.red.shade200),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.error_outline, color: Colors.red.shade700),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              _error!,
-                              style: TextStyle(color: Colors.red.shade700),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  // Main form container (Error moved to below password area)
 
                   // Name Field
                   TextFormField(
@@ -363,8 +332,20 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                       if (value == null || value.isEmpty) {
                         return 'Please enter a password';
                       }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
+                      if (value.length < 8) {
+                        return 'Password must be at least 8 characters long';
+                      }
+                      if (!value.contains(RegExp(r'[A-Z]'))) {
+                        return 'Password must contain at least one uppercase letter';
+                      }
+                      if (!value.contains(RegExp(r'[a-z]'))) {
+                        return 'Password must contain at least one lowercase letter';
+                      }
+                      if (!value.contains(RegExp(r'[0-9]'))) {
+                        return 'Password must contain at least one number';
+                      }
+                      if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+                        return 'Password must contain at least one special character';
                       }
                       return null;
                     },
@@ -417,7 +398,42 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 8),
+
+                  ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _passwordController,
+                    builder: (context, value, _) {
+                      if (value.text.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: PasswordRequirementChecklist(password: value.text),
+                      );
+                    },
+                  ),
+
+                  // Error Message
+                  if (_error != null)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 24),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        border: Border.all(color: Colors.red.shade200),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.error_outline, color: Colors.red.shade700),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _error!,
+                              style: TextStyle(color: Colors.red.shade700),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
                   // Submit Button
                   SizedBox(

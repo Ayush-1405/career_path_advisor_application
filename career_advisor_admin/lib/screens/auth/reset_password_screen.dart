@@ -181,12 +181,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       child: Scaffold(
         backgroundColor: AppTheme.gray50,
         appBar: AppBar(
-          leading: BackButton(
-            color: AppTheme.gray900,
-            onPressed: () {
-              context.pushReplacement('/login');
-            },
-          ),
+          automaticallyImplyLeading: false,
           backgroundColor: Colors.transparent,
           elevation: 0,
         ),

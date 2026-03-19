@@ -136,10 +136,7 @@ class _SuggestionsScreenState extends ConsumerState<SuggestionsScreen> {
       child: Scaffold(
       backgroundColor: AppTheme.gray50,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
+        automaticallyImplyLeading: false,
         title: const Text('Career Suggestions'),
         elevation: 0,
         backgroundColor: Colors.white,

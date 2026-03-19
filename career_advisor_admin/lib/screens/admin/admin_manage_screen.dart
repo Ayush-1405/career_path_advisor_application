@@ -251,51 +251,112 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
   Widget build(BuildContext context) {
     return AnimatedScreen(
       child: Scaffold(
-        backgroundColor: AppTheme.gray50,
+        backgroundColor: const Color(0xFFF8FAFC), // Slate 50
         appBar: AppBar(
-          title: const Text('Manage Users'),
-          actions: [
-            IconButton(icon: const Icon(Icons.refresh), onPressed: _loadUsers),
-          ],
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          title: const Text(
+            'Manage Users',
+            style: TextStyle(
+              color: Color(0xFF0F172A), // Slate 900
+              fontWeight: FontWeight.w700,
+              fontSize: 20,
+              letterSpacing: -0.5,
+            ),
+          ),
+          iconTheme: const IconThemeData(color: Color(0xFF64748B)),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: Container(color: const Color(0xFFE2E8F0), height: 1), // Slate 200 border
+          ),
+          actions: const [],
         ),
         body: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(24.0), // Generous padding
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Search Bar
-              TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search users...',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _searchController.clear();
-                            _onSearchChanged('');
-                          },
-                        )
-                      : null,
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                onSubmitted: _onSearchChanged,
+                child: TextField(
+                  controller: _searchController,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: Color(0xFF0F172A),
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Search users by name or email...',
+                    hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                    prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF94A3B8)),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear_rounded, color: Color(0xFF94A3B8)),
+                            onPressed: () {
+                              _searchController.clear();
+                              _onSearchChanged('');
+                            },
+                          )
+                        : null,
+                  ),
+                  onSubmitted: _onSearchChanged,
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
               // Content
               Expanded(
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _error != null
-                    ? Center(child: Text('Error: $_error'))
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.error_outline_rounded, size: 48, color: Color(0xFFEF4444)),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Error: $_error',
+                              style: const TextStyle(color: Color(0xFFEF4444), fontSize: 15),
+                            ),
+                          ],
+                        ),
+                      )
                     : _users.isEmpty
-                    ? const Center(child: Text('No users found'))
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.search_off_rounded, size: 48, color: Color(0xFF94A3B8)),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'No users found',
+                              style: TextStyle(color: Color(0xFF64748B), fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      )
                     : RefreshIndicator(
                         onRefresh: _loadUsers,
+                        color: AppTheme.adminPrimaryRed,
                         child: ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(
+                              parent: BouncingScrollPhysics()),
                           itemCount: _users.length,
                           itemBuilder: (context, index) {
                             final user = _users[index];
@@ -303,110 +364,182 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                             final initial = name.isNotEmpty
                                 ? name[0].toString().toUpperCase()
                                 : 'U';
+                            final isAdmin = AppRoles.isAdmin(user['role']?.toString());
+                            final isVerified = user['emailVerified'] == true;
 
                             return Container(
-                              margin: const EdgeInsets.only(bottom: 8),
+                              margin: const EdgeInsets.only(bottom: 12),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.grey.shade200),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: AppTheme.primaryColor
-                                      .withValues(alpha: 0.1),
-                                  child: Text(
-                                    initial,
-                                    style: TextStyle(
-                                      color: AppTheme.primaryColor,
+                              child: Material(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(16),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(16),
+                                  onTap: () => _editUser(user),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 48,
+                                          height: 48,
+                                          decoration: BoxDecoration(
+                                            color: isAdmin
+                                                ? const Color(0xFFFEF2F2)
+                                                : const Color(0xFFEFF6FF),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              initial,
+                                              style: TextStyle(
+                                                color: isAdmin
+                                                    ? const Color(0xFFEF4444)
+                                                    : const Color(0xFF3B82F6),
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                name,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Color(0xFF0F172A),
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                user['email'] ?? '',
+                                                style: const TextStyle(
+                                                  color: Color(0xFF64748B),
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Row(
+                                                children: [
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4,
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                      color: isAdmin
+                                                          ? const Color(0xFFFEF2F2)
+                                                          : const Color(0xFFEFF6FF),
+                                                      borderRadius: BorderRadius.circular(6),
+                                                    ),
+                                                    child: Text(
+                                                      user['role'] ?? AppRoles.user,
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: isAdmin
+                                                            ? const Color(0xFFB91C1C)
+                                                            : const Color(0xFF1D4ED8),
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4,
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                      color: isVerified
+                                                          ? const Color(0xFFECFDF5)
+                                                          : const Color(0xFFF1F5F9),
+                                                      borderRadius: BorderRadius.circular(6),
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          isVerified
+                                                            ? Icons.check_circle_rounded
+                                                            : Icons.pending_rounded,
+                                                          size: 14,
+                                                          color: isVerified
+                                                            ? const Color(0xFF10B981)
+                                                            : const Color(0xFF64748B),
+                                                        ),
+                                                        const SizedBox(width: 4),
+                                                        Text(
+                                                          isVerified ? 'Verified' : 'Unverified',
+                                                          style: TextStyle(
+                                                            fontSize: 12,
+                                                            color: isVerified
+                                                                ? const Color(0xFF047857)
+                                                                : const Color(0xFF475569),
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        PopupMenuButton(
+                                          icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF94A3B8)),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          itemBuilder: (context) => const [
+                                            PopupMenuItem(
+                                              value: 'edit',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.edit_rounded, size: 20, color: Color(0xFF64748B)),
+                                                  SizedBox(width: 12),
+                                                  Text('Edit User'),
+                                                ],
+                                              ),
+                                            ),
+                                            PopupMenuItem(
+                                              value: 'delete',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.delete_rounded, size: 20, color: Color(0xFFEF4444)),
+                                                  SizedBox(width: 12),
+                                                  Text('Delete User', style: TextStyle(color: Color(0xFFEF4444))),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                          onSelected: (value) {
+                                            if (value == 'edit') {
+                                              _editUser(user);
+                                            } else if (value == 'delete') {
+                                              _deleteUser(user['id']?.toString() ?? '');
+                                            }
+                                          },
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ),
-                                title: Text(name),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(user['email'] ?? ''),
-                                    const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            (AppRoles.isAdmin(
-                                                      user['role']?.toString(),
-                                                    )
-                                                    ? Colors.red
-                                                    : Colors.blue)
-                                                .withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        user['role'] ?? AppRoles.user,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color:
-                                              AppRoles.isAdmin(
-                                                user['role']?.toString(),
-                                              )
-                                              ? Colors.red
-                                              : Colors.blue,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            (user['emailVerified'] == true
-                                                    ? Colors.green
-                                                    : Colors.grey)
-                                                .withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        user['emailVerified'] == true
-                                            ? 'Verified'
-                                            : 'Unverified',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: user['emailVerified'] == true
-                                              ? Colors.green
-                                              : Colors.grey,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                trailing: PopupMenuButton(
-                                  itemBuilder: (context) => const [
-                                    PopupMenuItem(
-                                      value: 'edit',
-                                      child: Text('Edit'),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'delete',
-                                      child: Text(
-                                        'Delete',
-                                        style: TextStyle(color: Colors.red),
-                                      ),
-                                    ),
-                                  ],
-                                  onSelected: (value) {
-                                    if (value == 'edit') {
-                                      _editUser(user);
-                                    } else if (value == 'delete') {
-                                      _deleteUser(user['id']?.toString() ?? '');
-                                    }
-                                  },
                                 ),
                               ),
                             );
@@ -418,24 +551,40 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
               // Pagination Controls
               if (_totalPages > 1)
                 Padding(
-                  padding: const EdgeInsets.only(top: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.chevron_left),
-                        onPressed: _currentPage > 0
-                            ? () => _onPageChanged(_currentPage - 1)
-                            : null,
-                      ),
-                      Text('Page ${_currentPage + 1} of $_totalPages'),
-                      IconButton(
-                        icon: const Icon(Icons.chevron_right),
-                        onPressed: _currentPage < _totalPages - 1
-                            ? () => _onPageChanged(_currentPage + 1)
-                            : null,
-                      ),
-                    ],
+                  padding: const EdgeInsets.only(top: 24.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.chevron_left_rounded),
+                          color: const Color(0xFF64748B),
+                          onPressed: _currentPage > 0
+                              ? () => _onPageChanged(_currentPage - 1)
+                              : null,
+                        ),
+                        Text(
+                          'Page ${_currentPage + 1} of $_totalPages',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_right_rounded),
+                          color: const Color(0xFF64748B),
+                          onPressed: _currentPage < _totalPages - 1
+                              ? () => _onPageChanged(_currentPage + 1)
+                              : null,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
             ],
@@ -549,158 +698,246 @@ class _AdminEditUserDialogState extends ConsumerState<AdminEditUserDialog> {
         Navigator.pop(context);
         widget.onSave();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User updated successfully')),
+          const SnackBar(content: Text('User updated successfully'), behavior: SnackBarBehavior.floating),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error updating user: $e')));
+        ).showSnackBar(SnackBar(content: Text('Error updating user: $e'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating));
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Edit User'),
-      content: SingleChildScrollView(
-        child: SizedBox(
-          width: 500,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Profile Information',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (v) => v!.isEmpty ? 'Required' : null,
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (v) => v!.isEmpty ? 'Required' : null,
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _phoneController,
-                  decoration: const InputDecoration(
-                    labelText: 'Phone',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _bioController,
-                  decoration: const InputDecoration(
-                    labelText: 'Bio',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _locationController,
-                  decoration: const InputDecoration(
-                    labelText: 'Location',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Social Links',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _linkedinController,
-                  decoration: const InputDecoration(
-                    labelText: 'LinkedIn URL',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _githubController,
-                  decoration: const InputDecoration(
-                    labelText: 'GitHub URL',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _websiteController,
-                  decoration: const InputDecoration(
-                    labelText: 'Website URL',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Account Settings',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                DropdownButtonFormField<String>(
-                  initialValue: _role,
-                  decoration: const InputDecoration(
-                    labelText: 'Role',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: [AppRoles.user, AppRoles.admin]
-                      .map((r) => DropdownMenuItem(value: r, child: Text(r)))
-                      .toList(),
-                  onChanged: (v) => setState(() => _role = v!),
-                ),
-                const SizedBox(height: 10),
-                SwitchListTile(
-                  title: const Text('Active Account'),
-                  value: _isActive,
-                  onChanged: (v) => setState(() => _isActive = v),
-                ),
-                SwitchListTile(
-                  title: const Text('Email Verified'),
-                  value: _emailVerified,
-                  onChanged: (v) => setState(() => _emailVerified = v),
-                ),
-              ],
-            ),
+  Widget _buildTextField(String label, TextEditingController controller, {bool multiLine = false, bool required = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: TextFormField(
+        controller: controller,
+        maxLines: multiLine ? 3 : 1,
+        style: const TextStyle(fontSize: 15, color: Color(0xFF0F172A)),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Color(0xFF64748B)),
+          filled: true,
+          fillColor: const Color(0xFFF8FAFC),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
           ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppTheme.adminPrimaryRed, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        ),
+        validator: required ? (v) => v == null || v.isEmpty ? 'This field is required' : null : null,
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 16),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF0F172A),
+          letterSpacing: -0.3,
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      child: Container(
+        width: 600,
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+        child: Column(
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9), // Slate 100
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.manage_accounts_rounded, color: Color(0xFF475569)),
+                  ),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Edit User Account',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0F172A),
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        Text(
+                          'Update profile and permissions',
+                          style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1, color: Color(0xFFE2E8F0)),
+            
+            // Body
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionTitle('Profile Information'),
+                      _buildTextField('Full Name', _nameController, required: true),
+                      _buildTextField('Email Address', _emailController, required: true),
+                      _buildTextField('Phone Number', _phoneController),
+                      _buildTextField('Location', _locationController),
+                      _buildTextField('Biography', _bioController, multiLine: true),
+                      
+                      const SizedBox(height: 16),
+                      _buildSectionTitle('Social Links'),
+                      _buildTextField('LinkedIn URL', _linkedinController),
+                      _buildTextField('GitHub URL', _githubController),
+                      _buildTextField('Website URL', _websiteController),
+                      
+                      const SizedBox(height: 16),
+                      _buildSectionTitle('Account Settings'),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Column(
+                          children: [
+                            DropdownButtonFormField<String>(
+                              initialValue: _role,
+                              decoration: InputDecoration(
+                                labelText: 'Account Role',
+                                labelStyle: const TextStyle(color: Color(0xFF64748B)),
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              ),
+                              items: [AppRoles.user, AppRoles.admin]
+                                  .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                                  .toList(),
+                              onChanged: (v) => setState(() => _role = v!),
+                              icon: const Icon(Icons.expand_more_rounded),
+                              dropdownColor: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            const SizedBox(height: 16),
+                            SwitchListTile.adaptive(
+                              title: const Text('Active Account', style: TextStyle(fontWeight: FontWeight.w500)),
+                              subtitle: const Text('Account can log in', style: TextStyle(fontSize: 12)),
+                              value: _isActive,
+                              activeThumbColor: Colors.white,
+                              activeTrackColor: const Color(0xFF10B981),
+                              contentPadding: EdgeInsets.zero,
+                              onChanged: (v) => setState(() => _isActive = v),
+                            ),
+                            SwitchListTile.adaptive(
+                              title: const Text('Email Verified', style: TextStyle(fontWeight: FontWeight.w500)),
+                              subtitle: const Text('Bypass email verification', style: TextStyle(fontSize: 12)),
+                              value: _emailVerified,
+                              activeThumbColor: Colors.white,
+                              activeTrackColor: const Color(0xFF10B981),
+                              contentPadding: EdgeInsets.zero,
+                              onChanged: (v) => setState(() => _emailVerified = v),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            
+            // Footer
+            const Divider(height: 1, color: Color(0xFFE2E8F0)),
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF64748B),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w600)),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: _isSaving ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.adminPrimaryRed,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.w600)),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        ElevatedButton(
-          onPressed: _isSaving ? null : _submit,
-          child: _isSaving
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Save Changes'),
-        ),
-      ],
+      ),
     );
   }
 }

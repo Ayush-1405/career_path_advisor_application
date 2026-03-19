@@ -69,6 +69,10 @@ class ApiService {
     return _handleResponse(response);
   }
 
+  Future<void> deleteUserProfile() async {
+    await _dio.delete('/api/user/profile');
+  }
+
   Future<dynamic> loginUser(String email, String password) async {
     final response = await _dio.post(
       '/api/auth/login',

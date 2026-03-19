@@ -98,7 +98,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       child: Scaffold(
       backgroundColor: AppTheme.gray50,
       appBar: AppBar(
-        leading: BackButton(color: AppTheme.gray900),
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),

@@ -1,0 +1,236 @@
+# Career Advisor Application Documentation
+
+## Index
+
+1. [Project Profile](#1-project-profile)
+2. [Introduction to Tools](#2-introduction-to-tools)
+3. [System Study](#3-system-study)
+   1. [Existing System](#31-existing-system)
+   2. [Proposed System](#32-proposed-system)
+   3. [Scope of the Proposed System](#33-scope-of-the-proposed-system)
+   4. [Aim and Objective of the proposed](#34-aim-and-objective-of-the-proposed)
+   5. [Feasibility Studies](#35-feasibility-studies)
+      - Operational Feasibility
+      - Technical Feasibility
+      - Economical Feasibility
+4. [System Analysis](#4-system-analysis)
+   1. [Requirements Specification](#41-requirements-specification)
+   2. [Use Case Diagrams](#42-use-case-diagrams)
+   3. [Activity Diagrams](#43-activity-diagrams)
+   4. [ER Diagrams](#44-er-diagrams)
+5. [System Design](#5-system-design)
+   - Data Dictionary
+   - Screen Layouts
+   - Reports
+6. [System Testing](#6-system-testing)
+   - Testing Strategies
+   - Test Classes
+7. [Future Enhancement](#7-future-enhancement)
+8. [Bibliography/References](#8-bibliographyreferences)
+
+---
+
+## 1. Project Profile
+
+### 1.1 Overview
+The Career Advisor Application is a comprehensive, state-of-the-art platform designed to bridge the gap between job seekers, students, and their ideal career trajectories. At its core, the application leverages advanced automated resume parsing and intelligent data analytics to evaluate an individual's skills, experiences, and educational background. It then maps these data points against dynamic industry requirements to recommend highly personalized, actionable career paths.
+
+### 1.2 Motivation
+In today's rapidly evolving job market, traditional career counseling often falls short. It is frequently time-consuming, expensive, and heavily reliant on the subjective experience of human counselors. Students and transitioning professionals face an overwhelming array of choices and rapidly shifting skill requirements, particularly in technology and business sectors. The motivation behind this project is to democratize access to high-quality, data-driven career guidance. By providing an automated, scalable solution, the Career Advisor Application empowers users to make informed decisions about their professional futures without the bottleneck of traditional advisory services.
+
+### 1.3 Target Audience
+The primary beneficiaries of this system include:
+- **High School & College Students:** Seeking guidance on choosing majors or initial career entry points based on their aptitudes and interests.
+- **Recent Graduates:** Looking to optimize their resumes and identify entry-level roles that align with their specific academic achievements.
+- **Mid-Career Professionals:** Aiming to pivot into new industries and needing a clear roadmap of the skills gap they must bridge.
+- **System Administrators/Counselors:** Who utilize the backend admin dashboard to monitor user progress, verify analytics, and refine the recommendation algorithms.
+
+### 1.4 Core Functionalities
+- **User Authentication & Profile Management:** Secure login and registration tailored for both standard users and administrators.
+- **Automated Resume Parsing:** Upload functionality that extracts key information (skills, education, experience) from user resumes using advanced parsing techniques.
+- **Intelligent Career Path Generation:** Algorithmic generation of career roadmaps, detailing necessary skills, certifications, and potential job titles.
+- **Admin Dashboard & Analytics:** A centralized, glassmorphic management hub providing administrators with real-time insights into system health, user verification rates, and parsing success metrics.
+- **Application Tracking:** Allowing users to track their progress alongside their recommended paths.
+
+## 2. Introduction to Tools
+
+The development of the Career Advisor Application relies on a robust, modern technology stack carefully selected for performance, cross-platform compatibility, and developer ergonomics.
+
+### 2.1 Frontend Technologies
+- **Flutter Framework:** An open-source UI software development kit created by Google. It is used to develop cross-platform applications for Android, iOS, Windows, Mac, Linux, and the web from a single codebase. Flutter's reactive framework and rich set of pre-built Material and Cupertino widgets enable the creation of the application's highly customized, professional user interface.
+- **Dart Programming Language:** The client-optimized language utilized by Flutter for fast apps on multiple platforms. Dart's strong typing, sound null safety, and highly productive developer experience (featuring hot-reload) are foundational to the application's stability.
+- **Riverpod (State Management):** A highly flexible, compile-safe state management library for Flutter. It is used to manage the application's global state, such as user authentication status, dashboard analytics data, and theme preferences, ensuring the UI remains perfectly synchronized with underlying data changes without prop-drilling.
+- **GoRouter:** A declarative routing package for Flutter. It handles complex navigation scenarios, deep linking, and route guarding.
+
+### 2.2 UI/UX Design Principles
+- **Modern Enterprise Aesthetics:** The application's visual language incorporates soft shadows, translucent layers, and precise typography to convey professionalism and trust.
+- **Responsive Layouts:** Utilization of advanced Slivers (`SliverGridDelegateWithMaxCrossAxisExtent`) and `LayoutBuilder` to ensure the interface adapts seamlessly across mobile phones, tablets, and desktop browsers without pixel overflow errors.
+
+### 2.3 Integrated Development Environment (IDE)
+- **Visual Studio Code / Android Studio:** The primary environments used for authoring Dart code, managing version control, and executing the Flutter build pipeline. These IDEs provide essential features like static analysis, code completion, and integrated debugging.
+- **DevTools:** Flutter and Dart DevTools are used extensively for performance profiling, observing widget re-renders, and network inspection.
+
+### 2.4 Version Control and Collaboration
+- **Git:** Utilized for distributed version control, tracking changes made across the application's lifecycle, and allowing for safe experimentation through branching.
+- **GitHub / GitLab:** Hosting the remote repositories, managing issue tracking, pull requests, and facilitating CI/CD (Continuous Integration / Continuous Deployment) pipelines.
+
+## 3. System Study
+
+### 3.1. Existing System
+The landscape of career guidance is largely fragmented and relies heavily on manual intervention. Existing systems typically involve face-to-face counseling sessions, generic online aptitude tests, or disjointed job boards. 
+- **Limitations:** 
+  - **Scalability:** Human counselors can only assist a limited number of students per day.
+  - **Subjectivity:** Advice is often biased by the counselor's personal experiences and knowledge limits.
+  - **Static Nature:** Traditional aptitude tests do not account for the rapidly changing landscape of modern industries (e.g., the sudden rise of AI or niche software frameworks).
+  - **Lack of Integration:** Users must manually extract their skills from their resumes, take separate tests, and then manually search for matching job roles across disparate platforms.
+
+### 3.2. Proposed System
+The proposed Career Advisor Application is an integrated, AI-augmented ecosystem designed to automate and personalize the career progression lifecycle. 
+Instead of relying on manual data entry or subjective advice, the system uses natural language processing (NLP) to parse uploaded resumes directly. It extracts granular skills, quantifies experience, and cross-references this profile against a dynamic database of career paths. By doing so, the application removes the friction of self-assessment and provides users with an objective, data-backed roadmap outlining the exact certifications, skills, and milestones required to reach their desired roles.
+
+### 3.3. Scope of the Proposed System
+**In-Scope:**
+- Secure user registration, authentication, and profile management.
+- Automated parsing of standard resume formats (PDF, DOCX) to extract text and identify key technical and soft skills.
+- Algorithmic generation of career recommendations based on parsed data.
+- A comprehensive Administrator Dashboard for tracking system metrics (active users, parsing success rates, etc.).
+- A user-facing interface for exploring recommended career milestones.
+
+**Out-of-Scope:**
+- Direct job placement or guaranteed hiring.
+- Legally binding educational/academic advising.
+- Direct messaging or real-time communication between users and potential employers within the application.
+
+### 3.4. Aim and Objective of the Proposed System
+- **Automation of Skill Assessment:** To eliminate manual data entry by programmatically extracting relevant professional data from resumes.
+- **Data-Driven Guidance:** To provide users with objective, statistically viable career recommendations based on current market demands rather than subjective intuition.
+- **Accessibility:** To democratize high-end career counseling, making it available 24/7 via a responsive, intuitive digital platform.
+- **Administrative Oversight:** To provide counselors and administrators with macro-level analytics on user trends to better tailor systemic educational programs.
+
+### 3.5. Feasibility Studies
+
+#### Operational Feasibility
+The system is highly operationally feasible. It addresses a universally acknowledged pain point: the confusion and barrier to entry in navigating complex modern career paths. The user interface is designed in Flutter to be inherently intuitive, ensuring a low learning curve for both end-users (students/professionals) and administrators. The automated nature of the core feature (resume parsing) minimizes the operational overhead usually required to maintain a counseling service.
+
+#### Technical Feasibility
+Technically, the project utilizes established, robust frameworks. Flutter ensures that a single codebase can reliably serve Web, iOS, and Android platforms, drastically reducing development and maintenance time. The backend logic relies on proven API architectures for authentication and data storage. The most complex technical hurdle—resume parsing—is mitigated by utilizing specialized, pre-trained NLP APIs or well-documented libraries designed specifically for text extraction and entity recognition, making the proposed architecture structurally sound.
+
+#### Economical Feasibility
+The economic feasibility is strong when comparing the cost of development and API usage against the immense scalable value it provides. Unlike a physical counseling center, the marginal cost of serving an additional user on the Career Advisor Application is near zero. Server hosting (e.g., via Supabase or Firebase) offers generous free tiers and scalable pay-as-you-go models. The primary ongoing costs will be associated with the resume parsing APIs, which can be optimized through caching and batch processing, making the system highly cost-effective in the long run.
+
+## 4. System Analysis
+
+### 4.1. Requirements Specification
+
+#### 4.1.1 Functional Requirements
+Functional requirements define the specific behaviors and features the system must support to fulfill its core purpose.
+- **FR1 - User Authentication:** The system must securely register, authenticate, and authorize users utilizing JWT (JSON Web Tokens) or OAuth 2.0. Users must be differentiated by roles (e.g., Standard User, Administrator).
+- **FR2 - Profile Management:** Users must be able to view, edit, and delete their personal profiles, including their educational background and work histories.
+- **FR3 - Resume Upload and Parsing:** The system must accept resumes in common formats (PDF, DOCX). Upon upload, it must programmatically parse the document to extract a structured JSON object containing candidate name, contact, skills, education, and experience.
+- **FR4 - Career Recommendation Engine:** Based on the parsed skillset, the system must query a centralized database to recommend at least three statistically viable career paths.
+- **FR5 - Admin Dashboard:** Administrators must have access to a secure dashboard displaying aggregate system metrics (Total Users, Verification Rates, System Uptime, Parsing Success Rates).
+- **FR6 - Application Tracking:** Users must be able to track their progress against a recommended career roadmap, checking off milestones (e.g., "Completed Python Certification").
+
+#### 4.1.2 Non-Functional Requirements
+Non-functional requirements specify the criteria that judge the operation of the system, rather than specific behaviors.
+- **NFR1 - Performance:** The application's UI must render at 60 frames per second (FPS) across supported target devices to ensure a smooth, professional feel. API response times for standard queries should not exceed 500 milliseconds. Resume parsing should complete within 3-5 seconds.
+- **NFR2 - Security:** All data transmitted between the client and server must be encrypted using TLS 1.2 or higher. Passwords must be hashed utilizing bcrypt or Argon2 before database storage. User uploaded resumes must be stored securely and deleted upon user request.
+- **NFR3 - Scalability:** The backend architecture must be structured to horizontally scale. Using cloud-native technologies (e.g., AWS, Supabase, or Firebase) guarantees that the system can handle concurrent user spikes without degraded performance.
+- **NFR4 - Usability:** The user interface must adhere to modern accessibility standards (WCAG 2.1), including proper contrast ratios, voiceover support, and intuitive navigation flows built with GoRouter. Responsive design must be utilized to maintain aesthetics across varying screen dimensions.
+- **NFR5 - Reliability:** The system architecture must guarantee an uptime of 99.9%, backed by redundant database instances and automated daily backups.
+
+### 4.2. Use Case Diagrams
+[Note to User: As a text-based AI, I cannot generate the physical image files for the diagrams. You will need to draw these in a tool like Lucidchart or draw.io and insert the images here. Below is the text description of the diagram to guide your drawing.]
+
+**Diagram Description (Use Case):**
+- **Actors:** `Student/Job Seeker` (Primary), [Admin](file:///d:/MCA%20PROJECT/career-advisor/career_advisor_admin/lib/screens/admin/admin_dashboard_screen.dart#419-536) (Secondary).
+- **Use Cases for Student:** `Register/Login`, `Upload Resume`, `View Career Roadmap`, `Update Profile`.
+- **Use Cases for Admin:** `Login`, `View Analytic Dashboard`, `Manage Users`, `Monitor System Health`.
+- **Relationships:** `Upload Resume` `<<includes>>` `Parse Resume`. `View Career Roadmap` `<<extends>>` `Parse Resume`.
+
+### 4.3. Activity Diagrams
+[Note to User: Insert your Activity Diagram image here.]
+
+**Diagram Description (Resume Parsing Flow):**
+1. **Start Node:** User clicks 'Upload Resume'.
+2. **Action:** User selects file from local device.
+3. **Decision:** Is file format supported (PDF/DOCX)?
+   - **No:** Show error message -> Return to Start.
+   - **Yes:** Proceed to upload to server.
+4. **Action:** Server receives file and initiates parsing NLP API.
+5. **Action:** API extracts Entities (Skills, Experience, Education).
+6. **Action:** Mapping engine correlates extracted skills with database career paths.
+7. **Action:** System saves recommended roadmap and updates UI state.
+8. **End Node:** User navigates to Roadmap view.
+
+### 4.4. ER Diagrams
+[Note to User: Insert your Entity-Relationship (ER) Diagram image here.]
+
+**Diagram Description (Database Schema):**
+- **Entity: User** (`user_id` PK, `email`, `password_hash`, `role`, `created_at`).
+- **Entity: Resume** (`resume_id` PK, `user_id` FK, `file_url`, `parsed_status`, `uploaded_at`).
+- **Entity: Skill** (`skill_id` PK, `name`, `category`).
+- **Entity: User_Skill_Mapping** (`user_id` FK, `skill_id` FK, `proficiency_level`).
+- **Entity: CareerPath** (`path_id` PK, `title`, `description`, `industry`).
+- **Relationships:** `User` has a One-to-Many relationship with `Resume`. `User` has a Many-to-Many relationship with `Skill`. `User` has a Many-to-Many relationship with `CareerPath` (Recommended paths).
+
+## 5. System Design
+
+### 5.1 Data Dictionary
+The Data Dictionary provides a centralized repository of information about data such as meaning, relationships to other data, origin, usage, and format.
+
+**Table: `Users`**
+| Field Name | Data Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `user_id` | UUID | Primary Key | Unique identifier for the user account. |
+| `email` | VARCHAR(255) | Unique, Not Null | User's registered email address. |
+| `password_hash` | VARCHAR(255) | Not Null | Bcrypt hashed password. |
+| `role` | ENUM('admin', 'user')| Default 'user' | Defines access privileges (Admin vs Standard). |
+| `created_at` | TIMESTAMP | Default NOW() | Timestamp of account creation. |
+
+**Table: `Resumes`**
+| Field Name | Data Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `resume_id` | UUID | Primary Key | Unique identifier for the uploaded document. |
+| `user_id` | UUID | Foreign Key | References `Users(user_id)`. |
+| `file_url` | VARCHAR(500) | Not Null | Secure cloud storage bucket URL. |
+| `parsed_status` | ENUM('pending', 'success', 'failed')| Default 'pending' | Current status of the NLP extraction process. |
+| `extracted_json` | JSONB | Nullable | The raw structured data returned from the API. |
+
+### 5.2 Screen Layouts
+The application utilizes Flutter to construct highly responsive, component-based screen layouts. The design language emphasizes clarity, speed, and modern aesthetics.
+
+- **Admin Dashboard Layout:** Features a `CustomScrollView` with Slivers. The top header is a `SliverAppBar` featuring a glassmorphic Welcome header that collapses on scroll. Below it is a `SliverGrid` utilizing `SliverGridDelegateWithMaxCrossAxisExtent` (max width 280px) ensuring that statistic cards cleanly wrap on smaller screens rather than overflowing.
+- **User Roadmap Layout:** A vertical stepping timeline. Each node represents a specific career milestone (e.g., Degree completion, Certification acquisition). The nodes expand to reveal deeper details regarding estimated time to complete and required proficiencies. 
+- **Resume Parsing View:** A split-pane layout on desktop (tabbed on mobile). The left pane previews the uploaded physical document. The right pane displays real-time animated skeleton loaders as the API extracts the data, eventually populating with the quantified skill chips.
+
+### 5.3 Reports
+The system automatically aggregates specific user data to generate actionable reports for administrative review:
+1. **User Conversion Report:** Details the ratio of registered users to users who have successfully uploaded and parsed a resume.
+2. **Skill Trend Analysis:** A frequency distribution report highlighting the most common technical skills extracted from all user resumes over a 30-day trailing period.
+3. **Platform Health Report:** Tracks the success/failure rate of the external resume parsing API, highlighting uptime and average latency.
+
+## 6. System Testing
+
+### 6.1 Testing Strategies
+A rigorous testing methodology ensures the reliability of the system before deployment.
+- **Unit Testing:** Individual functions and algorithms representing core business logic are tested in isolation. For example, testing the specific Dart function that maps a raw string like "React.js" to the standardized database skill `Frontend Frameworks`.
+- **Widget Testing:** Flutter's unique widget testing framework is used to verify the UI. Tests ensure that the `SliverGrid` renders the correct number of item cards based on the mock data provided, and that no pixel overflow exceptions occur under varying constrained box sizes.
+- **Integration Testing:** End-to-end tests validating the entire flow: from a user tapping "Upload", to the mock API returning JSON, to the UI successfully updating with the recommended career path.
+
+### 6.2 Test Classes
+- `AuthServiceTest`: Validates JWT token generation, secure storage, and role-based access denial (e.g., ensuring a 'user' token cannot access the '/admin' route).
+- `ResumeParserTest`: Feeds mock binary data into the parser repository and asserts the resulting JSON structure matches the expected `ResumeModel` Dart class.
+- `DashboardGridWidgetTest`: Pumps the [AdminDashboardScreen](file:///d:/MCA%20PROJECT/career-advisor/career_advisor_admin/lib/screens/admin/admin_dashboard_screen.dart#10-17) into a logical testing environment and forces constraints to verify responsiveness.
+
+## 7. Future Enhancement
+To ensure the longevity and continued relevance of the Career Advisor Application, several enhancements are planned for subsequent versions (v2.0+):
+- **LinkedIn / GitHub OAuth Integration:** Allowing users to bypass manual resume uploads by securely importing their professional profiles via authorized APIs.
+- **Predictive ML Modeling:** Implementing a custom TensorFlow model that analyzes changing local job market data to predict which skills will be in high demand 5 years from now, adjusting roadmaps preemptively.
+- **Real-time Mentorship Chat:** A Socket.io based chat interface allowing standard users to connect directly with verified human counselors for personalized, nuanced advice that AI cannot provide.
+
+## 8. Bibliography/References
+1. Google. (2024). *Flutter Architectural Overview*. Retrieved from https://flutter.dev/docs/resources/architectural-overview
+2. Dart Dev. (2024). *Effective Dart: Design*. Retrieved from https://dart.dev/guides/language/effective-dart/design
+3. Riverpod Documentation. (2024). *State Management in Flutter*. Retrieved from https://riverpod.dev/
+4. OpenAI API Documentation. *Natural Language Processing and Entity Extraction Guidelines*.

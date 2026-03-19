@@ -128,7 +128,10 @@ class _SkillsScreenState extends ConsumerState<SkillsScreen> {
       return AnimatedScreen(
         child: Scaffold(
         backgroundColor: AppTheme.gray50,
-        appBar: AppBar(title: const Text('Skills Assessment')),
+        appBar: AppBar(
+          title: const Text('Skills Assessment'),
+          automaticallyImplyLeading: false,
+        ),
         body: const Center(child: CircularProgressIndicator()),
       ),
       );
@@ -137,8 +140,11 @@ class _SkillsScreenState extends ConsumerState<SkillsScreen> {
     if (_error != null) {
       return AnimatedScreen(
         child: Scaffold(
-        backgroundColor: AppTheme.gray50,
-        appBar: AppBar(title: const Text('Skills Assessment')),
+          backgroundColor: AppTheme.gray50,
+          appBar: AppBar(
+            title: const Text('Skills Assessment'),
+            automaticallyImplyLeading: false,
+          ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -157,8 +163,11 @@ class _SkillsScreenState extends ConsumerState<SkillsScreen> {
 
     return AnimatedScreen(
       child: Scaffold(
-      backgroundColor: AppTheme.gray50,
-      appBar: AppBar(title: const Text('Skills Assessment')),
+        backgroundColor: AppTheme.gray50,
+        appBar: AppBar(
+          title: const Text('Skills Assessment'),
+          automaticallyImplyLeading: false,
+        ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(

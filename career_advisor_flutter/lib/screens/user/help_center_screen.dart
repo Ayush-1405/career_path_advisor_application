@@ -104,7 +104,10 @@ class _HelpCenterScreenState extends ConsumerState<HelpCenterScreen> {
   Widget build(BuildContext context) {
     return AnimatedScreen(
       child: Scaffold(
-      appBar: AppBar(title: const Text('Help & Support')),
+      appBar: AppBar(
+        title: const Text('Help & Support'),
+        automaticallyImplyLeading: false,
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

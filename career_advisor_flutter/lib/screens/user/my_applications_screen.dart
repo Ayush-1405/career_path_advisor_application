@@ -151,6 +151,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen> {
       child: Scaffold(
         backgroundColor: Colors.grey[50],
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           title: const Text(
             'My Applications',
             style: TextStyle(

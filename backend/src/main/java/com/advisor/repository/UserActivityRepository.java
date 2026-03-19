@@ -11,6 +11,8 @@ import java.util.List;
 @Repository
 public interface UserActivityRepository extends MongoRepository<UserActivity, String> {
     
+    void deleteByUser_Id(String userId);
+    
     List<UserActivity> findByUser_IdOrderByCreatedAtDesc(String userId);
     
     List<UserActivity> findByUser_IdAndActivityTypeOrderByCreatedAtDesc(String userId, String activityType);

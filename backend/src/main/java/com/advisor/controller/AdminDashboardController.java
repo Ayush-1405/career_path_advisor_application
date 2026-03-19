@@ -21,7 +21,7 @@ public class AdminDashboardController {
         } catch (Exception e) {
             // Return default stats on error
             AdminDashboardStatsResponse defaultStats = new AdminDashboardStatsResponse(
-                0L, 0L, 0L, 0L, 0L, 0L, 0.0, 0.0, 98.5, new java.util.ArrayList<>()
+                0L, 0L, 0L, 0L, 0L, 0L, 0.0, 0.0, 99.9, new java.util.ArrayList<>()
             );
             return ResponseEntity.ok(defaultStats);
         }

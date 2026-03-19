@@ -28,7 +28,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
     'successfulLogins': 0,
     'verificationRate': 0,
     'completionRate': 0,
-    'systemUptime': 98.5,
+    'systemUptime': 99.9,
   };
 
   @override
@@ -74,7 +74,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             'successfulLogins': stats['successfulLogins'] ?? 0,
             'verificationRate': stats['verificationRate'] ?? 0,
             'completionRate': stats['completionRate'] ?? 0,
-            'systemUptime': stats['systemUptime'] ?? 98.5,
+            'systemUptime': stats['systemUptime'] ?? 99.9,
           };
         });
       }
@@ -110,7 +110,10 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
     if (_error != null) {
       return AnimatedScreen(
         child: Scaffold(
-          appBar: AppBar(title: const Text('Admin Dashboard')),
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            title: const Text('Admin Dashboard'),
+          ),
           body: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -136,8 +139,9 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
 
     return AnimatedScreen(
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: const Color(0xFFF9FAFB), // Clean, modern gray-50
         body: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
           slivers: [
             _buildAppBar(),
             SliverToBoxAdapter(
@@ -170,12 +174,11 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 280, // slightly wider for enterprise
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
-                  childAspectRatio:
-                      1.25, // Increased from 1.1 to prevent overflow
+                  mainAxisExtent: 130, // Compact, precise height
                 ),
                 delegate: SliverChildListDelegate([
                   _AdminStatCard(
@@ -244,12 +247,11 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 280,
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
-                  childAspectRatio:
-                      1.15, // Increased from 1.0 to prevent overflow
+                  mainAxisExtent: 130, // Crisp actionable size
                 ),
                 delegate: SliverChildListDelegate([
                   _AdminActionCard(
@@ -288,6 +290,13 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                     onTap: () => context.push('/applications'),
                   ),
                   _AdminActionCard(
+                    icon: Icons.assessment_rounded,
+                    title: 'Reports',
+                    description: 'System reports',
+                    color: const Color(0xFF0EA5E9), // Light Blue
+                    onTap: () => context.push('/reports'),
+                  ),
+                  _AdminActionCard(
                     icon: Icons.settings_suggest_rounded,
                     title: 'Settings',
                     description: 'Global config',
@@ -306,109 +315,110 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
 
   Widget _buildAppBar() {
     return SliverAppBar(
-      expandedHeight: 240.0,
+      automaticallyImplyLeading: false,
+      expandedHeight: 180.0,
       floating: false,
       pinned: true,
       elevation: 0,
-      backgroundColor: AppTheme.adminPrimaryRed,
-      leading: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
-            onPressed: () {}, // TODO: Add drawer
-          ),
-        ),
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent, // Prevents Material 3 tint
+      flexibleSpace: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final double shrinkOffset = constraints.maxHeight;
+          final bool isScrolled =
+              shrinkOffset <=
+              kToolbarHeight + MediaQuery.of(context).padding.top;
+
+          return FlexibleSpaceBar(
+            titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+            centerTitle: false,
+            title: AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: isScrolled ? 1.0 : 0.0,
+              child: Text(
+                'Dashboard',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ),
+            background: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(20, 80, 20, 20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.adminPrimaryRed.withValues(
+                            alpha: 0.1,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.admin_panel_settings_rounded,
+                          color: AppTheme.adminPrimaryRed,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Welcome back, ${_admin?.name ?? 'Admin'}',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF0F172A), // Slate 900
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const Text(
+                            'Here is your system overview.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF64748B), // Slate 500
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
       actions: [
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.only(right: 16.0),
           child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: IconButton(
-              icon: const Icon(Icons.logout_rounded, color: Colors.white),
+              icon: const Icon(
+                Icons.logout_rounded,
+                color: Color(0xFF64748B),
+                size: 20,
+              ),
               onPressed: _handleLogout,
+              tooltip: 'Logout',
             ),
           ),
         ),
       ],
-      flexibleSpace: FlexibleSpaceBar(
-        expandedTitleScale: 1.2,
-        titlePadding: const EdgeInsets.only(left: 20, bottom: 20),
-        title: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Hi, ${_admin?.name ?? 'Admin'}',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: -0.5,
-              ),
-            ),
-            const Text(
-              'System Administrator',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.white70,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
-        background: Stack(
-          fit: StackFit.expand,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppTheme.adminPrimaryRed,
-                    AppTheme.adminPrimaryRed.withBlue(100),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              right: -50,
-              top: -20,
-              child: Icon(
-                Icons.admin_panel_settings,
-                size: 200,
-                color: Colors.white.withOpacity(0.05),
-              ),
-            ),
-            Positioned(
-              left: 20,
-              top: 60,
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(
-                  Icons.shield_rounded,
-                  color: Colors.white,
-                  size: 32,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -436,12 +446,14 @@ class _AdminStatCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)), // Slate 200
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF64748B).withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -450,74 +462,80 @@ class _AdminStatCard extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF64748B), // Slate 500
                 ),
-                child: Icon(icon, color: color, size: 20),
               ),
+              Icon(icon, color: color.withValues(alpha: 0.8), size: 18),
+            ],
+          ),
+          const Spacer(),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0F172A), // Slate 900
+              letterSpacing: -0.5,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: (trend >= 0 ? Colors.green : Colors.red).withOpacity(
-                    0.1,
-                  ),
-                  borderRadius: BorderRadius.circular(6),
+                  color: trend >= 0
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      trend >= 0 ? Icons.trending_up : Icons.trending_down,
-                      size: 12,
-                      color: trend >= 0 ? Colors.green : Colors.red,
+                      trend >= 0
+                          ? Icons.arrow_upward_rounded
+                          : Icons.arrow_downward_rounded,
+                      size: 10,
+                      color: trend >= 0
+                          ? Colors.green.shade700
+                          : Colors.red.shade700,
                     ),
                     const SizedBox(width: 2),
                     Text(
                       '${trend.abs()}%',
                       style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: trend >= 0 ? Colors.green : Colors.red,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: trend >= 0
+                            ? Colors.green.shade700
+                            : Colors.red.shade700,
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-          const Spacer(),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF1E293B),
-                letterSpacing: -1,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF94A3B8), // Slate 400
+                  ),
+                ),
               ),
-            ),
-          ),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+            ],
           ),
         ],
       ),
@@ -542,53 +560,80 @@ class _AdminActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(24),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFF1F5F9)),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)), // Slate 200
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+            spreadRadius: 0,
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: .08),
-                  shape: BoxShape.circle,
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          splashColor: color.withValues(alpha: 0.05),
+          highlightColor: color.withValues(alpha: 0.02),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(icon, color: color, size: 20),
+                    ),
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 14,
+                      color: const Color(0xFFCBD5E1), // Slate 300
+                    ),
+                  ],
                 ),
-                child: Icon(icon, color: color, size: 28),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF0F172A), // Slate 900
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      description,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF64748B), // Slate 500
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Color(0xFF64748B),
-                  height: 1.2,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

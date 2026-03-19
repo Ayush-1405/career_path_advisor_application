@@ -60,21 +60,27 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
     if (_error != null) {
       return AnimatedScreen(
         child: Scaffold(
-        appBar: AppBar(title: const Text('Analytics')),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Error: $_error', style: const TextStyle(color: Colors.red)),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _loadAnalytics,
-                child: const Text('Retry'),
-              ),
-            ],
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            title: const Text('Analytics'),
+          ),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Error: $_error',
+                  style: const TextStyle(color: Colors.red),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loadAnalytics,
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
       );
     }
 
@@ -94,286 +100,300 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
 
     return AnimatedScreen(
       child: Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text(
-          'Analytics',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: DropdownButton<String>(
-                    value: _selectedPeriod,
-                    items: const [
-                      DropdownMenuItem(value: '7d', child: Text('Last 7 Days')),
-                      DropdownMenuItem(
-                        value: '30d',
-                        child: Text('Last 30 Days'),
-                      ),
-                      DropdownMenuItem(
-                        value: '90d',
-                        child: Text('Last 3 Months'),
-                      ),
-                      DropdownMenuItem(value: '1y', child: Text('Last Year')),
-                      DropdownMenuItem(value: 'all', child: Text('All Time')),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => _selectedPeriod = value);
-                        _loadAnalytics();
-                      }
-                    },
-                    underline: const SizedBox(),
-                    icon: Icon(
-                      Icons.keyboard_arrow_down,
-                      color: Colors.grey[600],
-                      size: 20,
-                    ),
-                    isDense: true,
-                    style: const TextStyle(color: Colors.black87),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).primaryColor.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.refresh,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                    onPressed: _loadAnalytics,
-                    tooltip: 'Refresh',
-                  ),
-                ),
-              ],
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          title: const Text(
+            'Analytics',
+            style: TextStyle(
+              color: Color(0xFF0F172A), // Slate 900
+              fontWeight: FontWeight.w700,
+              fontSize: 20,
+              letterSpacing: -0.5,
             ),
           ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: _loadAnalytics,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Platform Overview',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                'Platform usage, growth, and performance metrics',
-                style: TextStyle(color: Colors.grey[600], fontSize: 13),
-              ),
-              const SizedBox(height: 24),
-
-              // KPI Cards
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final cards = [
-                    _buildKpiCard(
-                      'Total Users',
-                      totals['users'].toString(),
-                      Icons.people_alt_rounded,
-                      const Color(0xFF2563EB), // Blue 600
-                      const Color(0xFFEFF6FF), // Blue 50
+          iconTheme: const IconThemeData(color: Color(0xFF64748B)),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: Container(color: const Color(0xFFE2E8F0), height: 1),
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Row(
+                children: [
+                  Container(
+                    height: 40,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                    _buildKpiCard(
-                      'Active Users',
-                      totals['active'].toString(),
-                      Icons.verified_user_rounded,
-                      const Color(0xFF059669), // Emerald 600
-                      const Color(0xFFECFDF5), // Emerald 50
-                    ),
-                    _buildKpiCard(
-                      'Resumes Parsed',
-                      totals['resumes'].toString(),
-                      Icons.file_present_rounded,
-                      const Color(0xFF7C3AED), // Violet 600
-                      const Color(0xFFF5F3FF), // Violet 50
-                    ),
-                    _buildKpiCard(
-                      'Total Analyses',
-                      totals['analyses'].toString(),
-                      Icons.analytics_rounded,
-                      const Color(0xFFDC2626), // Red 600
-                      const Color(0xFFFEF2F2), // Red 50
-                    ),
-                  ];
-
-                  int crossAxisCount = 1;
-                  if (constraints.maxWidth > 1100) {
-                    crossAxisCount = 4;
-                  } else if (constraints.maxWidth > 600) {
-                    crossAxisCount = 2;
-                  }
-
-                  // Calculate child aspect ratio based on count
-                  // 1 col: ~2.5, 2 cols: ~1.8, 4 cols: ~1.2
-                  double childAspectRatio = 2.0;
-                  if (crossAxisCount == 1) childAspectRatio = 2.2;
-                  if (crossAxisCount == 4) childAspectRatio = 1.3;
-
-                  return GridView.count(
-                    crossAxisCount: crossAxisCount,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 20,
-                    mainAxisSpacing: 20,
-                    childAspectRatio: childAspectRatio,
-                    children: cards,
-                  );
-                },
-              ),
-              const SizedBox(height: 32),
-
-              // Charts
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final List<Widget> chartSections = [];
-                  if (registrations.isNotEmpty) {
-                    chartSections.add(
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'User Growth',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Container(
-                            height: 300,
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.grey.shade100),
-                            ),
-                            child: _buildBarChart(registrations),
-                          ),
-                        ],
+                    child: DropdownButton<String>(
+                      value: _selectedPeriod,
+                      items: const [
+                        DropdownMenuItem(value: '7d', child: Text('7 Days')),
+                        DropdownMenuItem(value: '30d', child: Text('30 Days')),
+                        DropdownMenuItem(value: '90d', child: Text('3 Months')),
+                        DropdownMenuItem(value: '1y', child: Text('1 Year')),
+                        DropdownMenuItem(value: 'all', child: Text('All Time')),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _selectedPeriod = value);
+                          _loadAnalytics();
+                        }
+                      },
+                      underline: const SizedBox(),
+                      icon: const Padding(
+                        padding: EdgeInsets.only(left: 8.0),
+                        child: Icon(
+                          Icons.expand_more_rounded,
+                          color: Color(0xFF64748B),
+                          size: 20,
+                        ),
                       ),
+                      isDense: true,
+                      style: const TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        body: RefreshIndicator(
+          onRefresh: _loadAnalytics,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Platform Overview',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'Platform usage, growth, and performance metrics',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                ),
+                const SizedBox(height: 24),
+
+                // KPI Cards
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final cards = [
+                      _buildKpiCard(
+                        'Total Users',
+                        totals['users'].toString(),
+                        Icons.people_alt_rounded,
+                        const Color(0xFF2563EB), // Blue 600
+                        const Color(0xFFEFF6FF), // Blue 50
+                      ),
+                      _buildKpiCard(
+                        'Active Users',
+                        totals['active'].toString(),
+                        Icons.verified_user_rounded,
+                        const Color(0xFF059669), // Emerald 600
+                        const Color(0xFFECFDF5), // Emerald 50
+                      ),
+                      _buildKpiCard(
+                        'Resumes Parsed',
+                        totals['resumes'].toString(),
+                        Icons.file_present_rounded,
+                        const Color(0xFF7C3AED), // Violet 600
+                        const Color(0xFFF5F3FF), // Violet 50
+                      ),
+                      _buildKpiCard(
+                        'Total Analyses',
+                        totals['analyses'].toString(),
+                        Icons.analytics_rounded,
+                        const Color(0xFFDC2626), // Red 600
+                        const Color(0xFFFEF2F2), // Red 50
+                      ),
+                    ];
+
+                    int crossAxisCount = 1;
+                    if (constraints.maxWidth > 1100) {
+                      crossAxisCount = 4;
+                    } else if (constraints.maxWidth > 600) {
+                      crossAxisCount = 2;
+                    }
+
+                    // Calculate child aspect ratio based on count
+                    // 1 col: ~2.5, 2 cols: ~1.8, 4 cols: ~1.2
+                    double childAspectRatio = 2.0;
+                    if (crossAxisCount == 1) childAspectRatio = 2.2;
+                    if (crossAxisCount == 4) childAspectRatio = 1.3;
+
+                    return GridView.count(
+                      crossAxisCount: crossAxisCount,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 20,
+                      mainAxisSpacing: 20,
+                      childAspectRatio: childAspectRatio,
+                      children: cards,
                     );
-                  }
-                  if (roleDistribution.isNotEmpty) {
-                    chartSections.add(
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'User Roles',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                  },
+                ),
+                const SizedBox(height: 32),
+
+                // Charts
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final List<Widget> chartSections = [];
+                    if (registrations.isNotEmpty) {
+                      chartSections.add(
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'User Growth',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          LayoutBuilder(
-                            builder: (context, innerConstraints) {
-                              return Container(
-                                constraints: const BoxConstraints(
-                                  minHeight: 300,
+                            const SizedBox(height: 16),
+                            Container(
+                              height: 300,
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: const Color(0xFFE2E8F0),
                                 ),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: Colors.grey.shade100,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFF0F172A,
+                                    ).withValues(alpha: 0.02),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
                                   ),
-                                ),
-                                child: innerConstraints.maxWidth < 800
-                                    ? Column(
-                                        children: [
-                                          SizedBox(
-                                            height: 250,
-                                            child: _buildPieChart(
-                                              roleDistribution,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 16),
-                                          _buildLegend(roleDistribution),
-                                        ],
-                                      )
-                                    : Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Expanded(
-                                            child: SizedBox(
+                                ],
+                              ),
+                              child: _buildBarChart(registrations),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    if (roleDistribution.isNotEmpty) {
+                      chartSections.add(
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'User Roles',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            LayoutBuilder(
+                              builder: (context, innerConstraints) {
+                                return Container(
+                                  constraints: const BoxConstraints(
+                                    minHeight: 300,
+                                  ),
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: const Color(0xFFE2E8F0),
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(
+                                          0xFF0F172A,
+                                        ).withValues(alpha: 0.02),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: innerConstraints.maxWidth < 800
+                                      ? Column(
+                                          children: [
+                                            SizedBox(
                                               height: 250,
                                               child: _buildPieChart(
                                                 roleDistribution,
                                               ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 24),
-                                          Expanded(
-                                            child: _buildLegend(
-                                              roleDistribution,
+                                            const SizedBox(height: 16),
+                                            _buildLegend(roleDistribution),
+                                          ],
+                                        )
+                                      : Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Expanded(
+                                              child: SizedBox(
+                                                height: 250,
+                                                child: _buildPieChart(
+                                                  roleDistribution,
+                                                ),
+                                              ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                              );
-                            },
-                          ),
+                                            const SizedBox(width: 24),
+                                            Expanded(
+                                              child: _buildLegend(
+                                                roleDistribution,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    if (chartSections.isEmpty) return const SizedBox.shrink();
+                    if (constraints.maxWidth > 1100 &&
+                        chartSections.length == 2) {
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: chartSections[0]),
+                          const SizedBox(width: 24),
+                          Expanded(child: chartSections[1]),
                         ],
-                      ),
-                    );
-                  }
-                  if (chartSections.isEmpty) return const SizedBox.shrink();
-                  if (constraints.maxWidth > 1100 &&
-                      chartSections.length == 2) {
-                    return Row(
+                      );
+                    }
+                    return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(child: chartSections[0]),
-                        const SizedBox(width: 24),
-                        Expanded(child: chartSections[1]),
+                        chartSections[0],
+                        if (chartSections.length == 2)
+                          const SizedBox(height: 32),
+                        if (chartSections.length == 2) chartSections[1],
                       ],
                     );
-                  }
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      chartSections[0],
-                      if (chartSections.length == 2) const SizedBox(height: 32),
-                      if (chartSections.length == 2) chartSections[1],
-                    ],
-                  );
-                },
-              ),
-            ],
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
     );
   }
 
@@ -387,68 +407,59 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
-        border: Border.all(color: Colors.white),
       ),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(24),
-          onTap: () {},
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        value,
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.black87,
-                          height: 1.0,
-                        ),
-                      ),
-                    ],
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF64748B),
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
                   ),
-                ),
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: bgColor,
-                    borderRadius: BorderRadius.circular(18),
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, color: color, size: 20),
                   ),
-                  child: Icon(icon, color: color, size: 28),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF0F172A),
+                  letterSpacing: -1,
+                  height: 1.0,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

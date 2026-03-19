@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
 import '../../utils/theme.dart';
 import '../../widgets/animated_screen.dart';
+import '../../widgets/password_requirement_checklist.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
   final String? token;
@@ -181,11 +182,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       child: Scaffold(
         backgroundColor: AppTheme.gray50,
         appBar: AppBar(
-          leading: BackButton(
-            color: AppTheme.gray900,
-            onPressed: () {
-              context.pushReplacement('/login');
-            },
+          automaticallyImplyLeading: false,
+          title: const Text(
+            'Reset Password',
+            style: TextStyle(color: AppTheme.gray900),
           ),
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -239,28 +239,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  if (_error != null)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      margin: const EdgeInsets.only(bottom: 24),
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.error_outline, color: Colors.red.shade700),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              _error!,
-                              style: TextStyle(color: Colors.red.shade700),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  // Error message moved to below fields
 
                   if (_success != null)
                     Container(
@@ -356,6 +335,28 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                       },
                     ),
                     const SizedBox(height: 24),
+                    if (_error != null)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 24),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline, color: Colors.red.shade700),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _error!,
+                                style: TextStyle(color: Colors.red.shade700),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ElevatedButton(
                       onPressed: _isLoading
                           ? null
@@ -431,7 +432,17 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                       ),
                       validator: _validatePassword,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
+                    ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: _passwordController,
+                      builder: (context, value, _) {
+                        if (value.text.isEmpty) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: PasswordRequirementChecklist(password: value.text),
+                        );
+                      },
+                    ),
                     TextFormField(
                       controller: _confirmPasswordController,
                       obscureText: _obscureConfirmPassword,
@@ -475,6 +486,28 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                       },
                     ),
                     const SizedBox(height: 24),
+                    if (_error != null)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 24),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline, color: Colors.red.shade700),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _error!,
+                                style: TextStyle(color: Colors.red.shade700),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ElevatedButton(
                       onPressed: _isLoading ? null : _handleSubmit,
                       style: ElevatedButton.styleFrom(

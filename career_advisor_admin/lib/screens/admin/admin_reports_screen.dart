@@ -108,146 +108,161 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
   Widget build(BuildContext context) {
     return AnimatedScreen(
       child: Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text(
-          'Reports & Analytics',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 0,
-        centerTitle: false,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 24.0),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: DropdownButton<String>(
-                    value: _selectedPeriod,
-                    underline: const SizedBox(),
-                    icon: Icon(
-                      Icons.keyboard_arrow_down,
-                      color: Colors.grey[600],
-                      size: 20,
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: const Text(
+            'Reports & Analytics',
+            style: TextStyle(
+              color: Color(0xFF0F172A), // Slate 900
+              fontWeight: FontWeight.w700,
+              fontSize: 20,
+              letterSpacing: -0.5,
+            ),
+          ),
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: false,
+          iconTheme: const IconThemeData(color: Color(0xFF64748B)),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: Container(color: const Color(0xFFE2E8F0), height: 1),
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Row(
+                children: [
+                  Container(
+                    height: 40,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                    isDense: true,
-                    style: TextStyle(
-                      color: Colors.grey[800],
-                      fontWeight: FontWeight.w500,
+                    child: DropdownButton<String>(
+                      value: _selectedPeriod,
+                      underline: const SizedBox(),
+                      icon: const Padding(
+                        padding: EdgeInsets.only(left: 8.0),
+                        child: Icon(
+                          Icons.expand_more_rounded,
+                          color: Color(0xFF64748B),
+                          size: 20,
+                        ),
+                      ),
+                      isDense: true,
+                      style: const TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      items: ['7d', '30d', '90d', '1y']
+                          .map(
+                            (e) => DropdownMenuItem(
+                              value: e,
+                              child: Text('Last $e'),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) {
+                        if (v != null) {
+                          setState(() => _selectedPeriod = v);
+                          _loadReports();
+                        }
+                      },
                     ),
-                    items: ['7d', '30d', '90d', '1y']
-                        .map(
-                          (e) => DropdownMenuItem(
-                            value: e,
-                            child: Text('Last $e'),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: PopupMenuButton<String>(
+                      padding: EdgeInsets.zero,
+                      icon: const Icon(
+                        Icons.download_rounded,
+                        color: Color(0xFF64748B),
+                        size: 20,
+                      ),
+                      tooltip: 'Export Report',
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      onSelected: _handleExport,
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'pdf',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.picture_as_pdf,
+                                size: 20,
+                                color: Colors.red,
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                'Export PDF',
+                                style: TextStyle(fontWeight: FontWeight.w500),
+                              ),
+                            ],
                           ),
-                        )
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) {
-                        setState(() => _selectedPeriod = v);
-                        _loadReports();
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: PopupMenuButton<String>(
-                    icon: Icon(
-                      Icons.download_rounded,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                    tooltip: 'Export Report',
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    onSelected: _handleExport,
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'pdf',
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.picture_as_pdf,
-                              size: 20,
-                              color: Colors.red,
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              'Export PDF',
-                              style: TextStyle(fontWeight: FontWeight.w500),
-                            ),
-                          ],
                         ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'csv',
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.table_chart,
-                              size: 20,
-                              color: Colors.green,
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              'Export CSV',
-                              style: TextStyle(fontWeight: FontWeight.w500),
-                            ),
-                          ],
+                        const PopupMenuItem(
+                          value: 'csv',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.table_chart,
+                                size: 20,
+                                color: Colors.green,
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                'Export CSV',
+                                style: TextStyle(fontWeight: FontWeight.w500),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+            ? Center(child: Text('Error: $_error'))
+            : RefreshIndicator(
+                onRefresh: _loadReports,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildKeyMetrics(),
+                      const SizedBox(height: 24),
+                      _buildChartsSection(),
+                      const SizedBox(height: 24),
+                      _buildDetailedReports(),
+                      const SizedBox(height: 24),
+                      _buildDataTables(),
+                      const SizedBox(height: 24),
+                      _buildSystemPerformance(),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(child: Text('Error: $_error'))
-          : RefreshIndicator(
-              onRefresh: _loadReports,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildKeyMetrics(),
-                    const SizedBox(height: 24),
-                    _buildChartsSection(),
-                    const SizedBox(height: 24),
-                    _buildDetailedReports(),
-                    const SizedBox(height: 24),
-                    _buildDataTables(),
-                    const SizedBox(height: 24),
-                    _buildSystemPerformance(),
-                  ],
-                ),
               ),
-            ),
-    ),
+      ),
     );
   }
 
@@ -357,12 +372,18 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
     IconData icon,
     Color color,
   ) {
-    return Card(
-      elevation: 0,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: Colors.grey.shade100),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -382,17 +403,20 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                         value,
                         style: const TextStyle(
                           fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -0.5,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF0F172A),
+                          letterSpacing: -1,
+                          height: 1.0,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         title,
-                        style: TextStyle(
-                          color: Colors.grey[600],
+                        style: const TextStyle(
+                          color: Color(0xFF64748B),
                           fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ],
@@ -412,15 +436,15 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.grey[50],
+                color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
                 subtitle,
-                style: TextStyle(
-                  color: Colors.grey[600],
+                style: const TextStyle(
+                  color: Color(0xFF64748B),
                   fontSize: 12,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -475,12 +499,18 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
       spots.add(FlSpot(i.toDouble(), val));
     }
 
-    return Card(
-      elevation: 0,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: Colors.grey.shade100),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -1064,7 +1094,9 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                               width: 10,
                               height: 10,
                               decoration: BoxDecoration(
-                                color: AppRoles.isAdmin(e.key) ? Colors.red : Colors.green,
+                                color: AppRoles.isAdmin(e.key)
+                                    ? Colors.red
+                                    : Colors.green,
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -1096,6 +1128,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
   }
 
   Widget _buildSystemPerformance() {
+    final uptime = _reports?['systemUptime']?.toString() ?? '99.9';
     return Card(
       elevation: 0,
       color: Colors.white,
@@ -1119,7 +1152,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                   _buildPerformanceItem(
                     Icons.cloud_done_rounded,
                     Colors.green,
-                    '98.5%',
+                    '$uptime%',
                     'System Uptime',
                   ),
                   _buildPerformanceItem(

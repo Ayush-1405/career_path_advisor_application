@@ -32,6 +32,8 @@ public class Resume {
     
     private java.time.LocalDateTime uploadedAt = java.time.LocalDateTime.now();
 
+    private String status = "PROCESSED"; // Default to PROCESSED for existing, could be PENDING or ERROR
+
     @com.fasterxml.jackson.annotation.JsonIgnore
     private List<String> analysisIds;
 }

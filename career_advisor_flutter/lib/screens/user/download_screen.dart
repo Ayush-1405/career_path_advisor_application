@@ -113,7 +113,10 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
     if (_error != null) {
       return AnimatedScreen(
         child: Scaffold(
-          appBar: AppBar(title: const Text('Download Report')),
+          appBar: AppBar(
+            title: const Text('Download Report'),
+            automaticallyImplyLeading: false,
+          ),
           body: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -151,6 +154,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
           elevation: 0,
           backgroundColor: Colors.white,
           foregroundColor: AppTheme.gray900,
+          automaticallyImplyLeading: false,
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),

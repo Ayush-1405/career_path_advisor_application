@@ -65,7 +65,10 @@ class _ContactScreenState extends ConsumerState<ContactScreen> {
   Widget build(BuildContext context) {
     return AnimatedScreen(
       child: Scaffold(
-      appBar: AppBar(title: const Text('Contact Us')),
+      appBar: AppBar(
+        title: const Text('Contact Us'),
+        automaticallyImplyLeading: false,
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),

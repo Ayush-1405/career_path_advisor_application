@@ -64,26 +64,27 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
 
       // Fallback to SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      
+
       if (mounted) {
         setState(() {
-          _siteNameController.text = 
+          _siteNameController.text =
               prefs.getString('admin_site_name') ?? 'Career Advisor';
-          
-          _resumeMaxSizeController.text = 
+
+          _resumeMaxSizeController.text =
               (prefs.getInt('admin_resume_max_size') ?? 5).toString();
 
-          final formats = prefs.getStringList('admin_supported_formats') ?? 
+          final formats =
+              prefs.getStringList('admin_supported_formats') ??
               ['pdf', 'doc', 'docx'];
           _supportedFormatsController.text = formats.join(', ');
 
-          _allowRegistrations = 
+          _allowRegistrations =
               prefs.getBool('admin_allow_registrations') ?? true;
-          _requireEmailVerification = 
+          _requireEmailVerification =
               prefs.getBool('admin_require_email_verification') ?? false;
-          _aiAssistantEnabled = 
+          _aiAssistantEnabled =
               prefs.getBool('admin_ai_assistant_enabled') ?? true;
-          
+
           _isLoading = false;
         });
       }
@@ -113,8 +114,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
       }
 
       _allowRegistrations = settings['allowRegistrations'] ?? true;
-      _requireEmailVerification =
-          settings['requireEmailVerification'] ?? false;
+      _requireEmailVerification = settings['requireEmailVerification'] ?? false;
       _aiAssistantEnabled = settings['aiAssistantEnabled'] ?? true;
     });
   }
@@ -141,13 +141,19 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
       // Always save to SharedPreferences as backup/cache
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('admin_site_name', _siteNameController.text);
-      await prefs.setInt('admin_resume_max_size', 
-          int.tryParse(_resumeMaxSizeController.text) ?? 5);
-      await prefs.setStringList('admin_supported_formats', 
-          payload['supportedFormats'] as List<String>);
+      await prefs.setInt(
+        'admin_resume_max_size',
+        int.tryParse(_resumeMaxSizeController.text) ?? 5,
+      );
+      await prefs.setStringList(
+        'admin_supported_formats',
+        payload['supportedFormats'] as List<String>,
+      );
       await prefs.setBool('admin_allow_registrations', _allowRegistrations);
-      await prefs.setBool('admin_require_email_verification', 
-          _requireEmailVerification);
+      await prefs.setBool(
+        'admin_require_email_verification',
+        _requireEmailVerification,
+      );
       await prefs.setBool('admin_ai_assistant_enabled', _aiAssistantEnabled);
 
       // Try to save to API
@@ -163,9 +169,11 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(apiSuccess 
-                ? 'Settings updated successfully' 
-                : 'Settings saved locally (Server unreachable)'),
+            content: Text(
+              apiSuccess
+                  ? 'Settings updated successfully'
+                  : 'Settings saved locally (Server unreachable)',
+            ),
             backgroundColor: apiSuccess ? Colors.green : Colors.orange,
             duration: const Duration(seconds: 2),
           ),
@@ -196,147 +204,187 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
     if (_error != null) {
       return AnimatedScreen(
         child: Scaffold(
-        appBar: AppBar(title: const Text('Settings')),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Error: $_error', style: const TextStyle(color: Colors.red)),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _loadSettings,
-                child: const Text('Retry'),
-              ),
-            ],
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            title: const Text('Settings'),
+          ),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Error: $_error',
+                  style: const TextStyle(color: Colors.red),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loadSettings,
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
       );
     }
 
     return AnimatedScreen(
       child: Scaffold(
-      backgroundColor: AppTheme.gray50,
-      appBar: AppBar(
-        title: const Text(
-          'Settings',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        actions: [
-          if (_isSaving)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.only(right: 16.0),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: _saveSettings,
-              tooltip: 'Save Settings',
+        backgroundColor: AppTheme.gray50,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          title: const Text(
+            'Settings',
+            style: TextStyle(
+              color: Color(0xFF0F172A), // Slate 900
+              fontWeight: FontWeight.w700,
+              fontSize: 20,
+              letterSpacing: -0.5,
             ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionHeader('General Settings'),
-              _buildCard([
-                _buildTextField(
-                  controller: _siteNameController,
-                  label: 'Site Name',
-                  icon: Icons.web,
-                  validator: (v) => v?.isEmpty == true ? 'Required' : null,
-                ),
-                const Divider(),
-                _buildSwitch(
-                  title: 'Allow Registrations',
-                  subtitle: 'Enable or disable new user signups',
-                  value: _allowRegistrations,
-                  onChanged: (v) => setState(() => _allowRegistrations = v),
-                ),
-                const Divider(),
-                _buildSwitch(
-                  title: 'Require Email Verification',
-                  subtitle: 'Users must verify email before logging in',
-                  value: _requireEmailVerification,
-                  onChanged: (v) =>
-                      setState(() => _requireEmailVerification = v),
-                ),
-              ]),
-
-              const SizedBox(height: 32),
-              _buildSectionHeader('Resume Configuration'),
-              _buildCard([
-                _buildTextField(
-                  controller: _resumeMaxSizeController,
-                  label: 'Max File Size (MB)',
-                  icon: Icons.upload_file,
-                  keyboardType: TextInputType.number,
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Required';
-                    if (int.tryParse(v) == null) return 'Must be a number';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _supportedFormatsController,
-                  label: 'Supported Formats',
-                  hint: 'pdf, doc, docx',
-                  icon: Icons.file_present,
-                  helperText: 'Comma separated values (e.g. pdf, doc, docx)',
-                  validator: (v) => v?.isEmpty == true ? 'Required' : null,
-                ),
-              ]),
-
-              const SizedBox(height: 32),
-              _buildSectionHeader('Features'),
-              _buildCard([
-                _buildSwitch(
-                  title: 'AI Assistant',
-                  subtitle: 'Enable AI chat assistant for users',
-                  value: _aiAssistantEnabled,
-                  onChanged: (v) => setState(() => _aiAssistantEnabled = v),
-                ),
-              ]),
-
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isSaving ? null : _saveSettings,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
+          ),
+          iconTheme: const IconThemeData(color: Color(0xFF64748B)),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: Container(color: const Color(0xFFE2E8F0), height: 1),
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Center(
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFF3B82F6),
+                          ),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(
+                          Icons.save_rounded,
+                          color: Color(0xFF64748B),
+                          size: 20,
+                        ),
+                        onPressed: _saveSettings,
+                        tooltip: 'Save Settings',
+                      ),
+                    ),
+            ),
+          ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionHeader('General Settings'),
+                _buildCard([
+                  _buildTextField(
+                    controller: _siteNameController,
+                    label: 'Site Name',
+                    icon: Icons.web,
+                    validator: (v) => v?.isEmpty == true ? 'Required' : null,
                   ),
-                  child: Text(
-                    _isSaving ? 'Saving...' : 'Save Changes',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  const Divider(),
+                  _buildSwitch(
+                    title: 'Allow Registrations',
+                    subtitle: 'Enable or disable new user signups',
+                    value: _allowRegistrations,
+                    onChanged: (v) => setState(() => _allowRegistrations = v),
+                  ),
+                  const Divider(),
+                  _buildSwitch(
+                    title: 'Require Email Verification',
+                    subtitle: 'Users must verify email before logging in',
+                    value: _requireEmailVerification,
+                    onChanged: (v) =>
+                        setState(() => _requireEmailVerification = v),
+                  ),
+                ]),
+
+                const SizedBox(height: 32),
+                _buildSectionHeader('Resume Configuration'),
+                _buildCard([
+                  _buildTextField(
+                    controller: _resumeMaxSizeController,
+                    label: 'Max File Size (MB)',
+                    icon: Icons.upload_file,
+                    keyboardType: TextInputType.number,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Required';
+                      if (int.tryParse(v) == null) return 'Must be a number';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _supportedFormatsController,
+                    label: 'Supported Formats',
+                    hint: 'pdf, doc, docx',
+                    icon: Icons.file_present,
+                    helperText: 'Comma separated values (e.g. pdf, doc, docx)',
+                    validator: (v) => v?.isEmpty == true ? 'Required' : null,
+                  ),
+                ]),
+
+                const SizedBox(height: 32),
+                _buildSectionHeader('Features'),
+                _buildCard([
+                  _buildSwitch(
+                    title: 'AI Assistant',
+                    subtitle: 'Enable AI chat assistant for users',
+                    value: _aiAssistantEnabled,
+                    onChanged: (v) => setState(() => _aiAssistantEnabled = v),
+                  ),
+                ]),
+
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isSaving ? null : _saveSettings,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: const Color(0xFF0F172A),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      _isSaving ? 'Saving...' : 'Save Changes',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    ),
     );
   }
 
@@ -347,8 +395,9 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
         title,
         style: const TextStyle(
           fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF0F172A),
+          letterSpacing: -0.5,
         ),
       ),
     );
@@ -359,12 +408,13 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -388,13 +438,27 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
         hintText: hint,
         helperText: helperText,
-        prefixIcon: Icon(icon, color: Colors.grey),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        prefixIcon: Icon(icon, color: const Color(0xFF64748B)),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
         ),
       ),
       keyboardType: keyboardType,
@@ -409,14 +473,23 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
     required ValueChanged<bool> onChanged,
   }) {
     return SwitchListTile(
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF0F172A),
+        ),
+      ),
       subtitle: Text(
         subtitle,
-        style: TextStyle(color: Colors.grey[600], fontSize: 13),
+        style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
       ),
       value: value,
       onChanged: onChanged,
-      activeTrackColor: Colors.blue,
+      activeThumbColor: Colors.white,
+      activeTrackColor: const Color(0xFF3B82F6),
+      inactiveThumbColor: Colors.white,
+      inactiveTrackColor: const Color(0xFFE2E8F0),
       contentPadding: EdgeInsets.zero,
     );
   }

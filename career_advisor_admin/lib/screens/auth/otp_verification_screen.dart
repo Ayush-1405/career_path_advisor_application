@@ -221,6 +221,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
       child: Scaffold(
         backgroundColor: AppTheme.gray50,
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           title: Text(
             widget.isLogin ? 'Two-Factor Auth' : 'Verify Email',
             style: const TextStyle(color: AppTheme.gray900),
@@ -228,10 +229,6 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
           centerTitle: true,
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppTheme.gray900),
-            onPressed: () => context.pop(),
-          ),
         ),
         body: SafeArea(
           child: SingleChildScrollView(

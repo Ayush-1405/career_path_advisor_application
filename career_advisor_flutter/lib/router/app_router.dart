@@ -30,22 +30,15 @@ import '../screens/user/my_applications_screen.dart';
 import '../screens/user/saved_careers_screen.dart';
 import '../screens/user/resume_builder_screen.dart';
 
-import '../screens/admin/admin_login_screen.dart';
-import '../screens/admin/admin_dashboard_screen.dart';
-import '../screens/admin/admin_analytics_screen.dart';
-import '../screens/admin/admin_manage_screen.dart';
-import '../screens/admin/admin_resumes_screen.dart';
-import '../screens/admin/admin_settings_screen.dart';
-import '../screens/admin/admin_career_paths_screen.dart';
-import '../screens/admin/admin_reports_screen.dart';
-import '../screens/admin/admin_applications_screen.dart';
-
 import '../screens/user/home_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 /// Wraps a route with a fade + slide transition for consistent navigation animations.
-CustomTransitionPage<void> _buildAnimatedPage(GoRouterState state, Widget child) {
+CustomTransitionPage<void> _buildAnimatedPage(
+  GoRouterState state,
+  Widget child,
+) {
   return CustomTransitionPage<void>(
     key: state.pageKey,
     child: child,
@@ -55,13 +48,13 @@ CustomTransitionPage<void> _buildAnimatedPage(GoRouterState state, Widget child)
       return FadeTransition(
         opacity: animation,
         child: SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 0.04),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-          )),
+          position:
+              Tween<Offset>(
+                begin: const Offset(0, 0.04),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              ),
           child: child,
         ),
       );
@@ -92,8 +85,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location == '/register' ||
           location == '/verify-otp' ||
           location == '/forgot-password' ||
-          location == '/reset-password' ||
-          location == '/admin/login';
+          location == '/reset-password';
 
       final isSharedRoute =
           location == '/privacy-policy' ||
@@ -236,10 +228,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/career-paths',
         pageBuilder: (context, state) {
           final id = state.uri.queryParameters['id'];
-          return _buildAnimatedPage(
-            state,
-            CareerPathsScreen(initialId: id),
-          );
+          return _buildAnimatedPage(state, CareerPathsScreen(initialId: id));
         },
       ),
       GoRoute(
@@ -298,53 +287,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/my-applications',
         pageBuilder: (context, state) =>
             _buildAnimatedPage(state, const MyApplicationsScreen()),
-      ),
-
-      // Admin Routes
-      GoRoute(
-        path: '/admin/login',
-        pageBuilder: (context, state) =>
-            _buildAnimatedPage(state, const AdminLoginScreen()),
-      ),
-      GoRoute(
-        path: '/admin/dashboard',
-        pageBuilder: (context, state) =>
-            _buildAnimatedPage(state, const AdminDashboardScreen()),
-      ),
-      GoRoute(
-        path: '/admin/analytics',
-        pageBuilder: (context, state) =>
-            _buildAnimatedPage(state, const AdminAnalyticsScreen()),
-      ),
-      GoRoute(
-        path: '/admin/users',
-        pageBuilder: (context, state) =>
-            _buildAnimatedPage(state, const AdminManageScreen()),
-      ),
-      GoRoute(
-        path: '/admin/resumes',
-        pageBuilder: (context, state) =>
-            _buildAnimatedPage(state, const AdminResumesScreen()),
-      ),
-      GoRoute(
-        path: '/admin/settings',
-        pageBuilder: (context, state) =>
-            _buildAnimatedPage(state, const AdminSettingsScreen()),
-      ),
-      GoRoute(
-        path: '/admin/career-paths',
-        pageBuilder: (context, state) =>
-            _buildAnimatedPage(state, const AdminCareerPathsScreen()),
-      ),
-      GoRoute(
-        path: '/admin/reports',
-        pageBuilder: (context, state) =>
-            _buildAnimatedPage(state, const AdminReportsScreen()),
-      ),
-      GoRoute(
-        path: '/admin/applications',
-        pageBuilder: (context, state) =>
-            _buildAnimatedPage(state, const AdminApplicationsScreen()),
       ),
     ],
   );

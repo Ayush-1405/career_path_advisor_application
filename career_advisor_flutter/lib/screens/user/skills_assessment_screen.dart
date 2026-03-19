@@ -344,6 +344,7 @@ class _SkillsAssessmentScreenState
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: AppTheme.gray900,
+        automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

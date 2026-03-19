@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../constants/app_roles.dart';
 import '../../services/api_service.dart';
+import '../../services/auth_service.dart';
 import '../../utils/theme.dart';
 import '../../widgets/animated_screen.dart';
 
@@ -128,9 +129,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           .updateUserProfile(data);
       // Track profile update so dashboard activity and analytics stay in sync
       try {
-        await ref
-            .read(apiServiceProvider)
-            .trackUserActivity('profile_update');
+        await ref.read(apiServiceProvider).trackUserActivity('profile_update');
       } catch (_) {}
       if (mounted) {
         setState(() {
@@ -218,9 +217,13 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           : 'image.${ext.isEmpty ? "jpg" : ext}';
 
       if (hasPath) {
-        await ref.read(apiServiceProvider).uploadProfilePhoto(filePath: file.path!, filename: fileName);
+        await ref
+            .read(apiServiceProvider)
+            .uploadProfilePhoto(filePath: file.path!, filename: fileName);
       } else {
-        await ref.read(apiServiceProvider).uploadProfilePhoto(bytes: file.bytes!, filename: fileName);
+        await ref
+            .read(apiServiceProvider)
+            .uploadProfilePhoto(bytes: file.bytes!, filename: fileName);
       }
 
       // Refresh profile to get new image URL
@@ -287,55 +290,58 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     if (_isLoading) {
       return AnimatedScreen(
         child: const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryColor),
+          body: Center(
+            child: CircularProgressIndicator(color: AppTheme.primaryColor),
+          ),
         ),
-      ),
       );
     }
 
     if (_profile == null) {
       return AnimatedScreen(
         child: Scaffold(
-        appBar: AppBar(title: const Text('Profile')),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('Profile not found'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _loadProfile,
-                child: const Text('Retry'),
-              ),
-            ],
+          appBar: AppBar(title: const Text('Profile')),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Profile not found'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loadProfile,
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
       );
     }
 
     return AnimatedScreen(
       child: Scaffold(
-      appBar: AppBar(
-        title: const Text('My Profile'),
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: AppTheme.gray900,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            _buildProfileHeader(),
-            const SizedBox(height: 24),
-            _buildProfileForm(),
-            const SizedBox(height: 24),
-            _buildProfileStats(),
-          ],
+        appBar: AppBar(
+          title: const Text('My Profile'),
+          elevation: 0,
+          backgroundColor: Colors.white,
+          foregroundColor: AppTheme.gray900,
+          automaticallyImplyLeading: false,
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              _buildProfileHeader(),
+              const SizedBox(height: 24),
+              _buildProfileForm(),
+              const SizedBox(height: 24),
+              _buildProfileStats(),
+              const SizedBox(height: 24),
+              _buildDangerZone(),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 
@@ -979,7 +985,10 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
+              borderSide: const BorderSide(
+                color: AppTheme.primaryColor,
+                width: 2,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -996,19 +1005,24 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           ),
           validator: (value) {
             if (enabled) {
-              if (label == 'Full Name' && (value == null || value.trim().isEmpty)) {
+              if (label == 'Full Name' &&
+                  (value == null || value.trim().isEmpty)) {
                 return 'Please enter your name';
               }
               if (label == 'Email') {
                 if (value == null || value.trim().isEmpty) {
                   return 'Please enter your email';
                 }
-                final emailRegex = RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
+                final emailRegex = RegExp(
+                  r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+',
+                );
                 if (!emailRegex.hasMatch(value.trim())) {
                   return 'Please enter a valid email address';
                 }
               }
-              if (label == 'Phone Number' && value != null && value.isNotEmpty) {
+              if (label == 'Phone Number' &&
+                  value != null &&
+                  value.isNotEmpty) {
                 if (value.length < 10) {
                   return 'Phone number must be at least 10 digits';
                 }
@@ -1172,6 +1186,117 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
       return '${date.day}/${date.month}/${date.year}';
     } catch (e) {
       return dateStr;
+    }
+  }
+
+  Widget _buildDangerZone() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Danger Zone',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'These actions are irreversible. Please be certain before proceeding.',
+            style: TextStyle(color: Colors.red),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: _showDeleteConfirmationDialog,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: const BorderSide(color: Colors.red),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: const Text('Delete My Account'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showDeleteConfirmationDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Are you sure you want to delete your account?'),
+                Text('This action cannot be undone.'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteProfile();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteProfile() async {
+    setState(() {
+      _isSaving = true;
+      _error = null;
+      _success = null;
+    });
+
+    try {
+      await ref.read(apiServiceProvider).deleteUserProfile();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account deleted successfully')),
+        );
+        // Log the user out, which will trigger the router to redirect to landing/login
+        await ref.read(authServiceProvider).logout();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          if (e is DioException) {
+            _error =
+                'Failed to delete profile: ${e.response?.statusCode} ${e.response?.statusMessage}';
+          } else {
+            _error = 'Failed to delete profile: $e';
+          }
+          _isSaving = false;
+        });
+      }
     }
   }
 }
