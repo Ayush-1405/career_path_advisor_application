@@ -64,7 +64,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: Image.asset(
-                    'assets/icons/app_logo.png',
+                    'assets/icons/app_logo1.png',
                     fit: BoxFit.cover,
                     errorBuilder: (context, _, _) {
                       return const Icon(
