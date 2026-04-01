@@ -31,8 +31,13 @@ import '../screens/user/saved_careers_screen.dart';
 import '../screens/user/resume_builder_screen.dart';
 
 import '../screens/user/home_screen.dart';
+import '../screens/user/social_feed_screen.dart';
+import '../screens/user/connections_screen.dart';
+import '../screens/user/chat_list_screen.dart';
+import '../widgets/main_scaffold.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 /// Wraps a route with a fade + slide transition for consistent navigation animations.
 CustomTransitionPage<void> _buildAnimatedPage(
@@ -188,22 +193,45 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // User Routes
-      GoRoute(
-        path: '/home',
-        pageBuilder: (context, state) =>
-            _buildAnimatedPage(state, const HomeScreen()),
+      // User Routes wrapped in MainScaffold
+      ShellRoute(
+        navigatorKey: _shellNavigatorKey,
+        builder: (context, state, child) => MainScaffold(child: child),
+        routes: [
+          GoRoute(
+            path: '/home',
+            pageBuilder: (context, state) =>
+                _buildAnimatedPage(state, const HomeScreen()),
+          ),
+          GoRoute(
+            path: '/feed',
+            pageBuilder: (context, state) =>
+                _buildAnimatedPage(state, const SocialFeedScreen()),
+          ),
+          GoRoute(
+            path: '/connections',
+            pageBuilder: (context, state) =>
+                _buildAnimatedPage(state, const ConnectionsScreen()),
+          ),
+          GoRoute(
+            path: '/chat',
+            pageBuilder: (context, state) =>
+                _buildAnimatedPage(state, const ChatListScreen()),
+          ),
+          GoRoute(
+            path: '/profile',
+            pageBuilder: (context, state) =>
+                _buildAnimatedPage(state, const UserProfileScreen()),
+          ),
+          GoRoute(
+            path: '/dashboard',
+            pageBuilder: (context, state) =>
+                _buildAnimatedPage(state, const UserDashboardScreen()),
+          ),
+        ],
       ),
-      GoRoute(
-        path: '/dashboard',
-        pageBuilder: (context, state) =>
-            _buildAnimatedPage(state, const UserDashboardScreen()),
-      ),
-      GoRoute(
-        path: '/profile',
-        pageBuilder: (context, state) =>
-            _buildAnimatedPage(state, const UserProfileScreen()),
-      ),
+
+      // Other individual routes
       GoRoute(
         path: '/suggestions',
         pageBuilder: (context, state) =>

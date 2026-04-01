@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 import '../../providers/app_auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../utils/theme.dart';
@@ -30,6 +32,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
   }
 
   Future<void> _handleLogin() async {
+    FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
     if (_isLoading) return;
 
@@ -74,12 +77,32 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          final errorMsg = e.toString().replaceAll('Exception: ', '');
-          if (errorMsg.toLowerCase().contains('invalid') && 
-              (errorMsg.toLowerCase().contains('password') || errorMsg.toLowerCase().contains('credentials'))) {
-            _passwordError = errorMsg;
+          if (e is DioException) {
+            final url = e.requestOptions.uri.toString();
+            if (e.type == DioExceptionType.connectionTimeout ||
+                e.type == DioExceptionType.receiveTimeout ||
+                e.type == DioExceptionType.connectionError) {
+              _error = 'Connection error to $url. Check Settings.';
+            } else if (e.response?.statusCode == 401) {
+              _passwordError = 'Invalid email or password.';
+            } else if (e.response?.statusCode == 404) {
+              _error = 'Endpoint not found (404) at $url. Check Settings.';
+            } else if (e.response != null) {
+              _error =
+                  e.response?.data?['message'] ??
+                  'Server error (${e.response?.statusCode}) at $url';
+            } else {
+              _error = 'Network error at $url. Please try again.';
+            }
           } else {
-            _error = errorMsg;
+            final errorMsg = e.toString().replaceAll('Exception: ', '');
+            if (errorMsg.toLowerCase().contains('invalid') &&
+                (errorMsg.toLowerCase().contains('password') ||
+                    errorMsg.toLowerCase().contains('credentials'))) {
+              _passwordError = errorMsg;
+            } else {
+              _error = errorMsg;
+            }
           }
           _isLoading = false;
         });
@@ -92,6 +115,21 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     return AnimatedScreen(
       child: Scaffold(
         backgroundColor: const Color(0xFFF8FAFC), // Slate 50
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/dashboard');
+              }
+            },
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
         body: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -105,7 +143,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                   BoxShadow(
                     color: const Color(
                       0xFF0F172A,
-                    ).withValues(alpha: 0.04), // Slate 900
+                    ).withOpacity(0.04), // Slate 900
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),
@@ -366,45 +404,91 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                             ),
                     ),
                     const SizedBox(height: 32),
-                    // Links
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.center,
-                    //   children: [
-                    //     // TextButton(
-                    //     //   onPressed: () {
-                    //     //     context.go('/landing');
-                    //     //   },
-                    //     //   style: TextButton.styleFrom(
-                    //     //     foregroundColor: const Color(0xFF64748B),
-                    //     //   ),
-                    //     //   //child: const Text('Return to Site'),
-                    //     // ),
-                    //     // Container(
-                    //     //   width: 4,
-                    //     //   height: 4,
-                    //     //   margin: const EdgeInsets.symmetric(horizontal: 16),
-                    //     //   decoration: const BoxDecoration(
-                    //     //     color: Color(0xFFCBD5E1),
-                    //     //     shape: BoxShape.circle,
-                    //     //   ),
-                    //     // ),
-                    //     // TextButton(
-                    //     //   onPressed: () {
-                    //     //     context.pushReplacement('/login');
-                    //     //   },
-                    //     //   style: TextButton.styleFrom(
-                    //     //     foregroundColor: const Color(0xFF64748B),
-                    //     //   ),
-                    //     //   child: const Text('User Login'),
-                    //     // ),
-                    //   ],
-                    // ),
+
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () => _showServerUrlDialog(),
+                      child: const Text(
+                        'Change Server URL',
+                        style: TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _showServerUrlDialog() async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentUrl =
+        prefs.getString('api_base_url') ?? 'http://172.20.10.2:8080';
+    final controller = TextEditingController(text: currentUrl);
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Server URL'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                labelText: 'API Base URL',
+                hintText:
+                    'https://careerpathadvisorapplication-production.up.railway.app/',
+                helperText:
+                    'Production: https://careerpathadvisorapplication-production.up.railway.app/\nLocal: http://10.0.2.2:8080 or http://192.168.x.x:8080',
+                helperMaxLines: 4,
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              controller.text =
+                  'https://careerpathadvisorapplication-production.up.railway.app/';
+            },
+            child: const Text('Reset to Default'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              String newUrl = controller.text.trim();
+              if (newUrl.isNotEmpty && newUrl.startsWith('http')) {
+                // Strip trailing slash to avoid double slashes in paths
+                if (newUrl.endsWith('/')) {
+                  newUrl = newUrl.substring(0, newUrl.length - 1);
+                }
+                await prefs.setString('api_base_url', newUrl);
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Server URL updated. Restart the app.'),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }

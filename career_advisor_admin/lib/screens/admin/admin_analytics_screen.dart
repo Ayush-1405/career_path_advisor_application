@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -62,6 +63,16 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
         child: Scaffold(
           appBar: AppBar(
             automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/dashboard');
+                }
+              },
+            ),
             title: const Text('Analytics'),
           ),
           body: Center(
@@ -103,6 +114,16 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
         backgroundColor: Colors.grey[50],
         appBar: AppBar(
           automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/dashboard');
+              }
+            },
+          ),
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
@@ -278,7 +299,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                                   BoxShadow(
                                     color: const Color(
                                       0xFF0F172A,
-                                    ).withValues(alpha: 0.02),
+                                    ).withOpacity(0.02),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -320,7 +341,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                                       BoxShadow(
                                         color: const Color(
                                           0xFF0F172A,
-                                        ).withValues(alpha: 0.02),
+                                        ).withOpacity(0.02),
                                         blurRadius: 8,
                                         offset: const Offset(0, 2),
                                       ),
@@ -411,7 +432,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+            color: const Color(0xFF0F172A).withOpacity(0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

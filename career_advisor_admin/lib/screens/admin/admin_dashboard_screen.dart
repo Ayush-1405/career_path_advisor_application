@@ -95,8 +95,32 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
   }
 
   Future<void> _handleLogout() async {
-    final authService = ref.read(authServiceProvider);
-    await authService.logoutAdmin();
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final authService = ref.read(authServiceProvider);
+      await authService.logoutAdmin();
+    }
   }
 
   @override
@@ -112,6 +136,16 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         child: Scaffold(
           appBar: AppBar(
             automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/dashboard');
+                }
+              },
+            ),
             title: const Text('Admin Dashboard'),
           ),
           body: Center(
@@ -316,6 +350,16 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
   Widget _buildAppBar() {
     return SliverAppBar(
       automaticallyImplyLeading: false,
+      // leading: IconButton(
+      //   icon: const Icon(Icons.arrow_back),
+      //   onPressed: () {
+      //     if (context.canPop()) {
+      //       context.pop();
+      //     } else {
+      //       context.go('/dashboard');
+      //     }
+      //   },
+      // ),
       expandedHeight: 180.0,
       floating: false,
       pinned: true,
@@ -450,7 +494,7 @@ class _AdminStatCard extends StatelessWidget {
         border: Border.all(color: const Color(0xFFE2E8F0)), // Slate 200
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
             spreadRadius: 0,
@@ -472,7 +516,7 @@ class _AdminStatCard extends StatelessWidget {
                   color: Color(0xFF64748B), // Slate 500
                 ),
               ),
-              Icon(icon, color: color.withValues(alpha: 0.8), size: 18),
+              Icon(icon, color: color.withOpacity(0.8), size: 18),
             ],
           ),
           const Spacer(),
@@ -493,8 +537,8 @@ class _AdminStatCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: trend >= 0
-                      ? Colors.green.withValues(alpha: 0.1)
-                      : Colors.red.withValues(alpha: 0.1),
+                      ? Colors.green.withOpacity(0.1)
+                      : Colors.red.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Row(
@@ -567,7 +611,7 @@ class _AdminActionCard extends StatelessWidget {
         border: Border.all(color: const Color(0xFFE2E8F0)), // Slate 200
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
             spreadRadius: 0,
@@ -580,8 +624,8 @@ class _AdminActionCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
-          splashColor: color.withValues(alpha: 0.05),
-          highlightColor: color.withValues(alpha: 0.02),
+          splashColor: color.withOpacity(0.05),
+          highlightColor: color.withOpacity(0.02),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -594,7 +638,7 @@ class _AdminActionCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.1),
+                        color: color.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(icon, color: color, size: 20),

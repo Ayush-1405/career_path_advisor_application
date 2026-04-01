@@ -124,178 +124,237 @@ class _SkillsScreenState extends ConsumerState<SkillsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     if (_isLoading) {
       return AnimatedScreen(
         child: Scaffold(
-        backgroundColor: AppTheme.gray50,
-        appBar: AppBar(
-          title: const Text('Skills Assessment'),
-          automaticallyImplyLeading: false,
+          backgroundColor: theme.scaffoldBackgroundColor,
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/home');
+                }
+              },
+            ),
+            title: const Text('Skills Assessment'),
+            backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+            foregroundColor: isDark ? Colors.white : AppTheme.gray900,
+            elevation: 0,
+          ),
+          body: const Center(child: CircularProgressIndicator()),
         ),
-        body: const Center(child: CircularProgressIndicator()),
-      ),
       );
     }
 
     if (_error != null) {
       return AnimatedScreen(
         child: Scaffold(
-          backgroundColor: AppTheme.gray50,
+          backgroundColor: theme.scaffoldBackgroundColor,
           appBar: AppBar(
-            title: const Text('Skills Assessment'),
             automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/home');
+                }
+              },
+            ),
+            title: const Text('Skills Assessment'),
+            backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+            foregroundColor: isDark ? Colors.white : AppTheme.gray900,
+            elevation: 0,
           ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(_error!, style: const TextStyle(color: Colors.red)),
-              ElevatedButton(
-                onPressed: _loadQuestions,
-                child: const Text('Retry'),
-              ),
-            ],
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  _error!,
+                  style: TextStyle(
+                    color: isDark ? Colors.white70 : AppTheme.gray700,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loadQuestions,
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
       );
     }
 
     return AnimatedScreen(
       child: Scaffold(
-        backgroundColor: AppTheme.gray50,
+        backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
-          title: const Text('Skills Assessment'),
           automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
+          ),
+          title: const Text('Skills Assessment'),
+          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+          foregroundColor: isDark ? Colors.white : AppTheme.gray900,
+          elevation: 0,
         ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (!_testStarted) ...[
-              const Text(
-                'Skills Assessment',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.gray900,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!_testStarted) ...[
+                Text(
+                  'Skills Assessment',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : AppTheme.gray900,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Take our comprehensive skills assessment to identify your strengths and get personalized recommendations.',
-                style: TextStyle(fontSize: 16, color: AppTheme.gray600),
-              ),
-              const SizedBox(height: 32),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.assessment,
-                        size: 64,
-                        color: AppTheme.userPrimaryBlue,
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'This assessment will take approximately 10-15 minutes',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16, color: AppTheme.gray700),
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: _startTest,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.userPrimaryBlue,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 16,
-                          ),
+                const SizedBox(height: 16),
+                Text(
+                  'Take our comprehensive skills assessment to identify your strengths and get personalized recommendations.',
+                  style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : AppTheme.gray600),
+                ),
+                const SizedBox(height: 32),
+                Card(
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.assessment,
+                          size: 64,
+                          color: AppTheme.userPrimaryBlue,
                         ),
-                        child: const Text(
-                          'Start Assessment',
+                        const SizedBox(height: 16),
+                        Text(
+                          'This assessment will take approximately 10-15 minutes',
+                          textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white70 : AppTheme.gray700,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ] else if (_isSubmitting) ...[
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(48.0),
-                  child: Column(
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text(
-                        'Submitting results...',
-                        style: TextStyle(fontSize: 16, color: AppTheme.gray700),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ] else ...[
-              Text(
-                'Question ${_currentQuestion + 1} of ${_questions.length}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.gray900,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        _questions[_currentQuestion]['question'],
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.gray900,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      ...(_questions[_currentQuestion]['options']
-                              as List<String>)
-                          .asMap()
-                          .entries
-                          .map(
-                            (entry) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: ElevatedButton(
-                                onPressed: () => _answerQuestion(entry.key),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.gray100,
-                                  foregroundColor: AppTheme.gray900,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                ),
-                                child: Text(entry.value),
-                              ),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: _startTest,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.userPrimaryBlue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 16,
                             ),
                           ),
-                    ],
+                          child: const Text(
+                            'Start Assessment',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+              ] else if (_isSubmitting) ...[
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(48.0),
+                    child: Column(
+                      children: [
+                        const CircularProgressIndicator(),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Submitting results...',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: isDark ? Colors.white70 : AppTheme.gray700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ] else ...[
+                Text(
+                  'Question ${_currentQuestion + 1} of ${_questions.length}',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white60 : AppTheme.gray900,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Card(
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          _questions[_currentQuestion]['question'],
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : AppTheme.gray900,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ...(_questions[_currentQuestion]['options']
+                                as List<String>)
+                            .asMap()
+                            .entries
+                            .map(
+                              (entry) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: ElevatedButton(
+                                  onPressed: () => _answerQuestion(entry.key),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: isDark ? Colors.white.withOpacity(0.05) : AppTheme.gray100,
+                                    foregroundColor: isDark ? Colors.white : AppTheme.gray900,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                  ),
+                                  child: Text(entry.value),
+                                ),
+                              ),
+                            ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
-    ),
     );
   }
 }

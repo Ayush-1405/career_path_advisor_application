@@ -341,13 +341,18 @@ class _AdminCareerPathsScreenState
     }
   }
 
-  Future<void> _showEditDialog({CareerPath? path}) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) =>
-          _AdminCareerPathDialog(path: path, onSave: _loadCareerPaths),
-    );
+  Future<void> _navigateToAdd() async {
+    final result = await context.push<bool>('/career-paths/add');
+    if (result == true) {
+      _loadCareerPaths();
+    }
+  }
+
+  Future<void> _navigateToEdit(CareerPath path) async {
+    final result = await context.push<bool>('/career-paths/edit', extra: path);
+    if (result == true) {
+      _loadCareerPaths();
+    }
   }
 
   @override
@@ -357,6 +362,16 @@ class _AdminCareerPathsScreenState
         backgroundColor: const Color(0xFFF8FAFC), // Slate 50
         appBar: AppBar(
           automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/dashboard');
+              }
+            },
+          ),
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
@@ -436,7 +451,7 @@ class _AdminCareerPathsScreenState
                   color: Colors.white,
                   size: 20,
                 ),
-                onPressed: () => _showEditDialog(),
+                onPressed: _navigateToAdd,
                 tooltip: 'Add New Path',
               ),
             ),
@@ -482,7 +497,7 @@ class _AdminCareerPathsScreenState
                       alignment: WrapAlignment.center,
                       children: [
                         ElevatedButton.icon(
-                          onPressed: () => _showEditDialog(),
+                          onPressed: _navigateToAdd,
                           icon: const Icon(Icons.add),
                           label: const Text('Create New'),
                         ),
@@ -726,9 +741,7 @@ class _AdminCareerPathsScreenState
                         border: Border.all(color: const Color(0xFFE2E8F0)),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(
-                              0xFF0F172A,
-                            ).withValues(alpha: 0.02),
+                            color: const Color(0xFF0F172A).withOpacity(0.02),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -862,8 +875,7 @@ class _AdminCareerPathsScreenState
                                         Icons.edit_outlined,
                                         color: Color(0xFF64748B),
                                       ),
-                                      onPressed: () =>
-                                          _showEditDialog(path: path),
+                                      onPressed: () => _navigateToEdit(path),
                                       tooltip: 'Edit',
                                       splashRadius: 24,
                                     ),
@@ -955,342 +967,6 @@ class _AdminCareerPathsScreenState
           ],
         ),
       ],
-    );
-  }
-} // Closing brace for the main class
-
-class _AdminCareerPathDialog extends ConsumerStatefulWidget {
-  final CareerPath? path;
-  final VoidCallback onSave;
-
-  const _AdminCareerPathDialog({this.path, required this.onSave});
-
-  @override
-  ConsumerState<_AdminCareerPathDialog> createState() =>
-      _AdminCareerPathDialogState();
-}
-
-class _AdminCareerPathDialogState
-    extends ConsumerState<_AdminCareerPathDialog> {
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _titleController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _categoryController;
-  late TextEditingController _salaryController;
-  late TextEditingController _growthController;
-  late TextEditingController _popularityController;
-  late TextEditingController _skillsController;
-  late TextEditingController _levelController;
-  late TextEditingController _imageController;
-  late TextEditingController _progressionController;
-  bool _isSaving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final p = widget.path;
-    _titleController = TextEditingController(text: p?.title ?? '');
-    _descriptionController = TextEditingController(text: p?.description ?? '');
-    _categoryController = TextEditingController(text: p?.category ?? '');
-    _salaryController = TextEditingController(text: p?.averageSalary ?? '');
-    _growthController = TextEditingController(text: p?.growth ?? '');
-    _popularityController = TextEditingController(
-      text: p?.popularity.toString() ?? '0',
-    );
-    _skillsController = TextEditingController(
-      text: p?.requiredSkills.join(', ') ?? '',
-    );
-    _levelController = TextEditingController(text: p?.level ?? '');
-    _imageController = TextEditingController(text: p?.image ?? '');
-    _progressionController = TextEditingController(
-      text:
-          p?.careerProgression
-              .map((e) => '${e['level'] ?? ''}:${e['salary'] ?? ''}')
-              .join('\n') ??
-          '',
-    );
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    _categoryController.dispose();
-    _salaryController.dispose();
-    _growthController.dispose();
-    _popularityController.dispose();
-    _skillsController.dispose();
-    _levelController.dispose();
-    _imageController.dispose();
-    _progressionController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _handleSave() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isSaving = true);
-
-    final progression = _progressionController.text
-        .split('\n')
-        .map((l) => l.trim())
-        .where((l) => l.isNotEmpty)
-        .map((l) {
-          final parts = l.split(':');
-          return {
-            'level': parts.isNotEmpty ? parts[0].trim() : '',
-            'salary': parts.length > 1 ? parts[1].trim() : '',
-          };
-        })
-        .toList();
-
-    final data = {
-      'title': _titleController.text,
-      'description': _descriptionController.text,
-      'level': _levelController.text,
-      'category': _categoryController.text,
-      'image': _imageController.text,
-      'averageSalary': _salaryController.text,
-      'growth': _growthController.text,
-      'popularity': int.tryParse(_popularityController.text) ?? 0,
-      'requiredSkills': _skillsController.text
-          .split(',')
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty)
-          .toList(),
-      'careerProgression': progression,
-    };
-
-    try {
-      final apiService = ref.read(apiServiceProvider);
-      if (widget.path != null) {
-        await apiService.updateCareerPath(widget.path!.id, data);
-      } else {
-        await apiService.createCareerPath(data);
-      }
-
-      if (mounted) {
-        Navigator.pop(context);
-        widget.onSave();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              widget.path != null ? 'Career path updated' : 'Career path added',
-            ),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } catch (e) {
-      String msg = 'Error saving: $e';
-      if (e is DioException) {
-        msg = e.response?.data?['message'] ?? e.message ?? msg;
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(msg),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isSaving = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 800),
-        padding: const EdgeInsets.all(32),
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      widget.path != null ? 'Edit Career Path' : 'Add New Path',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
-                _buildFieldRow([
-                  _buildField('Title', _titleController),
-                  _buildField('Category', _categoryController),
-                ]),
-                const SizedBox(height: 20),
-                _buildFieldRow([
-                  _buildField(
-                    'Salary Range',
-                    _salaryController,
-                    hint: 'e.g. ₹5L - ₹12L',
-                  ),
-                  _buildField(
-                    'Growth Rate',
-                    _growthController,
-                    hint: 'e.g. 15% YOY',
-                  ),
-                ]),
-                const SizedBox(height: 20),
-                _buildFieldRow([
-                  _buildField(
-                    'Popularity (0-100)',
-                    _popularityController,
-                    isNumber: true,
-                  ),
-                  _buildField(
-                    'Level',
-                    _levelController,
-                    hint: 'e.g. Entry, Senior',
-                  ),
-                ]),
-                const SizedBox(height: 20),
-                _buildField(
-                  'Image URL',
-                  _imageController,
-                  hint: 'https://example.com/image.png',
-                ),
-                const SizedBox(height: 20),
-                _buildField(
-                  'Description',
-                  _descriptionController,
-                  isMultiline: true,
-                ),
-                const SizedBox(height: 20),
-                _buildField(
-                  'Skills (comma separated)',
-                  _skillsController,
-                  hint: 'Python, SQL, Data Analysis',
-                ),
-                const SizedBox(height: 20),
-                _buildField(
-                  'Career Progression',
-                  _progressionController,
-                  isMultiline: true,
-                  hint: 'Junior:5L\nSenior:12L',
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(color: Color(0xFF64748B)),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    ElevatedButton(
-                      onPressed: _isSaving ? null : _handleSave,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0F172A),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: _isSaving
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text(
-                              widget.path != null
-                                  ? 'Save Changes'
-                                  : 'Create Path',
-                            ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFieldRow(List<Widget> children) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth < 600) return Column(children: children);
-        return Row(
-          children: children
-              .map(
-                (e) => Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: e,
-                  ),
-                ),
-              )
-              .toList(),
-        );
-      },
-    );
-  }
-
-  Widget _buildField(
-    String label,
-    TextEditingController controller, {
-    bool isMultiline = false,
-    bool isNumber = false,
-    String? hint,
-  }) {
-    return TextFormField(
-      controller: controller,
-      maxLines: isMultiline ? 3 : 1,
-      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        labelStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
-        filled: true,
-        fillColor: const Color(0xFFF8FAFC),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
-        ),
-      ),
-      validator: (v) => v == null || v.isEmpty ? 'Required' : null,
     );
   }
 }

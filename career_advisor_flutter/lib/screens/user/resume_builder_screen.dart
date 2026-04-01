@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -288,11 +289,26 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return AnimatedScreen(
       child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
-          title: const Text('Resume Builder'),
           automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
+          ),
+          title: const Text('Resume Builder'),
+          backgroundColor: theme.appBarTheme.backgroundColor,
+          foregroundColor: isDark ? Colors.white : AppTheme.gray900,
           actions: [
             IconButton(
               tooltip: 'Upload Resume (PDF/DOCX)',
@@ -308,9 +324,26 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
             PopupMenuButton<int>(
               initialValue: _templateIndex,
               onSelected: (i) => setState(() => _templateIndex = i),
-              itemBuilder: (context) => const [
-                PopupMenuItem(value: 0, child: Text('Modern Compact')),
-                PopupMenuItem(value: 1, child: Text('Classic Header')),
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 0,
+                  child: Text(
+                    'Modern Compact',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : AppTheme.gray900,
+                    ),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 1,
+                  child: Text(
+                    'Classic Header',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : AppTheme.gray900,
+                    ),
+                  ),
+                ),
               ],
             ),
           ],
@@ -326,13 +359,21 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.red.shade50,
+                          color: isDark
+                              ? Colors.red.withOpacity(0.1)
+                              : Colors.red.shade50,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.red.shade100),
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.red.withOpacity(0.2)
+                                : Colors.red.shade100,
+                          ),
                         ),
                         child: Text(
                           _error!,
-                          style: const TextStyle(color: Colors.red),
+                          style: TextStyle(
+                            color: isDark ? Colors.redAccent : Colors.red,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -348,6 +389,10 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                             label: Text(
                               _isUploading ? 'Uploading...' : 'Upload PDF/DOCX',
                             ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.userPrimaryBlue,
+                              foregroundColor: Colors.white,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -355,6 +400,14 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                           onPressed: _initLoad,
                           icon: const Icon(Icons.refresh),
                           label: const Text('Reload'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: isDark
+                                ? Colors.white70
+                                : AppTheme.gray700,
+                            side: BorderSide(
+                              color: isDark ? Colors.white24 : AppTheme.gray300,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -365,14 +418,46 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                         children: [
                           TextFormField(
                             controller: _nameController,
+                            style: TextStyle(
+                              color: isDark ? Colors.white : AppTheme.gray900,
+                            ),
                             decoration: InputDecoration(
                               labelText: 'Full Name',
+                              labelStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white70
+                                    : AppTheme.gray600,
+                              ),
                               hintText: 'Enter your full name',
-                              helperText: 'Use the name you want shown to employers',
+                              hintStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white24
+                                    : AppTheme.gray400,
+                              ),
+                              helperText:
+                                  'Use the name you want shown to employers',
+                              helperStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white38
+                                    : AppTheme.gray500,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              prefixIcon: const Icon(Icons.person_outline),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? Colors.white12
+                                      : AppTheme.gray300,
+                                ),
+                              ),
+                              prefixIcon: Icon(
+                                Icons.person_outline,
+                                color: isDark
+                                    ? Colors.white70
+                                    : AppTheme.gray600,
+                              ),
                             ),
                             validator: (v) => (v == null || v.trim().isEmpty)
                                 ? 'Full name is required'
@@ -382,20 +467,53 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
+                            style: TextStyle(
+                              color: isDark ? Colors.white : AppTheme.gray900,
+                            ),
                             decoration: InputDecoration(
                               labelText: 'Email',
+                              labelStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white70
+                                    : AppTheme.gray600,
+                              ),
                               hintText: 'Enter your email address',
+                              hintStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white24
+                                    : AppTheme.gray400,
+                              ),
                               helperText: 'Example: yourname@example.com',
+                              helperStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white38
+                                    : AppTheme.gray500,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              prefixIcon: const Icon(Icons.email_outlined),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? Colors.white12
+                                      : AppTheme.gray300,
+                                ),
+                              ),
+                              prefixIcon: Icon(
+                                Icons.email_outlined,
+                                color: isDark
+                                    ? Colors.white70
+                                    : AppTheme.gray600,
+                              ),
                             ),
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) {
                                 return 'Email is required';
                               }
-                              final emailRegex = RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
+                              final emailRegex = RegExp(
+                                r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+',
+                              );
                               if (!emailRegex.hasMatch(v.trim())) {
                                 return 'Enter a valid email address';
                               }
@@ -406,14 +524,46 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                           TextFormField(
                             controller: _phoneController,
                             keyboardType: TextInputType.phone,
+                            style: TextStyle(
+                              color: isDark ? Colors.white : AppTheme.gray900,
+                            ),
                             decoration: InputDecoration(
                               labelText: 'Phone',
+                              labelStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white70
+                                    : AppTheme.gray600,
+                              ),
                               hintText: 'Enter your phone number',
-                              helperText: 'Include country code if applying abroad',
+                              hintStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white24
+                                    : AppTheme.gray400,
+                              ),
+                              helperText:
+                                  'Include country code if applying abroad',
+                              helperStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white38
+                                    : AppTheme.gray500,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              prefixIcon: const Icon(Icons.phone_outlined),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? Colors.white12
+                                      : AppTheme.gray300,
+                                ),
+                              ),
+                              prefixIcon: Icon(
+                                Icons.phone_outlined,
+                                color: isDark
+                                    ? Colors.white70
+                                    : AppTheme.gray600,
+                              ),
                             ),
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) {
@@ -429,12 +579,39 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                           TextFormField(
                             controller: _summaryController,
                             maxLines: 3,
+                            style: TextStyle(
+                              color: isDark ? Colors.white : AppTheme.gray900,
+                            ),
                             decoration: InputDecoration(
                               labelText: 'Professional Summary',
+                              labelStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white70
+                                    : AppTheme.gray600,
+                              ),
                               hintText: 'Briefly describe your background',
-                              helperText: '2–3 sentences about your experience and goals',
+                              hintStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white24
+                                    : AppTheme.gray400,
+                              ),
+                              helperText:
+                                  '2–3 sentences about your experience and goals',
+                              helperStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white38
+                                    : AppTheme.gray500,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? Colors.white12
+                                      : AppTheme.gray300,
+                                ),
                               ),
                               alignLabelWithHint: true,
                             ),
@@ -442,39 +619,130 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                           const SizedBox(height: 16),
                           TextFormField(
                             controller: _skillsController,
+                            style: TextStyle(
+                              color: isDark ? Colors.white : AppTheme.gray900,
+                            ),
                             decoration: InputDecoration(
                               labelText: 'Skills (comma separated)',
+                              labelStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white70
+                                    : AppTheme.gray600,
+                              ),
                               hintText: 'e.g. Flutter, Java, Python',
-                              helperText: 'Example: Flutter, Dart, REST APIs, Firebase',
+                              hintStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white24
+                                    : AppTheme.gray400,
+                              ),
+                              helperText:
+                                  'Example: Flutter, Dart, REST APIs, Firebase',
+                              helperStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white38
+                                    : AppTheme.gray500,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              prefixIcon: const Icon(Icons.extension_outlined),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? Colors.white12
+                                      : AppTheme.gray300,
+                                ),
+                              ),
+                              prefixIcon: Icon(
+                                Icons.extension_outlined,
+                                color: isDark
+                                    ? Colors.white70
+                                    : AppTheme.gray600,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
                             controller: _educationController,
+                            style: TextStyle(
+                              color: isDark ? Colors.white : AppTheme.gray900,
+                            ),
                             decoration: InputDecoration(
                               labelText: 'Education',
+                              labelStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white70
+                                    : AppTheme.gray600,
+                              ),
                               hintText: 'Enter your educational background',
-                              helperText: 'Example: BCA, XYZ University, 2022 (8.5 CGPA)',
+                              hintStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white24
+                                    : AppTheme.gray400,
+                              ),
+                              helperText:
+                                  'Example: BCA, XYZ University, 2022 (8.5 CGPA)',
+                              helperStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white38
+                                    : AppTheme.gray500,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              prefixIcon: const Icon(Icons.school_outlined),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? Colors.white12
+                                      : AppTheme.gray300,
+                                ),
+                              ),
+                              prefixIcon: Icon(
+                                Icons.school_outlined,
+                                color: isDark
+                                    ? Colors.white70
+                                    : AppTheme.gray600,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
                             controller: _experienceController,
                             maxLines: 5,
+                            style: TextStyle(
+                              color: isDark ? Colors.white : AppTheme.gray900,
+                            ),
                             decoration: InputDecoration(
                               labelText: 'Experience',
+                              labelStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white70
+                                    : AppTheme.gray600,
+                              ),
                               hintText: 'Describe your work experience',
-                              helperText: 'List your roles, companies, dates, and key achievements',
+                              hintStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white24
+                                    : AppTheme.gray400,
+                              ),
+                              helperText:
+                                  'List your roles, companies, dates, and key achievements',
+                              helperStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.white38
+                                    : AppTheme.gray500,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? Colors.white12
+                                      : AppTheme.gray300,
+                                ),
                               ),
                               alignLabelWithHint: true,
                             ),
@@ -486,9 +754,11 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                     Container(
                       height: 420,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppTheme.gray200),
+                        border: Border.all(
+                          color: isDark ? Colors.white10 : AppTheme.gray200,
+                        ),
                       ),
                       child: _generatedPdfBytes == null
                           ? Center(

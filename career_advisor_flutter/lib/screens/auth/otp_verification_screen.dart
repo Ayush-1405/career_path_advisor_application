@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
-//import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:career_advisor_flutter/services/api_service.dart';
 import 'package:career_advisor_flutter/services/auth_service.dart';
 import 'package:career_advisor_flutter/providers/app_auth_provider.dart';
+import 'package:career_advisor_flutter/providers/base_url_provider.dart';
+import 'package:career_advisor_flutter/utils/config.dart';
 import 'package:career_advisor_flutter/utils/theme.dart';
 import 'package:career_advisor_flutter/services/token_service.dart';
 import '../../widgets/animated_screen.dart';
@@ -40,6 +42,61 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
     _codeController.dispose();
     _emailController.dispose();
     super.dispose();
+  }
+
+  void _showServerUrlDialog() {
+    final currentUrl = ref.read(baseUrlProvider);
+    final controller = TextEditingController(text: currentUrl);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Server URL'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                labelText: 'API Base URL',
+                hintText:
+                    'https://careerpathadvisorapplication-production.up.railway.app/',
+                helperText:
+                    'Production: https://careerpathadvisorapplication-production.up.railway.app/\nLocal: http://10.0.2.2:8080 or http://192.168.x.x:8080',
+                helperMaxLines: 4,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              controller.text = AppConfig.baseUrl;
+            },
+            child: const Text('Reset to Default'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              String newUrl = controller.text.trim();
+              if (newUrl.isNotEmpty) {
+                if (newUrl.endsWith('/')) {
+                  newUrl = newUrl.substring(0, newUrl.length - 1);
+                }
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setString('api_base_url', newUrl);
+                ref.read(baseUrlProvider.notifier).state = newUrl;
+                if (context.mounted) Navigator.pop(context);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
   }
 
   String _currentEmail() {
@@ -116,6 +173,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
   }
 
   Future<void> _verifyOtp() async {
+    FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
     if (_isLoading) return;
 
@@ -218,31 +276,46 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final isDarkerTheme = widget.isAdmin;
-    final primaryColor = isDarkerTheme ? AppTheme.adminPrimaryRed : AppTheme.userPrimaryBlue;
+    final primaryColor = isDarkerTheme
+        ? AppTheme.adminPrimaryRed
+        : AppTheme.userPrimaryBlue;
     final gradientColors = isDarkerTheme
         ? [AppTheme.adminPrimaryRed, AppTheme.adminPrimaryOrange]
         : [AppTheme.userPrimaryBlue, AppTheme.userPrimaryPurple];
 
     return AnimatedScreen(
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC), // Slate 50
+        backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
           automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+            ),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
+          ),
           title: Text(
             widget.isLogin ? 'Two-Factor Auth' : 'Verify Email',
-            style: const TextStyle(
-              color: Color(0xFF0F172A), // Slate 900
+            style: TextStyle(
+              color: isDark
+                  ? Colors.white
+                  : const Color(0xFF0F172A), // Slate 900
               fontWeight: FontWeight.w600,
             ),
           ),
           centerTitle: true,
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF0F172A)),
-            onPressed: () => context.pop(),
-          ),
         ),
         body: Center(
           child: SingleChildScrollView(
@@ -250,12 +323,18 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
             child: Container(
               constraints: const BoxConstraints(maxWidth: 420),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFFE2E8F0)), // Slate 200
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.1)
+                      : const Color(0xFFE2E8F0),
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF0F172A).withValues(alpha: 0.04), // Slate 900
+                    color: isDark
+                        ? Colors.black.withOpacity(0.2)
+                        : const Color(0xFF0F172A).withOpacity(0.04),
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),
@@ -282,7 +361,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: primaryColor.withValues(alpha: 0.25),
+                              color: primaryColor.withOpacity(0.25),
                               blurRadius: 16,
                               offset: const Offset(0, 8),
                             ),
@@ -296,26 +375,30 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    
+
                     // Title
                     Text(
                       widget.isLogin ? 'Login Verification' : 'Verify Email',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF0F172A), // Slate 900
+                        color: isDark
+                            ? Colors.white
+                            : const Color(0xFF0F172A), // Slate 900
                         letterSpacing: -0.5,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    
+
                     if ((widget.email ?? '').isNotEmpty)
                       Text(
                         widget.email ?? '',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
-                          color: Color(0xFF64748B), // Slate 500
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(0xFF64748B), // Slate 500
                         ),
                         textAlign: TextAlign.center,
                       )
@@ -323,31 +406,47 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
-                          color: Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                           fontWeight: FontWeight.w500,
                         ),
                         decoration: InputDecoration(
                           labelText: 'Registered Email',
-                          labelStyle: const TextStyle(color: Color(0xFF64748B)),
+                          labelStyle: TextStyle(
+                            color: isDark
+                                ? Colors.white70
+                                : const Color(0xFF64748B),
+                          ),
                           hintText: 'Enter your registered email',
-                          hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                          prefixIcon: const Icon(
+                          hintStyle: TextStyle(
+                            color: isDark
+                                ? Colors.white38
+                                : const Color(0xFF94A3B8),
+                          ),
+                          prefixIcon: Icon(
                             Icons.email_outlined,
-                            color: Color(0xFF64748B),
+                            color: isDark
+                                ? Colors.white70
+                                : const Color(0xFF64748B),
                             size: 20,
                           ),
                           filled: true,
-                          fillColor: const Color(0xFFF8FAFC),
+                          fillColor: isDark
+                              ? const Color(0xFF0F172A)
+                              : const Color(0xFFF8FAFC),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE2E8F0),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? Colors.white12
+                                  : const Color(0xFFE2E8F0),
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
@@ -377,30 +476,62 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFEF2F2), // Red 50
+                          color: isDark
+                              ? Colors.red.withOpacity(0.1)
+                              : const Color(0xFFFEF2F2), // Red 50
                           border: Border.all(
-                            color: const Color(0xFFFECACA), // Red 200
-                          ), 
+                            color: isDark
+                                ? Colors.red.withOpacity(0.2)
+                                : const Color(0xFFFECACA), // Red 200
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(
-                              Icons.error_outline_rounded,
-                              color: Color(0xFFEF4444), // Red 500
-                              size: 20,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                _error!,
-                                style: const TextStyle(
-                                  color: Color(0xFFB91C1C), // Red 700
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.error_outline_rounded,
+                                  color: Color(0xFFEF4444), // Red 500
+                                  size: 20,
                                 ),
-                              ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    _error!,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.redAccent
+                                          : const Color(0xFFB91C1C), // Red 700
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
+                            if (_error!.contains('Connection timeout') ||
+                                _error!.contains('Network error') ||
+                                _error!.contains('Connection error') ||
+                                _error!.contains('Endpoint not found'))
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  top: 12.0,
+                                  left: 32.0,
+                                ),
+                                // child: TextButton.icon(
+                                //   onPressed: _showServerUrlDialog,
+                                //   icon: const Icon(Icons.settings, size: 16),
+                                //   label: const Text('Configure Server URL'),
+                                //   style: TextButton.styleFrom(
+                                //     foregroundColor: const Color(0xFFB91C1C),
+                                //     padding: EdgeInsets.zero,
+                                //     minimumSize: Size.zero,
+                                //     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                //   ),
+                                // ),
+                              ),
                           ],
                         ),
                       ),
@@ -412,10 +543,14 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF0FDF4), // Green 50
+                          color: isDark
+                              ? Colors.green.withOpacity(0.1)
+                              : const Color(0xFFF0FDF4), // Green 50
                           border: Border.all(
-                            color: const Color(0xFFBBF7D0), // Green 200
-                          ), 
+                            color: isDark
+                                ? Colors.green.withOpacity(0.2)
+                                : const Color(0xFFBBF7D0), // Green 200
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -429,8 +564,10 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                             Expanded(
                               child: Text(
                                 _info!,
-                                style: const TextStyle(
-                                  color: Color(0xFF15803D), // Green 700
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.greenAccent
+                                      : const Color(0xFF15803D), // Green 700
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -448,38 +585,47 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                       keyboardType: TextInputType.number,
                       textAlign: TextAlign.center,
                       maxLength: 6,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         letterSpacing: 8,
-                        color: Color(0xFF0F172A),
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
                         fontWeight: FontWeight.bold,
                       ),
                       decoration: InputDecoration(
-                        labelText: 'OTP Code',
-                        labelStyle: const TextStyle(
-                          color: Color(0xFF64748B),
-                          letterSpacing: 0,
+                        counterText: '',
+                        labelText: 'Enter 6-digit Code',
+                        labelStyle: TextStyle(
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(0xFF64748B),
                           fontSize: 15,
                         ),
-                        counterText: "",
+                        hintText: '------',
+                        hintStyle: TextStyle(
+                          color: isDark
+                              ? Colors.white24
+                              : const Color(0xFF94A3B8),
+                          letterSpacing: 8,
+                        ),
                         filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
+                        fillColor: isDark
+                            ? const Color(0xFF0F172A)
+                            : const Color(0xFFF8FAFC),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFE2E8F0),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? Colors.white12
+                                : const Color(0xFFE2E8F0),
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: primaryColor,
-                            width: 2,
-                          ),
+                          borderSide: BorderSide(color: primaryColor, width: 2),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           vertical: 20,
@@ -488,7 +634,8 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                       validator: (v) {
                         final t = v?.trim() ?? '';
                         if (t.length != 6) return 'Enter 6 digits';
-                        if (!RegExp(r'^\d{6}$').hasMatch(t)) return 'Digits only';
+                        if (!RegExp(r'^\d{6}$').hasMatch(t))
+                          return 'Digits only';
                         return null;
                       },
                     ),
@@ -536,9 +683,15 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                               _sendOtp();
                             },
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF64748B),
+                        foregroundColor: isDark
+                            ? Colors.white70
+                            : const Color(0xFF64748B),
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: const BorderSide(color: Color(0xFFE2E8F0)),
+                        side: BorderSide(
+                          color: isDark
+                              ? Colors.white12
+                              : const Color(0xFFE2E8F0),
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -549,6 +702,22 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextButton(
+                      onPressed: () {
+                        context.pushReplacement('/login');
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: isDark
+                            ? Colors.white38
+                            : const Color(0xFF94A3B8),
+                      ),
+                      child: const Text(
+                        'Back to Login',
+                        style: TextStyle(fontSize: 14),
                       ),
                     ),
                   ],

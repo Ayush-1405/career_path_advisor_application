@@ -1,12 +1,8 @@
-import 'dart:io';
-
 class AppConfig {
   // Backend base URL
-  static const String productionUrl =
-      'https://careerpathadvisorapplication-production.up.railway.app/';
+  static const String productionUrl = 'http://172.20.10.1:8080';
 
-  static const String _physicalDeviceIp =
-      '172.20.10.2'; // Updated automatically
+  static const String _physicalDeviceIp = '172.20.10.1';
 
   static const String witAiToken = 'JNK2GIILYFJNSXMX4AWZE6KOFYSBLRSP';
   static const String witAiApiVersion = '20260319';

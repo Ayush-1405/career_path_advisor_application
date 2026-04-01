@@ -265,72 +265,88 @@ class _CareerPathsScreenState extends ConsumerState<CareerPathsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    
     if (widget.initialId == null) {
       return const SuggestionsScreen();
     }
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return AnimatedScreen(
       child: Scaffold(
-      backgroundColor: AppTheme.gray50,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Career Path Details'),
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: AppTheme.gray900,
-        actions: [
-          IconButton(
-            icon: const Icon(Remix.share_line),
-            onPressed: _handleShare,
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
           ),
-          IconButton(
-            icon: Icon(
-              _isBookmarked ? Remix.bookmark_fill : Remix.bookmark_line,
-              color: _isBookmarked ? AppTheme.primaryColor : AppTheme.gray900,
-            ),
-            onPressed: _toggleBookmark,
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppTheme.primaryColor),
-            )
-          : _errorMessage != null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    _errorMessage!,
-                    style: const TextStyle(color: AppTheme.gray600),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _isLoading = true;
-                        _errorMessage = null;
-                      });
-                      _loadPathDetails();
-                    },
-                    child: const Text('Retry'),
-                  ),
-                ],
+          title: const Text('Career Path Details'),
+          elevation: 0,
+          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+          foregroundColor: isDark ? Colors.white : AppTheme.gray900,
+          actions: [
+            IconButton(
+              icon: Icon(
+                Remix.share_line,
+                color: isDark ? Colors.white70 : AppTheme.gray900,
               ),
-            )
-          : _pathDetails == null
-          ? const Center(child: Text('Career path not found'))
-          : _buildContent(),
-      bottomNavigationBar: _pathDetails != null ? _buildBottomBar() : null,
-    ),
+              onPressed: _handleShare,
+            ),
+            IconButton(
+              icon: Icon(
+                _isBookmarked ? Remix.bookmark_fill : Remix.bookmark_line,
+                color: _isBookmarked ? AppTheme.primaryColor : (isDark ? Colors.white70 : AppTheme.gray900),
+              ),
+              onPressed: _toggleBookmark,
+            ),
+          ],
+        ),
+        body: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: AppTheme.primaryColor),
+              )
+            : _errorMessage != null
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                    const SizedBox(height: 16),
+                    Text(
+                      _errorMessage!,
+                      style: TextStyle(color: isDark ? Colors.white70 : AppTheme.gray600),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _isLoading = true;
+                          _errorMessage = null;
+                        });
+                        _loadPathDetails();
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              )
+            : _pathDetails == null
+            ? const Center(child: Text('Career path not found'))
+            : _buildContent(),
+        bottomNavigationBar: _pathDetails != null ? _buildBottomBar() : null,
+      ),
     );
   }
 
   Widget _buildContent() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final details = _pathDetails!;
     final title = details['title'] ?? 'Unknown Role';
     final category = details['category'] ?? 'General';
@@ -350,9 +366,9 @@ class _CareerPathsScreenState extends ConsumerState<CareerPathsScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,7 +378,7 @@ class _CareerPathsScreenState extends ConsumerState<CareerPathsScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        color: AppTheme.primaryColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
@@ -378,17 +394,18 @@ class _CareerPathsScreenState extends ConsumerState<CareerPathsScreen> {
                         children: [
                           Text(
                             title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.gray900,
+                              color: isDark ? Colors.white : AppTheme.gray900,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             category,
-                            style: const TextStyle(
-                              color: AppTheme.primaryColor,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: isDark ? Colors.blueAccent : AppTheme.primaryColor,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -398,162 +415,220 @@ class _CareerPathsScreenState extends ConsumerState<CareerPathsScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: [
-                    _buildInfoChip(Remix.bar_chart_line, level),
-                    _buildInfoChip(Remix.money_dollar_circle_line, salary),
-                    _buildInfoChip(Remix.line_chart_line, growth),
-                  ],
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isDark ? Colors.white : AppTheme.gray900,
+                    height: 1.5,
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
 
-          // Description
-          const Text(
-            'About this Role',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.gray900,
-            ),
+          // Key Stats Grid
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            childAspectRatio: 1.5,
+            children: [
+              _buildStatCard(
+                Remix.money_dollar_circle_line,
+                'Avg. Salary',
+                salary,
+                Colors.green,
+              ),
+              _buildStatCard(
+                Remix.bar_chart_line,
+                'Level',
+                level,
+                Colors.blue,
+              ),
+              _buildStatCard(
+                Remix.line_chart_line,
+                'Growth',
+                growth,
+                Colors.orange,
+              ),
+              _buildStatCard(
+                Remix.group_line,
+                'Demand',
+                'High',
+                Colors.purple,
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            description,
-            style: const TextStyle(
-              fontSize: 16,
-              height: 1.5,
-              color: AppTheme.gray700,
-            ),
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
 
           // Required Skills
-          if (skills.isNotEmpty) ...[
-            const Text(
-              'Required Skills',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.gray900,
-              ),
+          Text(
+            'Required Skills',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : AppTheme.gray900,
             ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: skills.map<Widget>((skill) {
-                return Chip(
-                  label: Text(skill.toString()),
-                  backgroundColor: Colors.white,
-                  side: BorderSide(color: Colors.grey.shade300),
-                  labelStyle: const TextStyle(color: AppTheme.gray700),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 24),
-          ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: skills.map((skill) {
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
+                ),
+                child: Text(
+                  skill.toString(),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.white70 : AppTheme.gray700,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 32),
 
           // Career Roadmap
-          if (roadmap.isNotEmpty) ...[
-            const Text(
-              'Career Roadmap',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.gray900,
-              ),
+          Text(
+            'Career Roadmap',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : AppTheme.gray900,
             ),
-            const SizedBox(height: 16),
-            ListView.separated(
+          ),
+          const SizedBox(height: 16),
+          if (roadmap.isEmpty)
+            Text(
+              'No roadmap data available.',
+              style: TextStyle(color: isDark ? Colors.white38 : AppTheme.gray500),
+            )
+          else
+            ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: roadmap.length,
-              separatorBuilder: (context, index) => Container(
-                margin: const EdgeInsets.only(left: 24),
-                height: 24,
-                width: 2,
-                color: Colors.grey.shade300,
-              ),
               itemBuilder: (context, index) {
-                return Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: index == 0
-                            ? AppTheme.primaryColor
-                            : Colors.grey.shade100,
-                        shape: BoxShape.circle,
-                        border: index == 0
-                            ? null
-                            : Border.all(color: Colors.grey.shade300),
+                final step = roadmap[index];
+                final isLast = index == roadmap.length - 1;
+
+                return IntrinsicHeight(
+                  child: Row(
+                    children: [
+                      Column(
+                        children: [
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 4,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.primaryColor.withOpacity(0.3),
+                                  blurRadius: 8,
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (!isLast)
+                            Expanded(
+                              child: Container(
+                                width: 2,
+                                color: AppTheme.primaryColor.withOpacity(0.3),
+                              ),
+                            ),
+                        ],
                       ),
-                      child: Text(
-                        '${index + 1}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: index == 0 ? Colors.white : AppTheme.gray600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
-                        child: Text(
-                          roadmap[index].toString(),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.gray900,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                step.toString(),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : AppTheme.gray900,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Step ${index + 1} in your career progression',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: isDark ? Colors.white38 : AppTheme.gray600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 );
               },
             ),
-            const SizedBox(height: 24),
-          ],
+          const SizedBox(height: 48),
         ],
       ),
     );
   }
 
-  Widget _buildInfoChip(IconData icon, String label) {
+  Widget _buildStatCard(IconData icon, String label, String value, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.gray50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.gray200),
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Icon(icon, size: 16, color: AppTheme.gray600),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppTheme.gray700,
-              fontWeight: FontWeight.w500,
-            ),
+          Icon(icon, color: color, size: 24),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12, 
+                  color: isDark ? Colors.white38 : AppTheme.gray600
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : AppTheme.gray900,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -561,35 +636,50 @@ class _CareerPathsScreenState extends ConsumerState<CareerPathsScreen> {
   }
 
   Widget _buildBottomBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
         ],
       ),
-      child: SafeArea(
-        child: ElevatedButton(
-          onPressed: _handleApply,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.primaryColor,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () => context.push('/ai-assistant'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                side: const BorderSide(color: AppTheme.primaryColor),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Ask AI Assistant'),
             ),
-            elevation: 0,
           ),
-          child: const Text(
-            'Apply Now',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          const SizedBox(width: 16),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: _handleApply,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Apply Now'),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

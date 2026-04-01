@@ -134,6 +134,16 @@ class _AdminApplicationsScreenState
         backgroundColor: const Color(0xFFF8FAFC), // Slate 50
         appBar: AppBar(
           automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/dashboard');
+              }
+            },
+          ),
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
@@ -271,7 +281,7 @@ class _AdminApplicationsScreenState
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+            color: const Color(0xFF0F172A).withOpacity(0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -338,7 +348,7 @@ class _AdminApplicationsScreenState
                   decoration: BoxDecoration(
                     color: statusBgColor,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: statusColor.withValues(alpha: 0.2)),
+                    border: Border.all(color: statusColor.withOpacity(0.2)),
                   ),
                   child: Text(
                     app.status,

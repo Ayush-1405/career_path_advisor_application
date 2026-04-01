@@ -130,19 +130,19 @@ public class AdminUserManagementService {
         Long totalResumes = resumeRepository.count();
         Long totalAnalyses = resumeAnalysisRepository.count();
 
-        // Calculate average resume score
-        List<ResumeAnalysis> analyses = resumeAnalysisRepository.findAll();
-        Double averageResumeScore = analyses.stream()
+        // Calculate average resume score (Using projected query so it's memory efficient)
+        List<ResumeAnalysis> allScores = resumeAnalysisRepository.findAllScoresOnly();
+        Double averageResumeScore = allScores.stream()
                 .filter(a -> a.getOverallScore() != null)
                 .mapToDouble(ResumeAnalysis::getOverallScore)
                 .average()
                 .orElse(0.0);
 
-        // Get user activities (limit to recent 50)
-        List<UserActivity> activities = userActivityRepository.findAllByOrderByCreatedAtDesc();
-        if (activities.size() > 50) {
-            activities = activities.subList(0, 50);
-        }
+        // Get user activities (limit to recent 50 directly from DB using Pageable)
+        List<UserActivity> activities = userActivityRepository.findAll(
+                org.springframework.data.domain.PageRequest.of(0, 50, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"))
+        ).getContent();
+        
         List<AdminReportResponse.UserActivityReport> userActivityReports = activities.stream()
                 .map(activity -> {
                     User user = activity.getUser();
@@ -157,11 +157,11 @@ public class AdminUserManagementService {
                 })
                 .collect(Collectors.toList());
 
-        // Get resume analyses (limit to recent 50)
-        List<ResumeAnalysis> analysesForReport = analyses;
-        if (analysesForReport.size() > 50) {
-            analysesForReport = analysesForReport.subList(analysesForReport.size() - 50, analysesForReport.size());
-        }
+        // Get resume analyses (limit to recent 50 directly from DB)
+        List<ResumeAnalysis> analysesForReport = resumeAnalysisRepository.findAll(
+                org.springframework.data.domain.PageRequest.of(0, 50, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "analyzedAt"))
+        ).getContent();
+        
         List<AdminReportResponse.ResumeAnalysisReport> resumeAnalysisReports = analysesForReport.stream()
                 .map(analysis -> {
                     Resume resume = analysis.getResume();
@@ -179,8 +179,12 @@ public class AdminUserManagementService {
                 })
                 .collect(Collectors.toList());
 
+        // Use a lightweight projection to get user creation dates & roles without full entity load
+        List<User> userProjections = userRepository.findAllProjectedBy();
+
         // Get user registrations by month
-        Map<String, Long> userRegistrationsByMonth = userRepository.findAll().stream()
+        Map<String, Long> userRegistrationsByMonth = userProjections.stream()
+                .filter(user -> user.getCreatedAt() != null)
                 .collect(Collectors.groupingBy(
                         user -> user.getCreatedAt().getYear() + "-" + 
                                String.format("%02d", user.getCreatedAt().getMonthValue()),
@@ -188,7 +192,8 @@ public class AdminUserManagementService {
                 ));
 
         // Get role distribution
-        Map<String, Long> roleDistribution = userRepository.findAll().stream()
+        Map<String, Long> roleDistribution = userProjections.stream()
+                .filter(user -> user.getRole() != null)
                 .collect(Collectors.groupingBy(
                         user -> user.getRole().name(),
                         Collectors.counting()

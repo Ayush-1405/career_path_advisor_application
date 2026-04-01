@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -316,10 +317,12 @@ class _SkillsAssessmentScreenState
     // Fire-and-forget: track on backend + save locally so dashboard shows status even if backend sync fails
     Future.microtask(() async {
       try {
-        await ref.read(apiServiceProvider).trackUserActivity(
-          'skills_assessment_completed',
-          activityData: summary,
-        );
+        await ref
+            .read(apiServiceProvider)
+            .trackUserActivity(
+              'skills_assessment_completed',
+              activityData: summary,
+            );
       } catch (_) {}
       try {
         final prefs = await SharedPreferences.getInstance();
@@ -336,58 +339,74 @@ class _SkillsAssessmentScreenState
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return AnimatedScreen(
       child: Scaffold(
-      backgroundColor: AppTheme.gray50,
-      appBar: AppBar(
-        title: const Text('Skills Assessment'),
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: AppTheme.gray900,
-        automaticallyImplyLeading: false,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            if (!_isTestStarted && _testResults == null) _buildIntro(),
-            if (_isTestStarted && _testResults == null) _buildTest(),
-            if (_testResults != null) _buildResults(),
-          ],
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
+          ),
+          title: const Text('Skills Assessment'),
+          elevation: 0,
+          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+          foregroundColor: isDark ? Colors.white : AppTheme.gray900,
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              if (!_isTestStarted && _testResults == null) _buildIntro(isDark),
+              if (_isTestStarted && _testResults == null) _buildTest(isDark),
+              if (_testResults != null) _buildResults(isDark),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 
-  Widget _buildIntro() {
+  Widget _buildIntro(bool isDark) {
     return Column(
       children: [
         const SizedBox(height: 24),
-        const Text(
+        Text(
           'Skills Assessment',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: AppTheme.gray900,
+            color: isDark ? Colors.white : AppTheme.gray900,
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'Take our comprehensive skills assessment to identify your strengths, discover areas for improvement, and get personalized career recommendations.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: AppTheme.gray600, fontSize: 16),
+          style: TextStyle(
+            color: isDark ? Colors.white70 : AppTheme.gray600,
+            fontSize: 16,
+          ),
         ),
         const SizedBox(height: 32),
 
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -402,18 +421,21 @@ class _SkillsAssessmentScreenState
                     color: Colors.blue,
                     title: '15-20 Minutes',
                     subtitle: 'Complete assessment duration',
+                    isDark: isDark,
                   ),
                   _buildIntroItem(
                     icon: Remix.question_line,
                     color: Colors.purple,
                     title: '15 Questions',
                     subtitle: 'Comprehensive skill evaluation',
+                    isDark: isDark,
                   ),
                   _buildIntroItem(
                     icon: Remix.award_line,
                     color: Colors.green,
                     title: 'Detailed Report',
                     subtitle: 'Personalized insights',
+                    isDark: isDark,
                   ),
                 ],
               ),
@@ -422,31 +444,39 @@ class _SkillsAssessmentScreenState
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
+                  color: isDark
+                      ? Colors.blue.withOpacity(0.1)
+                      : Colors.blue.shade50,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       "What You'll Get:",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.gray900,
+                        color: isDark ? Colors.white : AppTheme.gray900,
                         fontSize: 16,
                       ),
                     ),
                     const SizedBox(height: 12),
                     _buildFeatureItem(
                       'Comprehensive skills profile across technical and soft skills',
+                      isDark,
                     ),
                     _buildFeatureItem(
                       'Personalized career path recommendations',
+                      isDark,
                     ),
                     _buildFeatureItem(
                       'Learning recommendations to fill skill gaps',
+                      isDark,
                     ),
-                    _buildFeatureItem('Salary insights and growth projections'),
+                    _buildFeatureItem(
+                      'Salary insights and growth projections',
+                      isDark,
+                    ),
                   ],
                 ),
               ),
@@ -482,6 +512,7 @@ class _SkillsAssessmentScreenState
     required MaterialColor color,
     required String title,
     required String subtitle,
+    required bool isDark,
   }) {
     return Expanded(
       child: Column(
@@ -490,21 +521,32 @@ class _SkillsAssessmentScreenState
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: color.shade50,
+              color: isDark ? color.withOpacity(0.1) : color.shade50,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: color.shade600, size: 32),
+            child: Icon(
+              icon,
+              color: isDark ? color.shade400 : color.shade600,
+              size: 32,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: isDark ? Colors.white : Colors.black,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: const TextStyle(color: AppTheme.gray600, fontSize: 12),
+            style: TextStyle(
+              color: isDark ? Colors.white60 : AppTheme.gray600,
+              fontSize: 12,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -512,34 +554,43 @@ class _SkillsAssessmentScreenState
     );
   }
 
-  Widget _buildFeatureItem(String text) {
+  Widget _buildFeatureItem(String text, bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Remix.check_line, color: Colors.blue.shade600, size: 20),
+          Icon(
+            Remix.check_line,
+            color: isDark ? Colors.blue.shade400 : Colors.blue.shade600,
+            size: 20,
+          ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(text, style: const TextStyle(color: AppTheme.gray700)),
+            child: Text(
+              text,
+              style: TextStyle(
+                color: isDark ? Colors.white70 : AppTheme.gray700,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTest() {
+  Widget _buildTest(bool isDark) {
     final currentQ = _questions[_currentQuestion];
     final progress = ((_currentQuestion + 1) / _questions.length);
 
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -556,7 +607,9 @@ class _SkillsAssessmentScreenState
                 children: [
                   Text(
                     'Question ${_currentQuestion + 1} of ${_questions.length}',
-                    style: const TextStyle(color: AppTheme.gray600),
+                    style: TextStyle(
+                      color: isDark ? Colors.white60 : AppTheme.gray600,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   SizedBox(
@@ -564,20 +617,21 @@ class _SkillsAssessmentScreenState
                     height: 8,
                     child: LinearProgressIndicator(
                       value: progress,
-                      backgroundColor: Colors.grey.shade200,
+                      backgroundColor: isDark
+                          ? Colors.white10
+                          : Colors.grey.shade200,
                       valueColor: const AlwaysStoppedAnimation<Color>(
                         AppTheme.primaryColor,
                       ),
-                      borderRadius: BorderRadius.circular(4),
                     ),
                   ),
                 ],
               ),
               Text(
                 'Time: ${_formatTime(_timeLeft)}',
-                style: const TextStyle(
-                  color: AppTheme.gray600,
-                  fontFeatures: [FontFeature.tabularFigures()],
+                style: TextStyle(
+                  color: isDark ? Colors.white60 : AppTheme.gray600,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ],
@@ -596,16 +650,16 @@ class _SkillsAssessmentScreenState
           const SizedBox(height: 8),
           Text(
             currentQ['question'] as String,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: AppTheme.gray900,
+              color: isDark ? Colors.white : AppTheme.gray900,
             ),
           ),
           const SizedBox(height: 24),
 
           // Options
-          _buildQuestionInput(currentQ),
+          _buildQuestionInput(currentQ, isDark),
           const SizedBox(height: 32),
 
           // Navigation
@@ -614,7 +668,16 @@ class _SkillsAssessmentScreenState
             children: [
               TextButton(
                 onPressed: _currentQuestion == 0 ? null : _handlePrevious,
-                child: const Text('Previous'),
+                child: Text(
+                  'Previous',
+                  style: TextStyle(
+                    color: isDark
+                        ? (_currentQuestion == 0
+                              ? Colors.white24
+                              : Colors.white70)
+                        : null,
+                  ),
+                ),
               ),
               ElevatedButton(
                 onPressed: _answers.containsKey(currentQ['id'])
@@ -644,7 +707,7 @@ class _SkillsAssessmentScreenState
     );
   }
 
-  Widget _buildQuestionInput(Map<String, dynamic> question) {
+  Widget _buildQuestionInput(Map<String, dynamic> question, bool isDark) {
     final type = question['type'] as String;
     final currentAnswer = _answers[question['id']];
 
@@ -654,7 +717,10 @@ class _SkillsAssessmentScreenState
         children: [
           Text(
             question['scale'] as String,
-            style: const TextStyle(color: AppTheme.gray600, fontSize: 14),
+            style: TextStyle(
+              color: isDark ? Colors.white60 : AppTheme.gray600,
+              fontSize: 14,
+            ),
           ),
           const SizedBox(height: 16),
           Row(
@@ -669,11 +735,13 @@ class _SkillsAssessmentScreenState
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.primaryColor : Colors.white,
+                    color: isSelected
+                        ? AppTheme.primaryColor
+                        : (isDark ? const Color(0xFF0F172A) : Colors.white),
                     border: Border.all(
                       color: isSelected
                           ? AppTheme.primaryColor
-                          : Colors.grey.shade300,
+                          : (isDark ? Colors.white10 : Colors.grey.shade300),
                       width: 2,
                     ),
                     shape: BoxShape.circle,
@@ -682,7 +750,9 @@ class _SkillsAssessmentScreenState
                   child: Text(
                     value.toString(),
                     style: TextStyle(
-                      color: isSelected ? Colors.white : AppTheme.gray900,
+                      color: isSelected
+                          ? Colors.white
+                          : (isDark ? Colors.white70 : AppTheme.gray900),
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
                     ),
@@ -707,11 +777,13 @@ class _SkillsAssessmentScreenState
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.blue.shade50 : Colors.white,
+                  color: isSelected
+                      ? Colors.blue.withOpacity(0.1)
+                      : (isDark ? const Color(0xFF0F172A) : Colors.white),
                   border: Border.all(
                     color: isSelected
                         ? AppTheme.primaryColor
-                        : Colors.grey.shade200,
+                        : (isDark ? Colors.white10 : Colors.grey.shade200),
                     width: 2,
                   ),
                   borderRadius: BorderRadius.circular(8),
@@ -719,7 +791,9 @@ class _SkillsAssessmentScreenState
                 child: Text(
                   option.toString(),
                   style: TextStyle(
-                    color: isSelected ? Colors.blue.shade900 : AppTheme.gray900,
+                    color: isSelected
+                        ? (isDark ? Colors.blue.shade400 : Colors.blue.shade900)
+                        : (isDark ? Colors.white70 : AppTheme.gray900),
                     fontWeight: isSelected
                         ? FontWeight.w600
                         : FontWeight.normal,
@@ -753,11 +827,13 @@ class _SkillsAssessmentScreenState
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.blue.shade50 : Colors.white,
+                color: isSelected
+                    ? Colors.blue.withOpacity(0.1)
+                    : (isDark ? const Color(0xFF0F172A) : Colors.white),
                 border: Border.all(
                   color: isSelected
                       ? AppTheme.primaryColor
-                      : Colors.grey.shade200,
+                      : (isDark ? Colors.white10 : Colors.grey.shade200),
                   width: 2,
                 ),
                 borderRadius: BorderRadius.circular(8),
@@ -765,7 +841,9 @@ class _SkillsAssessmentScreenState
               child: Text(
                 option.toString(),
                 style: TextStyle(
-                  color: isSelected ? Colors.blue.shade900 : AppTheme.gray900,
+                  color: isSelected
+                      ? (isDark ? Colors.blue.shade400 : Colors.blue.shade900)
+                      : (isDark ? Colors.white70 : AppTheme.gray900),
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),
@@ -778,7 +856,7 @@ class _SkillsAssessmentScreenState
     return const SizedBox.shrink();
   }
 
-  Widget _buildResults() {
+  Widget _buildResults(bool isDark) {
     final results = _testResults!;
     final categories = results['categories'] as Map<String, dynamic>;
     final strengths = (results['strengths'] as List).cast<String>();
@@ -788,13 +866,14 @@ class _SkillsAssessmentScreenState
 
     return Column(
       children: [
-        // Overall Score
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.blue.shade50, Colors.purple.shade50],
+              colors: isDark
+                  ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                  : [Colors.blue.shade50, Colors.purple.shade50],
             ),
             borderRadius: BorderRadius.circular(16),
           ),
@@ -802,20 +881,26 @@ class _SkillsAssessmentScreenState
             children: [
               Text(
                 results['overall'].toString(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 64,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor,
+                  color: isDark ? Colors.white : AppTheme.primaryColor,
                 ),
               ),
-              const Text(
+              Text(
                 'Overall Skills Score',
-                style: TextStyle(fontSize: 18, color: AppTheme.gray600),
+                style: TextStyle(
+                  fontSize: 18,
+                  color: isDark ? Colors.white70 : AppTheme.gray600,
+                ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'You scored higher than 78% of professionals in your field',
-                style: TextStyle(fontSize: 14, color: AppTheme.gray500),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? Colors.white38 : AppTheme.gray500,
+                ),
               ),
             ],
           ),
@@ -839,9 +924,11 @@ class _SkillsAssessmentScreenState
             return Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(
+                  color: isDark ? Colors.white10 : Colors.grey.shade200,
+                ),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -851,7 +938,7 @@ class _SkillsAssessmentScreenState
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: color,
+                      color: isDark ? color.shade400 : color,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -866,14 +953,20 @@ class _SkillsAssessmentScreenState
                           (match) => match.group(0)!.toUpperCase(),
                         ),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   LinearProgressIndicator(
                     value: score / 100,
-                    backgroundColor: Colors.grey.shade200,
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
-                    borderRadius: BorderRadius.circular(4),
+                    backgroundColor: isDark
+                        ? Colors.white10
+                        : Colors.grey.shade200,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      isDark ? color.shade400 : color,
+                    ),
                   ),
                 ],
               ),
@@ -893,6 +986,7 @@ class _SkillsAssessmentScreenState
                 Colors.green,
                 Remix.star_line,
                 Remix.check_line,
+                isDark,
               ),
             ),
             const SizedBox(width: 16),
@@ -903,6 +997,7 @@ class _SkillsAssessmentScreenState
                 Colors.orange,
                 Remix.arrow_up_line,
                 Remix.arrow_right_line,
+                isDark,
               ),
             ),
           ],
@@ -915,12 +1010,12 @@ class _SkillsAssessmentScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Recommended Career Paths',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.gray900,
+                  color: isDark ? Colors.white : AppTheme.gray900,
                 ),
               ),
               const SizedBox(height: 16),
@@ -929,9 +1024,11 @@ class _SkillsAssessmentScreenState
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(
+                      color: isDark ? Colors.white10 : Colors.grey.shade200,
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -941,15 +1038,18 @@ class _SkillsAssessmentScreenState
                         children: [
                           Text(
                             rec['title'],
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
+                              color: isDark ? Colors.white : Colors.black,
                             ),
                           ),
                           Text(
                             '${rec['match']}% Match',
-                            style: const TextStyle(
-                              color: Colors.green,
+                            style: TextStyle(
+                              color: isDark
+                                  ? Colors.green.shade400
+                                  : Colors.green,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -958,7 +1058,9 @@ class _SkillsAssessmentScreenState
                       const SizedBox(height: 8),
                       Text(
                         rec['description'],
-                        style: const TextStyle(color: AppTheme.gray600),
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : AppTheme.gray600,
+                        ),
                       ),
                     ],
                   ),
@@ -1001,11 +1103,12 @@ class _SkillsAssessmentScreenState
     MaterialColor color,
     IconData titleIcon,
     IconData itemIcon,
+    bool isDark,
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.shade50,
+        color: isDark ? color.withOpacity(0.1) : color.shade50,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -1013,13 +1116,17 @@ class _SkillsAssessmentScreenState
         children: [
           Row(
             children: [
-              Icon(titleIcon, color: color.shade600, size: 20),
+              Icon(
+                titleIcon,
+                color: isDark ? color.shade400 : color.shade600,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text(
                 title,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.gray900,
+                  color: isDark ? Colors.white : AppTheme.gray900,
                 ),
               ),
             ],
@@ -1031,10 +1138,20 @@ class _SkillsAssessmentScreenState
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(itemIcon, color: color.shade600, size: 16),
+                  Icon(
+                    itemIcon,
+                    color: isDark ? color.shade400 : color.shade600,
+                    size: 16,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(item, style: const TextStyle(fontSize: 13)),
+                    child: Text(
+                      item,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.white70 : Colors.black,
+                      ),
+                    ),
                   ),
                 ],
               ),

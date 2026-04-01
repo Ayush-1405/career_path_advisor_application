@@ -27,13 +27,38 @@ class AppTheme {
   static const Color primaryColor = userPrimaryBlue;
 
   // User theme
-  static ThemeData getUserTheme() {
+  static ThemeData getUserTheme({bool isDark = false}) {
+    if (isDark) {
+      return ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: userPrimaryBlue,
+          primary: userPrimaryBlue,
+          secondary: userPrimaryPurple,
+          brightness: Brightness.dark,
+        ),
+        scaffoldBackgroundColor: const Color(0xFF0F172A),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1E293B),
+          elevation: 0,
+          iconTheme: IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+    }
     return ThemeData(
       useMaterial3: true,
+      brightness: Brightness.light,
       colorScheme: ColorScheme.fromSeed(
         seedColor: userPrimaryBlue,
         primary: userPrimaryBlue,
         secondary: userPrimaryPurple,
+        brightness: Brightness.light,
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {

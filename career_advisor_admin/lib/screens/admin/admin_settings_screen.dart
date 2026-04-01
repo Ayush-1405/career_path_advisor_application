@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -206,6 +207,16 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
         child: Scaffold(
           appBar: AppBar(
             automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/dashboard');
+                }
+              },
+            ),
             title: const Text('Settings'),
           ),
           body: Center(
@@ -233,6 +244,16 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
         backgroundColor: AppTheme.gray50,
         appBar: AppBar(
           automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/dashboard');
+              }
+            },
+          ),
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
@@ -412,7 +433,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+            color: const Color(0xFF0F172A).withOpacity(0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

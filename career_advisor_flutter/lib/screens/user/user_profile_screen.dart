@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
@@ -8,6 +9,7 @@ import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
 import '../../utils/theme.dart';
 import '../../widgets/animated_screen.dart';
+import '../../providers/theme_provider.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
   const UserProfileScreen({super.key});
@@ -287,6 +289,9 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     if (_isLoading) {
       return AnimatedScreen(
         child: const Scaffold(
@@ -300,12 +305,30 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     if (_profile == null) {
       return AnimatedScreen(
         child: Scaffold(
-          appBar: AppBar(title: const Text('Profile')),
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/home');
+                }
+              },
+            ),
+            title: const Text('Profile'),
+          ),
           body: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('Profile not found'),
+                Text(
+                  'Profile not found',
+                  style: TextStyle(
+                    color: isDark ? Colors.white70 : AppTheme.gray700,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: _loadProfile,
@@ -321,11 +344,21 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     return AnimatedScreen(
       child: Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
+          ),
           title: const Text('My Profile'),
           elevation: 0,
-          backgroundColor: Colors.white,
-          foregroundColor: AppTheme.gray900,
-          automaticallyImplyLeading: false,
+          backgroundColor: theme.appBarTheme.backgroundColor,
+          foregroundColor: isDark ? Colors.white : AppTheme.gray900,
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -351,14 +384,19 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     final profilePic = _profile!['profilePictureUrl'];
     final completion = _calculateCompletion();
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: isDark
+                ? Colors.black.withOpacity(0.2)
+                : Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -373,9 +411,13 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Profile Completion',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: isDark ? Colors.white70 : AppTheme.gray700,
+                    ),
                   ),
                   Text(
                     '${(completion * 100).toInt()}%',
@@ -391,17 +433,19 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               const SizedBox(height: 8),
               LinearProgressIndicator(
                 value: completion,
-                backgroundColor: Colors.grey[200],
+                backgroundColor: isDark ? Colors.white10 : Colors.grey[200],
                 color: completion == 1.0 ? Colors.green : AppTheme.primaryColor,
                 minHeight: 8,
-                borderRadius: BorderRadius.circular(4),
               ),
               if (completion < 1.0)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     'Complete your profile to get better career suggestions.',
-                    style: TextStyle(fontSize: 12, color: AppTheme.gray600),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.white38 : AppTheme.gray600,
+                    ),
                   ),
                 ),
             ],
@@ -425,20 +469,40 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                               ],
                             ),
                             shape: BoxShape.circle,
-                            image: profilePic != null
-                                ? DecorationImage(
-                                    image: NetworkImage(profilePic),
-                                    fit: BoxFit.cover,
-                                  )
-                                : null,
                           ),
-                          child: profilePic == null
-                              ? const Icon(
-                                  Remix.user_line,
-                                  color: Colors.white,
-                                  size: 48,
-                                )
-                              : null,
+                          child: ClipOval(
+                            child: profilePic != null
+                                ? Image.network(
+                                    profilePic,
+                                    key: ValueKey(profilePic),
+                                    fit: BoxFit.cover,
+                                    width: 96,
+                                    height: 96,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Icon(
+                                        Remix.user_line,
+                                        color: Colors.white,
+                                        size: 48,
+                                      );
+                                    },
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                          if (loadingProgress == null)
+                                            return child;
+                                          return const Center(
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2,
+                                            ),
+                                          );
+                                        },
+                                  )
+                                : const Icon(
+                                    Remix.user_line,
+                                    color: Colors.white,
+                                    size: 48,
+                                  ),
+                          ),
                         ),
                         Positioned(
                           bottom: 0,
@@ -448,12 +512,18 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: isDark
+                                    ? const Color(0xFF1E293B)
+                                    : Colors.white,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.grey[200]!),
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.white10
+                                      : Colors.grey[200]!,
+                                ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
+                                    color: Colors.black.withOpacity(0.1),
                                     blurRadius: 4,
                                   ),
                                 ],
@@ -474,19 +544,19 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                         Text(
                           _profile!['name'] ?? 'User',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.gray900,
+                            color: isDark ? Colors.white : AppTheme.gray900,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           _profile!['email'] ?? '',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
-                            color: AppTheme.gray600,
+                            color: isDark ? Colors.white60 : AppTheme.gray600,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -551,20 +621,40 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                             colors: [AppTheme.primaryColor, Color(0xFFEA580C)],
                           ),
                           shape: BoxShape.circle,
-                          image: profilePic != null
-                              ? DecorationImage(
-                                  image: NetworkImage(profilePic),
-                                  fit: BoxFit.cover,
-                                )
-                              : null,
                         ),
-                        child: profilePic == null
-                            ? const Icon(
-                                Remix.user_line,
-                                color: Colors.white,
-                                size: 48,
-                              )
-                            : null,
+                        child: ClipOval(
+                          child: profilePic != null
+                              ? Image.network(
+                                  profilePic,
+                                  key: ValueKey(profilePic),
+                                  fit: BoxFit.cover,
+                                  width: 96,
+                                  height: 96,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Icon(
+                                      Remix.user_line,
+                                      color: Colors.white,
+                                      size: 48,
+                                    );
+                                  },
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                        if (loadingProgress == null)
+                                          return child;
+                                        return const Center(
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        );
+                                      },
+                                )
+                              : const Icon(
+                                  Remix.user_line,
+                                  color: Colors.white,
+                                  size: 48,
+                                ),
+                        ),
                       ),
                       Positioned(
                         bottom: 0,
@@ -574,12 +664,18 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: isDark
+                                  ? const Color(0xFF1E293B)
+                                  : Colors.white,
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.grey[200]!),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white10
+                                    : Colors.grey[200]!,
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.1),
+                                  color: Colors.black.withOpacity(0.1),
                                   blurRadius: 4,
                                 ),
                               ],
@@ -601,18 +697,18 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                       children: [
                         Text(
                           _profile!['name'] ?? 'User',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.gray900,
+                            color: isDark ? Colors.white : AppTheme.gray900,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           _profile!['email'] ?? '',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
-                            color: AppTheme.gray600,
+                            color: isDark ? Colors.white60 : AppTheme.gray600,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -662,14 +758,14 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           if (_profile!['bio'] != null &&
               (_profile!['bio'] as String).isNotEmpty) ...[
             const SizedBox(height: 24),
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 'Bio',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.gray900,
+                  color: isDark ? Colors.white : AppTheme.gray900,
                 ),
               ),
             ),
@@ -678,7 +774,9 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               alignment: Alignment.centerLeft,
               child: Text(
                 _profile!['bio'],
-                style: const TextStyle(color: AppTheme.gray700),
+                style: TextStyle(
+                  color: isDark ? Colors.white70 : AppTheme.gray700,
+                ),
               ),
             ),
           ],
@@ -759,14 +857,18 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   }
 
   Widget _buildProfileForm() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: isDark
+                ? Colors.black.withOpacity(0.2)
+                : Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -777,12 +879,12 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Profile Information',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppTheme.gray900,
+                color: isDark ? Colors.white : AppTheme.gray900,
               ),
             ),
             const SizedBox(height: 24),
@@ -791,18 +893,31 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.only(bottom: 24),
                 decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  border: Border.all(color: Colors.red.shade200),
+                  color: isDark
+                      ? Colors.red.withOpacity(0.1)
+                      : Colors.red.shade50,
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.red.withOpacity(0.2)
+                        : Colors.red.shade200,
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    Icon(Remix.error_warning_line, color: Colors.red.shade600),
+                    Icon(
+                      Remix.error_warning_line,
+                      color: isDark ? Colors.redAccent : Colors.red.shade600,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         _error!,
-                        style: TextStyle(color: Colors.red.shade700),
+                        style: TextStyle(
+                          color: isDark
+                              ? Colors.redAccent
+                              : Colors.red.shade700,
+                        ),
                       ),
                     ),
                   ],
@@ -813,18 +928,33 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.only(bottom: 24),
                 decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  border: Border.all(color: Colors.green.shade200),
+                  color: isDark
+                      ? Colors.green.withOpacity(0.1)
+                      : Colors.green.shade50,
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.green.withOpacity(0.2)
+                        : Colors.green.shade200,
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    Icon(Remix.check_line, color: Colors.green.shade600),
+                    Icon(
+                      Remix.check_line,
+                      color: isDark
+                          ? Colors.greenAccent
+                          : Colors.green.shade600,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         _success!,
-                        style: TextStyle(color: Colors.green.shade700),
+                        style: TextStyle(
+                          color: isDark
+                              ? Colors.greenAccent
+                              : Colors.green.shade700,
+                        ),
                       ),
                     ),
                   ],
@@ -879,6 +1009,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               enabled: _isEditing,
               keyboardType: TextInputType.url,
             ),
+
+            _buildThemeSwitcher(),
 
             if (_isEditing) ...[
               const SizedBox(height: 32),
@@ -946,15 +1078,17 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     int maxLines = 1,
     TextInputType? keyboardType,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppTheme.gray700,
+            color: isDark ? Colors.white70 : AppTheme.gray700,
           ),
         ),
         const SizedBox(height: 8),
@@ -964,24 +1098,41 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           maxLines: maxLines,
           keyboardType: keyboardType,
           style: TextStyle(
-            color: enabled ? AppTheme.gray900 : AppTheme.gray500,
+            color: enabled
+                ? (isDark ? Colors.white : AppTheme.gray900)
+                : (isDark ? Colors.white38 : AppTheme.gray500),
           ),
           decoration: InputDecoration(
-            filled: !enabled,
-            fillColor: enabled ? Colors.white : Colors.grey.shade50,
+            filled: true,
+            fillColor: enabled
+                ? (isDark ? const Color(0xFF0F172A) : Colors.white)
+                : (isDark
+                      ? Colors.white.withOpacity(0.05)
+                      : Colors.grey.shade50),
             hintText: 'Enter your $label',
-            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+            hintStyle: TextStyle(
+              color: isDark ? Colors.white24 : Colors.grey.shade400,
+              fontSize: 14,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(
+                color: isDark ? Colors.white10 : Colors.grey.shade300,
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(
+                color: isDark ? Colors.white10 : Colors.grey.shade300,
+              ),
             ),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
+              borderSide: BorderSide(
+                color: isDark
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.grey.shade200,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -1041,14 +1192,17 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   }
 
   Widget _buildProfileStats() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: isDark
+                ? Colors.black.withOpacity(0.2)
+                : Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1057,12 +1211,12 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Profile Statistics',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppTheme.gray900,
+              color: isDark ? Colors.white : AppTheme.gray900,
             ),
           ),
           const SizedBox(height: 24),
@@ -1147,10 +1301,11 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   }
 
   Widget _buildStatItem(IconData icon, String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade50,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -1163,13 +1318,16 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(fontSize: 12, color: AppTheme.gray600),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.white38 : AppTheme.gray600,
+                  ),
                 ),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.gray900,
+                    color: isDark ? Colors.white : AppTheme.gray900,
                   ),
                 ),
               ],
@@ -1190,28 +1348,31 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   }
 
   Widget _buildDangerZone() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
+        color: isDark ? Colors.red.withOpacity(0.1) : Colors.red.shade50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.red.shade200),
+        border: Border.all(
+          color: isDark ? Colors.red.withOpacity(0.2) : Colors.red.shade200,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Danger Zone',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.red,
+              color: isDark ? Colors.redAccent : Colors.red,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'These actions are irreversible. Please be certain before proceeding.',
-            style: TextStyle(color: Colors.red),
+            style: TextStyle(color: isDark ? Colors.redAccent : Colors.red),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -1219,8 +1380,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
             child: OutlinedButton(
               onPressed: _showDeleteConfirmationDialog,
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-                side: const BorderSide(color: Colors.red),
+                foregroundColor: isDark ? Colors.redAccent : Colors.red,
+                side: BorderSide(color: isDark ? Colors.redAccent : Colors.red),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -1298,5 +1459,45 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
         });
       }
     }
+  }
+
+  Widget _buildThemeSwitcher() {
+    final themeMode = ref.watch(themeProvider);
+    final isDark = themeMode == ThemeMode.dark;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 24),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color ?? Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+                color: AppTheme.userPrimaryBlue,
+              ),
+              const SizedBox(width: 16),
+              const Text(
+                'Appearance',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          Switch(
+            value: isDark,
+            activeThumbColor: AppTheme.userPrimaryBlue,
+            onChanged: (value) {
+              ref.read(themeProvider.notifier).toggleTheme();
+            },
+          ),
+        ],
+      ),
+    );
   }
 }

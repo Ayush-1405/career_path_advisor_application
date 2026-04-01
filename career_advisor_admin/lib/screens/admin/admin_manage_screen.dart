@@ -254,6 +254,16 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
         backgroundColor: const Color(0xFFF8FAFC), // Slate 50
         appBar: AppBar(
           automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/dashboard');
+              }
+            },
+          ),
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
@@ -286,7 +296,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                   border: Border.all(color: const Color(0xFFE2E8F0)),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+                      color: const Color(0xFF0F172A).withOpacity(0.02),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -375,7 +385,7 @@ class _AdminManageScreenState extends ConsumerState<AdminManageScreen> {
                                 border: Border.all(color: const Color(0xFFE2E8F0)),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+                                    color: const Color(0xFF0F172A).withOpacity(0.02),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),

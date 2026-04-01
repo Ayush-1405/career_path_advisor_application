@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -111,6 +112,16 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
         backgroundColor: Colors.grey[50],
         appBar: AppBar(
           automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/dashboard');
+              }
+            },
+          ),
           title: const Text(
             'Reports & Analytics',
             style: TextStyle(
@@ -129,114 +140,6 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
             preferredSize: const Size.fromHeight(1),
             child: Container(color: const Color(0xFFE2E8F0), height: 1),
           ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: Row(
-                children: [
-                  Container(
-                    height: 40,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    child: DropdownButton<String>(
-                      value: _selectedPeriod,
-                      underline: const SizedBox(),
-                      icon: const Padding(
-                        padding: EdgeInsets.only(left: 8.0),
-                        child: Icon(
-                          Icons.expand_more_rounded,
-                          color: Color(0xFF64748B),
-                          size: 20,
-                        ),
-                      ),
-                      isDense: true,
-                      style: const TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      items: ['7d', '30d', '90d', '1y']
-                          .map(
-                            (e) => DropdownMenuItem(
-                              value: e,
-                              child: Text('Last $e'),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) {
-                        if (v != null) {
-                          setState(() => _selectedPeriod = v);
-                          _loadReports();
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: PopupMenuButton<String>(
-                      padding: EdgeInsets.zero,
-                      icon: const Icon(
-                        Icons.download_rounded,
-                        color: Color(0xFF64748B),
-                        size: 20,
-                      ),
-                      tooltip: 'Export Report',
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      onSelected: _handleExport,
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'pdf',
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.picture_as_pdf,
-                                size: 20,
-                                color: Colors.red,
-                              ),
-                              SizedBox(width: 12),
-                              Text(
-                                'Export PDF',
-                                style: TextStyle(fontWeight: FontWeight.w500),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'csv',
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.table_chart,
-                                size: 20,
-                                color: Colors.green,
-                              ),
-                              SizedBox(width: 12),
-                              Text(
-                                'Export CSV',
-                                style: TextStyle(fontWeight: FontWeight.w500),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -249,6 +152,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      _buildControlsHeader(),
+                      const SizedBox(height: 32),
                       _buildKeyMetrics(),
                       const SizedBox(height: 24),
                       _buildChartsSection(),
@@ -263,6 +168,200 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                 ),
               ),
       ),
+    );
+  }
+
+  Widget _buildControlsHeader() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isSmall = constraints.maxWidth < 600;
+        final periodDropdown = Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0F172A).withOpacity(0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _selectedPeriod,
+              icon: const Padding(
+                padding: EdgeInsets.only(left: 12.0),
+                child: Icon(
+                  Icons.calendar_today_rounded,
+                  color: Color(0xFF64748B),
+                  size: 18,
+                ),
+              ),
+              style: const TextStyle(
+                color: Color(0xFF0F172A),
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+              items: ['7d', '30d', '90d', '1y']
+                  .map(
+                    (e) => DropdownMenuItem(
+                      value: e,
+                      child: Text('Last $e'),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) {
+                  setState(() => _selectedPeriod = v);
+                  _loadReports();
+                }
+              },
+            ),
+          ),
+        );
+
+        final exportButton = Container(
+          height: 48,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF2563EB).withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: PopupMenuButton<String>(
+            padding: EdgeInsets.zero,
+            position: PopupMenuPosition.under,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            onSelected: _handleExport,
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'pdf',
+                child: Row(
+                  children: [
+                    Icon(Icons.picture_as_pdf, size: 20, color: Colors.red),
+                    SizedBox(width: 12),
+                    Text('Export as PDF', style: TextStyle(fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'csv',
+                child: Row(
+                  children: [
+                    Icon(Icons.table_chart, size: 20, color: Colors.green),
+                    SizedBox(width: 12),
+                    Text('Export as CSV', style: TextStyle(fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ),
+            ],
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.download_rounded, color: Colors.white, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Export Report',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+
+        if (isSmall) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Platform Overview',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF0F172A),
+                  letterSpacing: -1,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Monitor your application growth and user engagement metrics.',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(child: periodDropdown),
+                  const SizedBox(width: 12),
+                  exportButton,
+                ],
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Platform Overview',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0F172A),
+                      letterSpacing: -1,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Monitor your application growth and user engagement metrics.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              children: [
+                periodDropdown,
+                const SizedBox(width: 16),
+                exportButton,
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -379,7 +478,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+            color: const Color(0xFF0F172A).withOpacity(0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -425,7 +524,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
+                    color: color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(icon, color: color, size: 24),
@@ -506,7 +605,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+            color: const Color(0xFF0F172A).withOpacity(0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -574,7 +673,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                       dotData: const FlDotData(show: true),
                       belowBarData: BarAreaData(
                         show: true,
-                        color: Colors.red.withValues(alpha: 0.1),
+                        color: Colors.red.withOpacity(0.1),
                       ),
                     ),
                   ],
@@ -1088,27 +1187,33 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: AppRoles.isAdmin(e.key)
-                                    ? Colors.red
-                                    : Colors.green,
-                                shape: BoxShape.circle,
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: AppRoles.isAdmin(e.key)
+                                      ? Colors.red
+                                      : Colors.green,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              e.key,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  e.key,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 16),
                         Text(
                           e.value.toString(),
                           style: const TextStyle(
@@ -1179,13 +1284,17 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                   return Column(
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [items[0], items[1]],
+                        children: [
+                          Expanded(child: items[0]),
+                          Expanded(child: items[1]),
+                        ],
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 32),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [items[2], items[3]],
+                        children: [
+                          Expanded(child: items[2]),
+                          Expanded(child: items[3]),
+                        ],
                       ),
                     ],
                   );
@@ -1213,24 +1322,29 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
+            color: color.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: color, size: 36),
         ),
         const SizedBox(height: 16),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
+          textAlign: TextAlign.center,
           style: TextStyle(
             color: Colors.grey[600],
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

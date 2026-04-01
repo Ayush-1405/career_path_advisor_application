@@ -147,26 +147,39 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return AnimatedScreen(
       child: Scaffold(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: const Text(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
+          ),
+          title: Text(
             'My Applications',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: isDark ? Colors.white : Colors.black87,
             ),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
           elevation: 0,
-          iconTheme: const IconThemeData(color: Colors.black87),
+          iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black87),
         ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _error != null
-            ? Center(child: Text('Error: $_error'))
+            ? Center(child: Text('Error: $_error', style: TextStyle(color: isDark ? Colors.redAccent : Colors.red)))
             : _applications.isEmpty
             ? Center(
                 child: Column(
@@ -175,17 +188,17 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen> {
                     Icon(
                       Icons.assignment_outlined,
                       size: 64,
-                      color: Colors.grey[400],
+                      color: isDark ? Colors.white12 : Colors.grey[400],
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'No applications yet',
-                      style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 18, color: isDark ? Colors.white70 : Colors.grey[600]),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Apply to career paths to see them here',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                      style: TextStyle(fontSize: 14, color: isDark ? Colors.white38 : Colors.grey[500]),
                     ),
                   ],
                 ),
@@ -197,7 +210,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen> {
                   itemCount: _applications.length,
                   itemBuilder: (context, index) {
                     final app = _applications[index];
-                    return _buildApplicationCard(app);
+                    return _buildApplicationCard(app, isDark);
                   },
                 ),
               ),
@@ -205,7 +218,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen> {
     );
   }
 
-  Widget _buildApplicationCard(UserCareerPath app) {
+  Widget _buildApplicationCard(UserCareerPath app, bool isDark) {
     final normalized = app.status.toUpperCase();
     final statusLabel = (() {
       final s = normalized.replaceAll('_', ' ').toLowerCase();
@@ -249,9 +262,9 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen> {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: Colors.grey.shade200),
+          side: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200),
         ),
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -266,9 +279,10 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen> {
                       children: [
                         Text(
                           app.careerPath?.title ?? 'Unknown Path',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -276,28 +290,28 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen> {
                           app.careerPath?.category ?? 'General',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey[600],
+                            color: isDark ? Colors.white60 : Colors.grey[600],
                           ),
                         ),
                       ],
                     ),
                   ),
                   Chip(
-                    avatar: Icon(statusIcon, size: 14, color: statusColor),
+                    avatar: Icon(statusIcon, size: 14, color: isDark ? statusColor.withOpacity(0.8) : statusColor),
                     label: Text(
                       statusLabel,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: statusColor,
+                        color: isDark ? statusColor.withOpacity(0.9) : statusColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
                     ),
-                    backgroundColor: statusColor.withValues(alpha: 0.1),
+                    backgroundColor: statusColor.withOpacity(0.1),
                     shape: StadiumBorder(
                       side: BorderSide(
-                        color: statusColor.withValues(alpha: 0.3),
+                        color: statusColor.withOpacity(0.3),
                       ),
                     ),
                   ),
@@ -315,12 +329,12 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen> {
                     const SizedBox(width: 6),
                     Text(
                       'Reviewed by Admin',
-                      style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                      style: TextStyle(color: isDark ? Colors.white70 : Colors.grey[700], fontSize: 12),
                     ),
                   ],
                 ),
               const SizedBox(height: 16),
-              const Divider(),
+              Divider(color: isDark ? Colors.white10 : null),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -330,19 +344,19 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen> {
                       Icon(
                         Icons.calendar_today,
                         size: 14,
-                        color: Colors.grey[500],
+                        color: isDark ? Colors.white38 : Colors.grey[500],
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'Applied: ${DateFormat.yMMMd().format(app.appliedAt)}',
-                        style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                        style: TextStyle(color: isDark ? Colors.white38 : Colors.grey[500], fontSize: 12),
                       ),
                     ],
                   ),
                   if (app.updatedAt != null)
                     Text(
                       'Updated: ${DateFormat.yMMMd().format(app.updatedAt!)}',
-                      style: TextStyle(color: Colors.grey[400], fontSize: 11),
+                      style: TextStyle(color: isDark ? Colors.white24 : Colors.grey[400], fontSize: 11),
                     ),
                 ],
               ),

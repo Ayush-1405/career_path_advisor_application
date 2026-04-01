@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -114,8 +115,18 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
       return AnimatedScreen(
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('Download Report'),
             automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/home');
+                }
+              },
+            ),
+            title: const Text('Download Report'),
           ),
           body: Center(
             child: Column(
@@ -146,23 +157,36 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
     final improvements =
         (summary?['improvements'] as List?)?.cast<String>() ?? [];
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return AnimatedScreen(
       child: Scaffold(
-        backgroundColor: AppTheme.gray50,
+        backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
+          ),
           title: const Text('Download Career Report'),
           elevation: 0,
-          backgroundColor: Colors.white,
-          foregroundColor: AppTheme.gray900,
-          automaticallyImplyLeading: false,
+          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+          foregroundColor: isDark ? Colors.white : AppTheme.gray900,
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              const Text(
+              Text(
                 'Generate and download your personalized career development report',
-                style: TextStyle(color: AppTheme.gray600),
+                style: TextStyle(color: isDark ? Colors.white70 : AppTheme.gray600),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -171,11 +195,11 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                 // Report Preview
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -185,16 +209,16 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Report Preview',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.gray900,
+                          color: isDark ? Colors.white : AppTheme.gray900,
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Divider(),
+                      Divider(color: isDark ? Colors.white10 : null),
                       const SizedBox(height: 16),
 
                       // Report Details
@@ -207,28 +231,33 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Report Details',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
+                                        color: isDark ? Colors.white : null,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
                                     _buildDetailRow(
                                       'Name',
                                       userInfo?['name'] ?? '',
+                                      isDark,
                                     ),
                                     _buildDetailRow(
                                       'Target Role',
                                       userInfo?['role'] ?? '',
+                                      isDark,
                                     ),
                                     _buildDetailRow(
                                       'Generated',
                                       userInfo?['date'] ?? '',
+                                      isDark,
                                     ),
                                     _buildDetailRow(
                                       'Overall Score',
                                       '${summary?['overallScore'] ?? 0}%',
+                                      isDark,
                                       isScore: true,
                                     ),
                                   ],
@@ -237,20 +266,22 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Report Contents',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
+                                        color: isDark ? Colors.white : null,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
-                                    _buildCheckItem('Executive Summary'),
-                                    _buildCheckItem('Skills Assessment'),
+                                    _buildCheckItem('Executive Summary', isDark),
+                                    _buildCheckItem('Skills Assessment', isDark),
                                     _buildCheckItem(
                                       'Career Path Recommendations',
+                                      isDark,
                                     ),
-                                    _buildCheckItem('Learning Roadmap'),
-                                    _buildCheckItem('Action Items'),
+                                    _buildCheckItem('Learning Roadmap', isDark),
+                                    _buildCheckItem('Action Items', isDark),
                                   ],
                                 ),
                               ],
@@ -263,28 +294,33 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Report Details',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
+                                        color: isDark ? Colors.white : null,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
                                     _buildDetailRow(
                                       'Name',
                                       userInfo?['name'] ?? '',
+                                      isDark,
                                     ),
                                     _buildDetailRow(
                                       'Target Role',
                                       userInfo?['role'] ?? '',
+                                      isDark,
                                     ),
                                     _buildDetailRow(
                                       'Generated',
                                       userInfo?['date'] ?? '',
+                                      isDark,
                                     ),
                                     _buildDetailRow(
                                       'Overall Score',
                                       '${summary?['overallScore'] ?? 0}%',
+                                      isDark,
                                       isScore: true,
                                     ),
                                   ],
@@ -295,20 +331,22 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Report Contents',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
+                                        color: isDark ? Colors.white : null,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
-                                    _buildCheckItem('Executive Summary'),
-                                    _buildCheckItem('Skills Assessment'),
+                                    _buildCheckItem('Executive Summary', isDark),
+                                    _buildCheckItem('Skills Assessment', isDark),
                                     _buildCheckItem(
                                       'Career Path Recommendations',
+                                      isDark,
                                     ),
-                                    _buildCheckItem('Learning Roadmap'),
-                                    _buildCheckItem('Action Items'),
+                                    _buildCheckItem('Learning Roadmap', isDark),
+                                    _buildCheckItem('Action Items', isDark),
                                   ],
                                 ),
                               ),
@@ -331,7 +369,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.green.shade50,
+                              color: isDark ? Colors.green.withOpacity(0.1) : Colors.green.shade50,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
@@ -341,7 +379,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                   children: [
                                     Icon(
                                       Remix.thumb_up_line,
-                                      color: Colors.green.shade600,
+                                      color: isDark ? Colors.green.shade400 : Colors.green.shade600,
                                       size: 20,
                                     ),
                                     const SizedBox(width: 8),
@@ -349,7 +387,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                       'Top Strengths',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: AppTheme.gray900,
+                                        color: isDark ? Colors.white : AppTheme.gray900,
                                       ),
                                     ),
                                   ],
@@ -368,15 +406,16 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                           children: [
                                             Icon(
                                               Remix.check_line,
-                                              color: Colors.green.shade600,
+                                              color: isDark ? Colors.green.shade400 : Colors.green.shade600,
                                               size: 16,
                                             ),
                                             const SizedBox(width: 8),
                                             Expanded(
                                               child: Text(
                                                 s,
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontSize: 13,
+                                                  color: isDark ? Colors.white70 : null,
                                                 ),
                                               ),
                                             ),
@@ -392,7 +431,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
+                              color: isDark ? Colors.blue.withOpacity(0.1) : Colors.blue.shade50,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
@@ -402,7 +441,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                   children: [
                                     Icon(
                                       Remix.arrow_up_line,
-                                      color: Colors.blue.shade600,
+                                      color: isDark ? Colors.blue.shade400 : Colors.blue.shade600,
                                       size: 20,
                                     ),
                                     const SizedBox(width: 8),
@@ -410,7 +449,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                       'Development Areas',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: AppTheme.gray900,
+                                        color: isDark ? Colors.white : AppTheme.gray900,
                                       ),
                                     ),
                                   ],
@@ -429,15 +468,16 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                           children: [
                                             Icon(
                                               Remix.arrow_right_line,
-                                              color: Colors.blue.shade600,
+                                              color: isDark ? Colors.blue.shade400 : Colors.blue.shade600,
                                               size: 16,
                                             ),
                                             const SizedBox(width: 8),
                                             Expanded(
                                               child: Text(
                                                 s,
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontSize: 13,
+                                                  color: isDark ? Colors.white70 : null,
                                                 ),
                                               ),
                                             ),
@@ -458,7 +498,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.green.shade50,
+                              color: isDark ? Colors.green.withOpacity(0.1) : Colors.green.shade50,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
@@ -468,7 +508,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                   children: [
                                     Icon(
                                       Remix.thumb_up_line,
-                                      color: Colors.green.shade600,
+                                      color: isDark ? Colors.green.shade400 : Colors.green.shade600,
                                       size: 20,
                                     ),
                                     const SizedBox(width: 8),
@@ -476,7 +516,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                       'Top Strengths',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: AppTheme.gray900,
+                                        color: isDark ? Colors.white : AppTheme.gray900,
                                       ),
                                     ),
                                   ],
@@ -495,15 +535,16 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                           children: [
                                             Icon(
                                               Remix.check_line,
-                                              color: Colors.green.shade600,
+                                              color: isDark ? Colors.green.shade400 : Colors.green.shade600,
                                               size: 16,
                                             ),
                                             const SizedBox(width: 8),
                                             Expanded(
                                               child: Text(
                                                 s,
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontSize: 13,
+                                                  color: isDark ? Colors.white70 : null,
                                                 ),
                                               ),
                                             ),
@@ -520,7 +561,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
+                              color: isDark ? Colors.blue.withOpacity(0.1) : Colors.blue.shade50,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
@@ -530,7 +571,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                   children: [
                                     Icon(
                                       Remix.arrow_up_line,
-                                      color: Colors.blue.shade600,
+                                      color: isDark ? Colors.blue.shade400 : Colors.blue.shade600,
                                       size: 20,
                                     ),
                                     const SizedBox(width: 8),
@@ -538,7 +579,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                       'Development Areas',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: AppTheme.gray900,
+                                        color: isDark ? Colors.white : AppTheme.gray900,
                                       ),
                                     ),
                                   ],
@@ -557,15 +598,16 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                                           children: [
                                             Icon(
                                               Remix.arrow_right_line,
-                                              color: Colors.blue.shade600,
+                                              color: isDark ? Colors.blue.shade400 : Colors.blue.shade600,
                                               size: 16,
                                             ),
                                             const SizedBox(width: 8),
                                             Expanded(
                                               child: Text(
                                                 s,
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontSize: 13,
+                                                  color: isDark ? Colors.white70 : null,
                                                 ),
                                               ),
                                             ),
@@ -620,6 +662,8 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                     onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: isDark ? const BorderSide(color: Colors.white24) : null,
+                      foregroundColor: isDark ? Colors.white : null,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -635,7 +679,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {bool isScore = false}) {
+  Widget _buildDetailRow(String label, String value, bool isDark, {bool isScore = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -643,7 +687,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(color: AppTheme.gray600, fontSize: 13),
+            style: TextStyle(color: isDark ? Colors.white60 : AppTheme.gray600, fontSize: 13),
           ),
           const SizedBox(width: 8),
           Flexible(
@@ -653,7 +697,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
               style: TextStyle(
                 fontWeight: FontWeight.w500,
                 fontSize: 13,
-                color: isScore ? Colors.green.shade600 : AppTheme.gray900,
+                color: isScore ? (isDark ? Colors.green.shade400 : Colors.green.shade600) : (isDark ? Colors.white : AppTheme.gray900),
               ),
             ),
           ),
@@ -662,15 +706,15 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
     );
   }
 
-  Widget _buildCheckItem(String text) {
+  Widget _buildCheckItem(String text, bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Remix.check_line, color: Colors.green.shade600, size: 16),
+          Icon(Remix.check_line, color: isDark ? Colors.green.shade400 : Colors.green.shade600, size: 16),
           const SizedBox(width: 8),
-          Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),
+          Expanded(child: Text(text, style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : null))),
         ],
       ),
     );

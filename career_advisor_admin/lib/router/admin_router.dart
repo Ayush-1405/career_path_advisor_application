@@ -13,7 +13,10 @@ import '../screens/admin/admin_manage_screen.dart';
 import '../screens/admin/admin_resumes_screen.dart';
 import '../screens/admin/admin_settings_screen.dart';
 import '../screens/admin/admin_career_paths_screen.dart';
+import '../screens/admin/add_career_path_screen.dart';
+import '../screens/admin/edit_career_path_screen.dart';
 import '../screens/admin/admin_reports_screen.dart';
+import '../models/career_path.dart';
 import '../screens/admin/admin_applications_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -149,6 +152,23 @@ final adminRouterProvider = Provider<GoRouter>((ref) {
         path: '/career-paths',
         pageBuilder: (context, state) =>
             _buildAnimatedPage(state, const AdminCareerPathsScreen()),
+        routes: [
+          GoRoute(
+            path: 'add',
+            pageBuilder: (context, state) =>
+                _buildAnimatedPage(state, const AddCareerPathScreen()),
+          ),
+          GoRoute(
+            path: 'edit',
+            pageBuilder: (context, state) {
+              final path = state.extra as CareerPath;
+              return _buildAnimatedPage(
+                state,
+                EditCareerPathScreen(path: path),
+              );
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: '/reports',

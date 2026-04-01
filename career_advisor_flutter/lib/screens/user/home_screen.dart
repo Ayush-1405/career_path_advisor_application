@@ -35,7 +35,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _handleLogout() async {
-    await ref.read(appAuthProvider.notifier).logout();
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await ref.read(appAuthProvider.notifier).logout();
+    }
   }
 
   @override
@@ -46,11 +70,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       );
     }
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final topPadding = MediaQuery.of(context).padding.top;
 
     return AnimatedScreen(
       child: Scaffold(
-        backgroundColor: AppTheme.gray50,
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: SingleChildScrollView(
           child: Column(
             children: [
@@ -83,25 +109,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              Row(
                                 children: [
-                                  Text(
-                                    _getGreeting(),
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.8),
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    _user?.name ?? 'Guest',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _getGreeting(),
+                                        style: TextStyle(
+                                          color: Colors.white.withOpacity(0.8),
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        _user?.name ?? 'Guest',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -155,11 +186,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     right: 24,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.userPrimaryBlue.withOpacity(0.15),
+                            color: isDark
+                                ? Colors.black.withOpacity(0.2)
+                                : AppTheme.userPrimaryBlue.withOpacity(0.15),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -189,7 +222,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 16),
-                                const Expanded(
+                                Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -199,24 +232,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
-                                          color: AppTheme.gray900,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppTheme.gray900,
                                         ),
                                       ),
-                                      SizedBox(height: 4),
+                                      const SizedBox(height: 4),
                                       Text(
                                         'Get AI insights & career paths',
                                         style: TextStyle(
-                                          color: AppTheme.gray500,
+                                          color: isDark
+                                              ? Colors.white70
+                                              : AppTheme.gray500,
                                           fontSize: 13,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                const Icon(
+                                Icon(
                                   Icons.arrow_forward_ios,
                                   size: 16,
-                                  color: AppTheme.gray400,
+                                  color: isDark
+                                      ? Colors.white38
+                                      : AppTheme.gray400,
                                 ),
                               ],
                             ),
@@ -235,12 +274,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Explore',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.gray900,
+                        color: isDark ? Colors.white : AppTheme.gray900,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -291,7 +330,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [AppTheme.gray900, AppTheme.gray700],
+                      colors: isDark
+                          ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                          : [AppTheme.gray900, AppTheme.gray700],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -334,7 +375,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         onPressed: () => context.push('/help-center'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
-                          foregroundColor: AppTheme.gray900,
+                          foregroundColor: isDark
+                              ? const Color(0xFF0F172A)
+                              : AppTheme.gray900,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -381,13 +424,17 @@ class _QuickActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: isDark
+                ? Colors.black.withOpacity(0.2)
+                : Colors.black.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -415,11 +462,10 @@ class _QuickActionCard extends StatelessWidget {
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme
-                        .gray700, // Ensure AppTheme.gray800 is a const Color
+                    color: isDark ? Colors.white : AppTheme.gray700,
                   ),
                 ),
               ],

@@ -624,7 +624,10 @@ class ApiService {
     final response = await _dio.get(
       '/api/admin/reports/overview',
       queryParameters: queryParams,
-      options: Options(extra: {'isAdmin': true}),
+      options: Options(
+        extra: {'isAdmin': true},
+        receiveTimeout: const Duration(seconds: 120),
+      ),
     );
     return _handleResponse(response);
   }
@@ -639,6 +642,7 @@ class ApiService {
         options: Options(
           extra: {'isAdmin': true},
           responseType: ResponseType.bytes,
+          receiveTimeout: const Duration(seconds: 120),
         ),
       );
       final data = response.data;

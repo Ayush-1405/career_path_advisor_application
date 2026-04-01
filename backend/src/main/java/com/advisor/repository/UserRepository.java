@@ -18,5 +18,8 @@ List<User> findByRole(Role role);
 long countByIsActiveTrue();
 long countByCreatedAtAfter(LocalDateTime date);
 long countByLastLoginAfter(LocalDateTime date);
-long countByEmailVerifiedTrue();
+    long countByEmailVerifiedTrue();
+
+    @org.springframework.data.mongodb.repository.Query(value = "{}", fields = "{ 'role' : 1, 'createdAt' : 1 }")
+    List<User> findAllProjectedBy();
 }

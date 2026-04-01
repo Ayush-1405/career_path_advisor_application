@@ -10,13 +10,37 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final savedUrl = prefs.getString('api_base_url');
 
+  // Logic to handle URL overrides safely
+  String? urlOverride;
+  if (savedUrl != null && savedUrl.startsWith('http')) {
+    // In release mode, ignore local overrides (localhost/10.0.2.2/192.168.x.x etc)
+    // to prevent connection errors on real devices from old debug session settings
+    const bool isRelease = bool.fromEnvironment('dart.vm.product');
+    final bool isLocal =
+        savedUrl.contains('localhost') ||
+        savedUrl.contains('10.') ||
+        savedUrl.contains('127.0.0.1') ||
+        savedUrl.contains('192.168.') ||
+        savedUrl.contains('172.'); // Common local IP ranges
+
+    if (!isRelease || !isLocal) {
+      urlOverride = savedUrl;
+      // Ensure no trailing slash to avoid // in URL
+      if (urlOverride.endsWith('/')) {
+        urlOverride = urlOverride.substring(0, urlOverride.length - 1);
+      }
+    } else {
+      debugPrint('Release mode: Ignoring local API override $savedUrl');
+    }
+  }
+
   runApp(
     ProviderScope(
       overrides: [
-        if (savedUrl != null && savedUrl.startsWith('http'))
-          baseUrlProvider.overrideWith((ref) => savedUrl),
+        if (urlOverride != null)
+          baseUrlProvider.overrideWith((ref) => urlOverride!),
       ],
-      child: const MyApp(),
+      child: const ProviderScope(child: MyApp()),
     ),
   );
 }

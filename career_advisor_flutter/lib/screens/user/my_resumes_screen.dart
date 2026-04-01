@@ -159,129 +159,151 @@ class _MyResumesScreenState extends ConsumerState<MyResumesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return AnimatedScreen(
       child: Scaffold(
-      appBar: AppBar(
-        title: const Text('My Resumes'),
-        automaticallyImplyLeading: false,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(_error!, style: const TextStyle(color: Colors.red)),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadResumes,
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            )
-          : _resumes.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.description_outlined,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'No resumes uploaded yet',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () => context.push('/analyze'),
-                    child: const Text('Upload Resume'),
-                  ),
-                ],
-              ),
-            )
-          : RefreshIndicator(
-              onRefresh: _loadResumes,
-              child: ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: _resumes.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 16),
-                itemBuilder: (context, index) {
-                  final resume = _resumes[index];
-                  final date = resume['uploadedAt'] != null
-                      ? DateTime.tryParse(resume['uploadedAt'])
-                      : null;
-                  final dateStr = date != null
-                      ? DateFormat.yMMMd().add_jm().format(date)
-                      : 'Unknown date';
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
+          ),
+          title: const Text('My Resumes'),
+          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+          foregroundColor: isDark ? Colors.white : AppTheme.gray900,
+          elevation: 0,
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(_error!, style: TextStyle(color: isDark ? Colors.redAccent : Colors.red)),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _loadResumes,
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  )
+                : _resumes.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.description_outlined,
+                              size: 64,
+                              color: isDark ? Colors.white12 : Colors.grey,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No resumes uploaded yet',
+                              style: TextStyle(fontSize: 18, color: isDark ? Colors.white70 : Colors.grey),
+                            ),
+                            const SizedBox(height: 24),
+                            ElevatedButton(
+                              onPressed: () => context.push('/analyze'),
+                              child: const Text('Upload Resume'),
+                            ),
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _loadResumes,
+                        child: ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _resumes.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 16),
+                          itemBuilder: (context, index) {
+                            final resume = _resumes[index];
+                            final date = resume['uploadedAt'] != null
+                                ? DateTime.tryParse(resume['uploadedAt'])
+                                : null;
+                            final dateStr = date != null
+                                ? DateFormat.yMMMd().add_jm().format(date)
+                                : 'Unknown date';
 
-                  return Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(16),
-                      leading: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.description,
-                          color: AppTheme.primaryColor,
-                        ),
-                      ),
-                      title: Text(
-                        resume['fileName'] ?? 'Untitled Resume',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 4),
-                          Text(
-                            'Uploaded: $dateStr',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                            ),
-                          ),
-                          if (resume['skills'] != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Text(
-                                'Skills: ${resume['skills']}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: Colors.grey[800]),
+                            return Card(
+                              elevation: 0,
+                              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200),
                               ),
-                            ),
-                        ],
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(
-                          Icons.delete_outline,
-                          color: Colors.red,
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.all(16),
+                                leading: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        AppTheme.primaryColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.description,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                                title: Text(
+                                  resume['fileName'] ?? 'Untitled Resume',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: isDark ? Colors.white : Colors.black,
+                                  ),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Uploaded: $dateStr',
+                                      style: TextStyle(
+                                        color: isDark ? Colors.white38 : Colors.grey[600],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    if (resume['skills'] != null)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 8),
+                                        child: Text(
+                                          'Skills: ${resume['skills']}',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                              color: isDark ? Colors.white60 : Colors.grey[800]),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                trailing: IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () => _deleteResume(resume['id']),
+                                ),
+                                onTap: () => _showAnalysis(resume),
+                              ),
+                            );
+                          },
                         ),
-                        onPressed: () => _deleteResume(resume['id']),
                       ),
-                      onTap: () => _showAnalysis(resume),
-                    ),
-                  );
-                },
-              ),
-            ),
-    ),
+      ),
     );
   }
 
@@ -314,20 +336,25 @@ class _MyResumesScreenState extends ConsumerState<MyResumesScreen> {
   }
 
   void _showBasicDetails(dynamic resume) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(resume['fileName'] ?? 'Resume Details'),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        title: Text(
+          resume['fileName'] ?? 'Resume Details',
+          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+        ),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _detailRow('Education', resume['education']),
+              _detailRow('Education', resume['education'], isDark),
               const SizedBox(height: 12),
-              _detailRow('Experience', resume['experience']),
+              _detailRow('Experience', resume['experience'], isDark),
               const SizedBox(height: 12),
-              _detailRow('Skills', resume['skills']),
+              _detailRow('Skills', resume['skills'], isDark),
             ],
           ),
         ),
@@ -347,6 +374,8 @@ class _MyResumesScreenState extends ConsumerState<MyResumesScreen> {
       return;
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     // Safely extract score
     final int score = (analysis['overallScore'] is num)
         ? (analysis['overallScore'] as num).toInt()
@@ -357,6 +386,7 @@ class _MyResumesScreenState extends ConsumerState<MyResumesScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -376,7 +406,7 @@ class _MyResumesScreenState extends ConsumerState<MyResumesScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: isDark ? Colors.white12 : Colors.grey[300],
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -388,9 +418,10 @@ class _MyResumesScreenState extends ConsumerState<MyResumesScreen> {
                   Expanded(
                     child: Text(
                       resume['fileName'] ?? 'Analysis Result',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black,
                       ),
                     ),
                   ),
@@ -401,14 +432,14 @@ class _MyResumesScreenState extends ConsumerState<MyResumesScreen> {
                     ),
                     decoration: BoxDecoration(
                       color: isGoodScore
-                          ? Colors.green.withValues(alpha: 0.1)
-                          : Colors.orange.withValues(alpha: 0.1),
+                          ? Colors.green.withOpacity(0.1)
+                          : Colors.orange.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       'Score: $score/100',
                       style: TextStyle(
-                        color: isGoodScore ? Colors.green : Colors.orange,
+                        color: isGoodScore ? (isDark ? Colors.green.shade400 : Colors.green) : (isDark ? Colors.orange.shade400 : Colors.orange),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -416,46 +447,56 @@ class _MyResumesScreenState extends ConsumerState<MyResumesScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-              _detailRow('Overall Feedback', analysis['feedback']?.toString()),
+              _detailRow('Overall Feedback', analysis['feedback']?.toString(), isDark),
               const SizedBox(height: 16),
               if (analysis['strengths'] != null) ...[
-                const Text(
+                Text(
                   'Strengths',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.green,
+                    color: isDark ? Colors.green.shade400 : Colors.green,
                     fontSize: 16,
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(analysis['strengths'].toString()),
+                Text(
+                  analysis['strengths'].toString(),
+                  style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
+                ),
                 const SizedBox(height: 16),
               ],
               if (analysis['improvements'] != null) ...[
-                const Text(
+                Text(
                   'Areas for Improvement',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.orange,
+                    color: isDark ? Colors.orange.shade400 : Colors.orange,
                     fontSize: 16,
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(analysis['improvements'].toString()),
+                Text(
+                  analysis['improvements'].toString(),
+                  style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
+                ),
                 const SizedBox(height: 16),
               ],
-              const Divider(),
+              Divider(color: isDark ? Colors.white10 : null),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Extracted Details',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold, 
+                  fontSize: 18,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
               ),
               const SizedBox(height: 16),
-              _detailRow('Education', resume['education']),
+              _detailRow('Education', resume['education'], isDark),
               const SizedBox(height: 12),
-              _detailRow('Experience', resume['experience']),
+              _detailRow('Experience', resume['experience'], isDark),
               const SizedBox(height: 12),
-              _detailRow('Skills', resume['skills']),
+              _detailRow('Skills', resume['skills'], isDark),
               const SizedBox(height: 24),
             ],
           ),
@@ -464,20 +505,23 @@ class _MyResumesScreenState extends ConsumerState<MyResumesScreen> {
     );
   }
 
-  Widget _detailRow(String label, String? value) {
+  Widget _detailRow(String label, String? value, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: AppTheme.primaryColor,
+            color: isDark ? AppTheme.userPrimaryBlue.withOpacity(0.8) : AppTheme.primaryColor,
             fontSize: 12,
           ),
         ),
         const SizedBox(height: 4),
-        Text(value ?? 'N/A'),
+        Text(
+          value ?? 'N/A',
+          style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
+        ),
       ],
     );
   }

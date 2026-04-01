@@ -132,68 +132,89 @@ class _SuggestionsScreenState extends ConsumerState<SuggestionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return AnimatedScreen(
       child: Scaffold(
-      backgroundColor: AppTheme.gray50,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Career Suggestions'),
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: AppTheme.gray900,
-      ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppTheme.primaryColor),
-            )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Explore personalized career recommendations based on your skills, experience, and preferences',
-                    style: TextStyle(color: AppTheme.gray600, fontSize: 16),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildFilters(),
-                  const SizedBox(height: 24),
-                  if (_filteredSuggestions.isEmpty)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(32.0),
-                        child: Text(
-                          'No suggestions found matching your criteria',
-                        ),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
+          ),
+          title: const Text('Career Suggestions'),
+          elevation: 0,
+          backgroundColor: theme.appBarTheme.backgroundColor,
+          foregroundColor: isDark ? Colors.white : AppTheme.gray900,
+        ),
+        body: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: AppTheme.primaryColor),
+              )
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Explore personalized career recommendations based on your skills, experience, and preferences',
+                      style: TextStyle(
+                        color: isDark ? Colors.white70 : AppTheme.gray600,
+                        fontSize: 16,
                       ),
-                    )
-                  else
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _filteredSuggestions.length,
-                      itemBuilder: (context, index) {
-                        return _buildSuggestionCard(
-                          _filteredSuggestions[index],
-                        );
-                      },
                     ),
-                  const SizedBox(height: 24),
-                  _buildActionButtons(),
-                ],
+                    const SizedBox(height: 24),
+                    _buildFilters(),
+                    const SizedBox(height: 24),
+                    if (_filteredSuggestions.isEmpty)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32.0),
+                          child: Text(
+                            'No suggestions found matching your criteria',
+                            style: TextStyle(
+                              color: isDark ? Colors.white38 : AppTheme.gray500,
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _filteredSuggestions.length,
+                        itemBuilder: (context, index) {
+                          return _buildSuggestionCard(
+                            _filteredSuggestions[index],
+                          );
+                        },
+                      ),
+                    const SizedBox(height: 24),
+                    _buildActionButtons(),
+                  ],
+                ),
               ),
-            ),
-    ),
+      ),
     );
   }
 
   Widget _buildFilters() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.grey.shade200,
+        ),
       ),
       child: Column(
         children: [
@@ -203,9 +224,12 @@ class _SuggestionsScreenState extends ConsumerState<SuggestionsScreen> {
               final sortContent = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Sort by',
-                    style: TextStyle(fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.white70 : AppTheme.gray700,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   InputDecorator(
@@ -222,6 +246,12 @@ class _SuggestionsScreenState extends ConsumerState<SuggestionsScreen> {
                       child: DropdownButton<String>(
                         value: _sortBy,
                         isExpanded: true,
+                        dropdownColor: isDark
+                            ? const Color(0xFF1E293B)
+                            : Colors.white,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : AppTheme.gray900,
+                        ),
                         items: const [
                           DropdownMenuItem(
                             value: 'match',
@@ -252,9 +282,12 @@ class _SuggestionsScreenState extends ConsumerState<SuggestionsScreen> {
               final filterContent = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Filter by Industry',
-                    style: TextStyle(fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.white70 : AppTheme.gray700,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   InputDecorator(
@@ -271,6 +304,12 @@ class _SuggestionsScreenState extends ConsumerState<SuggestionsScreen> {
                       child: DropdownButton<String>(
                         value: _filterBy,
                         isExpanded: true,
+                        dropdownColor: isDark
+                            ? const Color(0xFF1E293B)
+                            : Colors.white,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : AppTheme.gray900,
+                        ),
                         items: const [
                           DropdownMenuItem(
                             value: 'all',
@@ -342,13 +381,16 @@ class _SuggestionsScreenState extends ConsumerState<SuggestionsScreen> {
 
   Widget _buildSuggestionCard(Map<String, dynamic> suggestion) {
     final match = _computeMatchPercentage(suggestion);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.grey.shade200,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -367,10 +409,10 @@ class _SuggestionsScreenState extends ConsumerState<SuggestionsScreen> {
                           Flexible(
                             child: Text(
                               suggestion['title'] ?? 'Role',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: AppTheme.gray900,
+                                color: isDark ? Colors.white : AppTheme.gray900,
                               ),
                             ),
                           ),
@@ -381,13 +423,17 @@ class _SuggestionsScreenState extends ConsumerState<SuggestionsScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.blue.shade100,
+                              color: isDark
+                                  ? Colors.blue.withOpacity(0.2)
+                                  : Colors.blue.shade100,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
                               suggestion['category'] ?? 'General',
                               style: TextStyle(
-                                color: Colors.blue.shade800,
+                                color: isDark
+                                    ? Colors.blueAccent
+                                    : Colors.blue.shade800,
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -398,35 +444,45 @@ class _SuggestionsScreenState extends ConsumerState<SuggestionsScreen> {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Remix.bar_chart_line,
                             size: 16,
-                            color: AppTheme.gray600,
+                            color: isDark ? Colors.white38 : AppTheme.gray600,
                           ),
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
                               suggestion['level'] ?? 'Entry Level',
-                              style: const TextStyle(color: AppTheme.gray600),
+                              style: TextStyle(
+                                color: isDark
+                                    ? Colors.white38
+                                    : AppTheme.gray600,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Text(
+                          Text(
                             '•',
-                            style: TextStyle(color: AppTheme.gray600),
+                            style: TextStyle(
+                              color: isDark ? Colors.white38 : AppTheme.gray600,
+                            ),
                           ),
                           const SizedBox(width: 8),
-                          const Icon(
+                          Icon(
                             Remix.money_dollar_circle_line,
                             size: 16,
-                            color: AppTheme.gray600,
+                            color: isDark ? Colors.white38 : AppTheme.gray600,
                           ),
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
                               suggestion['averageSalary'] ?? 'N/A',
-                              style: const TextStyle(color: AppTheme.gray600),
+                              style: TextStyle(
+                                color: isDark
+                                    ? Colors.white38
+                                    : AppTheme.gray600,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -435,7 +491,9 @@ class _SuggestionsScreenState extends ConsumerState<SuggestionsScreen> {
                       const SizedBox(height: 12),
                       Text(
                         suggestion['description'] ?? '',
-                        style: const TextStyle(color: AppTheme.gray700),
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : AppTheme.gray700,
+                        ),
                       ),
                     ],
                   ),
@@ -444,15 +502,18 @@ class _SuggestionsScreenState extends ConsumerState<SuggestionsScreen> {
                   children: [
                     Text(
                       '${match.toStringAsFixed(0)}%',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green,
+                        color: isDark ? Colors.greenAccent : Colors.green,
                       ),
                     ),
-                    const Text(
+                    Text(
                       'Match',
-                      style: TextStyle(fontSize: 12, color: AppTheme.gray500),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.white38 : AppTheme.gray500,
+                      ),
                     ),
                   ],
                 );
@@ -532,11 +593,12 @@ class _SuggestionsScreenState extends ConsumerState<SuggestionsScreen> {
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
                           value: match / 100,
-                          backgroundColor: Colors.grey.shade200,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                            Colors.green,
-                          ),
-                          minHeight: 8,
+                          backgroundColor: Colors.grey.shade100,
+                          color: match >= 80
+                              ? Colors.green
+                              : match >= 60
+                              ? Colors.blue
+                              : Colors.orange,
                         ),
                       ),
                     ),

@@ -1,8 +1,6 @@
 class AppConfig {
-  // Production Backend URL
-  // Note: If you get "Application not found", verify this URL in your Railway dashboard.
-  static const String productionUrl =
-      'https://careerpathadvisorapplication-production.up.railway.app/';
+  // Local Backend URL (Railway expired)
+  static const String productionUrl = 'http://172.20.10.1:8080';
 
   static String get baseUrl {
     // Return production URL for all platforms by default

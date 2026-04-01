@@ -218,7 +218,9 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     final isDarkerTheme = widget.isAdmin;
-    final primaryColor = isDarkerTheme ? AppTheme.adminPrimaryRed : AppTheme.userPrimaryBlue;
+    final primaryColor = isDarkerTheme
+        ? AppTheme.adminPrimaryRed
+        : AppTheme.userPrimaryBlue;
     final gradientColors = isDarkerTheme
         ? [AppTheme.adminPrimaryRed, AppTheme.adminPrimaryOrange]
         : [AppTheme.userPrimaryBlue, AppTheme.userPrimaryPurple];
@@ -239,7 +241,10 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF0F172A)),
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: Color(0xFF0F172A),
+            ),
             onPressed: () => context.pop(),
           ),
         ),
@@ -254,7 +259,9 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                 border: Border.all(color: const Color(0xFFE2E8F0)), // Slate 200
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF0F172A).withValues(alpha: 0.04), // Slate 900
+                    color: const Color(
+                      0xFF0F172A,
+                    ).withOpacity(0.04), // Slate 900
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),
@@ -281,7 +288,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: primaryColor.withValues(alpha: 0.25),
+                              color: primaryColor.withOpacity(0.25),
                               blurRadius: 16,
                               offset: const Offset(0, 8),
                             ),
@@ -295,7 +302,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    
+
                     // Title
                     Text(
                       widget.isLogin ? 'Login Verification' : 'Verify Email',
@@ -308,7 +315,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    
+
                     if ((widget.email ?? '').isNotEmpty)
                       Text(
                         widget.email ?? '',
@@ -379,7 +386,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                           color: const Color(0xFFFEF2F2), // Red 50
                           border: Border.all(
                             color: const Color(0xFFFECACA), // Red 200
-                          ), 
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -414,7 +421,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                           color: const Color(0xFFF0FDF4), // Green 50
                           border: Border.all(
                             color: const Color(0xFFBBF7D0), // Green 200
-                          ), 
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -475,10 +482,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: primaryColor,
-                            width: 2,
-                          ),
+                          borderSide: BorderSide(color: primaryColor, width: 2),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           vertical: 20,
@@ -487,7 +491,8 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                       validator: (v) {
                         final t = v?.trim() ?? '';
                         if (t.length != 6) return 'Enter 6 digits';
-                        if (!RegExp(r'^\d{6}$').hasMatch(t)) return 'Digits only';
+                        if (!RegExp(r'^\d{6}$').hasMatch(t))
+                          return 'Digits only';
                         return null;
                       },
                     ),

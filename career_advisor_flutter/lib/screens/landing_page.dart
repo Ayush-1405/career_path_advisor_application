@@ -63,10 +63,12 @@ class _LandingPageState extends State<LandingPage> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isWide = size.width > 600;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return AnimatedScreen(
       child: Scaffold(
-        backgroundColor: AppTheme.gray50,
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: SafeArea(
           child: Column(
             children: [
@@ -98,22 +100,22 @@ class _LandingPageState extends State<LandingPage> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Text(
+                        Text(
                           'CareerPath AI',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.gray900,
+                            color: isDark ? Colors.white : AppTheme.gray900,
                           ),
                         ),
                       ],
                     ),
                     TextButton(
                       onPressed: _skip,
-                      child: const Text(
+                      child: Text(
                         'Skip',
                         style: TextStyle(
-                          color: AppTheme.gray600,
+                          color: isDark ? Colors.white70 : AppTheme.gray600,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -151,7 +153,7 @@ class _LandingPageState extends State<LandingPage> {
                                 boxShadow: [
                                   BoxShadow(
                                     color: data.colors.first
-                                        .withValues(alpha: 0.25),
+                                        .withOpacity(0.25),
                                     blurRadius: 24,
                                     offset: const Offset(0, 16),
                                   ),
@@ -178,7 +180,7 @@ class _LandingPageState extends State<LandingPage> {
                                         ),
                                         decoration: BoxDecoration(
                                           color:
-                                              Colors.white.withValues(alpha: 0.1),
+                                              Colors.white.withOpacity(0.1),
                                           borderRadius:
                                               BorderRadius.circular(999),
                                         ),
@@ -201,19 +203,19 @@ class _LandingPageState extends State<LandingPage> {
                           Text(
                             data.title,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.gray900,
+                              color: isDark ? Colors.white : AppTheme.gray900,
                             ),
                           ),
                           const SizedBox(height: 12),
                           Text(
                             data.description,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
-                              color: AppTheme.gray600,
+                              color: isDark ? Colors.white70 : AppTheme.gray600,
                             ),
                           ),
                           const SizedBox(height: 32),
@@ -231,7 +233,7 @@ class _LandingPageState extends State<LandingPage> {
                                 decoration: BoxDecoration(
                                   color: _currentPage == i
                                       ? AppTheme.userPrimaryBlue
-                                      : AppTheme.gray300,
+                                      : (isDark ? Colors.white24 : AppTheme.gray300),
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                               ),

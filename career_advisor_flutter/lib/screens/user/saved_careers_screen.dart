@@ -172,11 +172,22 @@ class _SavedCareersScreenState extends ConsumerState<SavedCareersScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return AnimatedScreen(
       child: Scaffold(
-      backgroundColor: AppTheme.gray50,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
+        ),
         title: const Text('My Career Paths'),
         elevation: 0,
         backgroundColor: Colors.white,
@@ -290,7 +301,7 @@ class _SavedCareersScreenState extends ConsumerState<SavedCareersScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -313,7 +324,7 @@ class _SavedCareersScreenState extends ConsumerState<SavedCareersScreen>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    color: AppTheme.primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
@@ -381,9 +392,9 @@ class _SavedCareersScreenState extends ConsumerState<SavedCareersScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

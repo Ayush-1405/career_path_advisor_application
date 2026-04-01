@@ -38,6 +38,7 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
+    FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
     if (_isLoading) return;
 
@@ -122,9 +123,9 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
               decoration: const InputDecoration(
                 labelText: 'API Base URL',
                 hintText:
-                    'http://careerpathadvisorapplication-production.up.railway.app/',
+                    'https://careerpathadvisorapplication-production.up.railway.app/',
                 helperText:
-                    'production: http://careerpathadvisorapplication-production.up.railway.app/\nFor Physical Device: Use computer LAN IP',
+                    'production: https://careerpathadvisorapplication-production.up.railway.app/\nFor Physical Device: Use computer LAN IP',
                 helperMaxLines: 3,
               ),
             ),
@@ -154,21 +155,48 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return AnimatedScreen(
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC), // Slate 50
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back,
+              color: isDark ? Colors.white : AppTheme.gray700,
+            ),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
         body: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 420),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFFE2E8F0)), // Slate 200
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.1)
+                      : const Color(0xFFE2E8F0),
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF0F172A).withValues(alpha: 0.04), // Slate 900
+                    color: isDark
+                        ? Colors.black.withOpacity(0.2)
+                        : const Color(0xFF0F172A).withOpacity(0.04),
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),
@@ -198,7 +226,9 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.userPrimaryBlue.withValues(alpha: 0.25),
+                              color: AppTheme.userPrimaryBlue.withValues(
+                                alpha: 0.25,
+                              ),
                               blurRadius: 16,
                               offset: const Offset(0, 8),
                             ),
@@ -212,25 +242,29 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    
+
                     // Title
-                    const Text(
+                    Text(
                       'Create Account',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF0F172A), // Slate 900
+                        color: isDark
+                            ? Colors.white
+                            : Color(0xFF0F172A), // Slate 900
                         letterSpacing: -0.5,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Join us to unlock your career potential',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
-                        color: Color(0xFF64748B), // Slate 500
+                        color: isDark
+                            ? Colors.white70
+                            : Color(0xFF64748B), // Slate 500
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -238,31 +272,37 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                     // Name Field
                     TextFormField(
                       controller: _nameController,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
-                        color: Color(0xFF0F172A),
+                        color: isDark ? Colors.white : Color(0xFF0F172A),
                         fontWeight: FontWeight.w500,
                       ),
                       decoration: InputDecoration(
                         labelText: 'Full Name',
-                        labelStyle: const TextStyle(color: Color(0xFF64748B)),
+                        labelStyle: TextStyle(
+                          color: isDark ? Colors.white70 : Color(0xFF64748B),
+                        ),
                         hintText: 'Enter your full name',
-                        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                        prefixIcon: const Icon(
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white38 : Color(0xFF94A3B8),
+                        ),
+                        prefixIcon: Icon(
                           Icons.person_outline_rounded,
-                          color: Color(0xFF64748B),
+                          color: isDark ? Colors.white70 : Color(0xFF64748B),
                           size: 20,
                         ),
                         filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
+                        fillColor: isDark
+                            ? const Color(0xFF0F172A)
+                            : const Color(0xFFF8FAFC),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFE2E8F0),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white12 : Color(0xFFE2E8F0),
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -292,31 +332,37 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
-                        color: Color(0xFF0F172A),
+                        color: isDark ? Colors.white : Color(0xFF0F172A),
                         fontWeight: FontWeight.w500,
                       ),
                       decoration: InputDecoration(
                         labelText: 'Email Address',
-                        labelStyle: const TextStyle(color: Color(0xFF64748B)),
+                        labelStyle: TextStyle(
+                          color: isDark ? Colors.white70 : Color(0xFF64748B),
+                        ),
                         hintText: 'Enter your email',
-                        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                        prefixIcon: const Icon(
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white38 : Color(0xFF94A3B8),
+                        ),
+                        prefixIcon: Icon(
                           Icons.email_outlined,
-                          color: Color(0xFF64748B),
+                          color: isDark ? Colors.white70 : Color(0xFF64748B),
                           size: 20,
                         ),
                         filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
+                        fillColor: isDark
+                            ? const Color(0xFF0F172A)
+                            : const Color(0xFFF8FAFC),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFE2E8F0),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white12 : Color(0xFFE2E8F0),
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -349,19 +395,23 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
-                        color: Color(0xFF0F172A),
+                        color: isDark ? Colors.white : Color(0xFF0F172A),
                         fontWeight: FontWeight.w500,
                       ),
                       decoration: InputDecoration(
                         labelText: 'Password',
-                        labelStyle: const TextStyle(color: Color(0xFF64748B)),
+                        labelStyle: TextStyle(
+                          color: isDark ? Colors.white70 : Color(0xFF64748B),
+                        ),
                         hintText: 'Create a password',
-                        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                        prefixIcon: const Icon(
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white38 : Color(0xFF94A3B8),
+                        ),
+                        prefixIcon: Icon(
                           Icons.lock_outline_rounded,
-                          color: Color(0xFF64748B),
+                          color: isDark ? Colors.white70 : Color(0xFF64748B),
                           size: 20,
                         ),
                         suffixIcon: IconButton(
@@ -369,7 +419,7 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                             _obscurePassword
                                 ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
-                            color: const Color(0xFF64748B),
+                            color: isDark ? Colors.white70 : Color(0xFF64748B),
                             size: 20,
                           ),
                           onPressed: () {
@@ -379,15 +429,17 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                           },
                         ),
                         filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
+                        fillColor: isDark
+                            ? const Color(0xFF0F172A)
+                            : const Color(0xFFF8FAFC),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFE2E8F0),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white12 : Color(0xFFE2E8F0),
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -417,7 +469,9 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                         if (!value.contains(RegExp(r'[0-9]'))) {
                           return 'Password must contain at least one number';
                         }
-                        if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+                        if (!value.contains(
+                          RegExp(r'[!@#$%^&*(),.?":{}|<>]'),
+                        )) {
                           return 'Password must contain at least one special character';
                         }
                         return null;
@@ -429,19 +483,23 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                     TextFormField(
                       controller: _confirmPasswordController,
                       obscureText: _obscureConfirmPassword,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
-                        color: Color(0xFF0F172A),
+                        color: isDark ? Colors.white : Color(0xFF0F172A),
                         fontWeight: FontWeight.w500,
                       ),
                       decoration: InputDecoration(
                         labelText: 'Confirm Password',
-                        labelStyle: const TextStyle(color: Color(0xFF64748B)),
+                        labelStyle: TextStyle(
+                          color: isDark ? Colors.white70 : Color(0xFF64748B),
+                        ),
                         hintText: 'Confirm your password',
-                        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                        prefixIcon: const Icon(
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white38 : Color(0xFF94A3B8),
+                        ),
+                        prefixIcon: Icon(
                           Icons.lock_outline_rounded,
-                          color: Color(0xFF64748B),
+                          color: isDark ? Colors.white70 : Color(0xFF64748B),
                           size: 20,
                         ),
                         suffixIcon: IconButton(
@@ -449,25 +507,28 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                             _obscureConfirmPassword
                                 ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
-                            color: const Color(0xFF64748B),
+                            color: isDark ? Colors.white70 : Color(0xFF64748B),
                             size: 20,
                           ),
                           onPressed: () {
                             setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
                             });
                           },
                         ),
                         filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
+                        fillColor: isDark
+                            ? const Color(0xFF0F172A)
+                            : const Color(0xFFF8FAFC),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFE2E8F0),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white12 : Color(0xFFE2E8F0),
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -498,8 +559,13 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                       builder: (context, value, _) {
                         if (value.text.isEmpty) return const SizedBox.shrink();
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 24.0, top: 8.0),
-                          child: PasswordRequirementChecklist(password: value.text),
+                          padding: const EdgeInsets.only(
+                            bottom: 24.0,
+                            top: 8.0,
+                          ),
+                          child: PasswordRequirementChecklist(
+                            password: value.text,
+                          ),
                         );
                       },
                     ),
@@ -509,30 +575,62 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFEF2F2), // Red 50
+                          color: isDark
+                              ? Colors.red.withOpacity(0.1)
+                              : const Color(0xFFFEF2F2), // Red 50
                           border: Border.all(
-                            color: const Color(0xFFFECACA), // Red 200
-                          ), 
+                            color: isDark
+                                ? Colors.red.withOpacity(0.2)
+                                : const Color(0xFFFECACA), // Red 200
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(
-                              Icons.error_outline_rounded,
-                              color: Color(0xFFEF4444), // Red 500
-                              size: 20,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                _error!,
-                                style: const TextStyle(
-                                  color: Color(0xFFB91C1C), // Red 700
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.error_outline_rounded,
+                                  color: Color(0xFFEF4444), // Red 500
+                                  size: 20,
                                 ),
-                              ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    _error!,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.redAccent
+                                          : Color(0xFFB91C1C), // Red 700
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
+                            if (_error!.contains('Connection timeout') ||
+                                _error!.contains('Network error') ||
+                                _error!.contains('Connection error') ||
+                                _error!.contains('Endpoint not found'))
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  top: 12.0,
+                                  left: 32.0,
+                                ),
+                                // child: TextButton.icon(
+                                //   onPressed: _showServerUrlDialog,
+                                //   icon: const Icon(Icons.settings, size: 16),
+                                //   label: const Text('Configure Server URL'),
+                                //   style: TextButton.styleFrom(
+                                //     foregroundColor: const Color(0xFFB91C1C),
+                                //     padding: EdgeInsets.zero,
+                                //     minimumSize: Size.zero,
+                                //     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                //   ),
+                                // ),
+                              ),
                           ],
                         ),
                       ),
@@ -577,10 +675,10 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'Already have an account? ',
                           style: TextStyle(
-                            color: Color(0xFF64748B),
+                            color: isDark ? Colors.white70 : Color(0xFF64748B),
                             fontSize: 14,
                           ),
                         ),
@@ -604,6 +702,17 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 16),
+                    // TextButton(
+                    //   onPressed: () => _showServerUrlDialog(),
+                    //   child: const Text(
+                    //     'Change Server URL',
+                    //     style: TextStyle(
+                    //       color: Color(0xFF64748B),
+                    //       fontSize: 12,
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),

@@ -102,409 +102,515 @@ class _HelpCenterScreenState extends ConsumerState<HelpCenterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return AnimatedScreen(
       child: Scaffold(
-      appBar: AppBar(
-        title: const Text('Help & Support'),
-        automaticallyImplyLeading: false,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Hero Section
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blue.shade600, Colors.purple.shade600],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
+          ),
+          title: const Text('Help & Support'),
+          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+          foregroundColor: isDark ? Colors.white : Colors.black,
+          elevation: 0,
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Hero Section
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isDark
+                        ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                        : [Colors.blue.shade600, Colors.purple.shade600],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 40,
+                  horizontal: 24,
+                ),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Help & Support',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Find answers to common questions and get the support you need',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: isDark ? Colors.white70 : Colors.blue.shade100,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
+                    TextField(
+                      controller: _searchController,
+                      onChanged: (value) => setState(() {}),
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Search for help...',
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white38 : Colors.grey,
+                        ),
+                        fillColor: isDark
+                            ? const Color(0xFF0F172A)
+                            : Colors.white,
+                        filled: true,
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: isDark ? Colors.white38 : Colors.grey,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-              child: Column(
-                children: [
-                  const Text(
-                    'Help & Support',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  children: [
+                    // Quick Links
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final width = constraints.maxWidth;
+                        int crossAxisCount;
+                        double childAspectRatio;
+
+                        if (width > 900) {
+                          crossAxisCount = 3;
+                          childAspectRatio = 1.6;
+                        } else if (width > 600) {
+                          crossAxisCount = 2;
+                          childAspectRatio = 1.5;
+                        } else {
+                          crossAxisCount = 1;
+                          childAspectRatio = 1.3;
+                        }
+
+                        return GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: crossAxisCount,
+                          childAspectRatio: childAspectRatio,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                          children: [
+                            _buildQuickLink(
+                              icon: Icons.support_agent,
+                              color: Colors.blue,
+                              title: 'Contact Support',
+                              subtitle: 'Get in touch with our support team',
+                              onTap: () => context.push('/contact'),
+                              isDark: isDark,
+                            ),
+                            _buildQuickLink(
+                              icon: Icons.smart_toy,
+                              color: Colors.green,
+                              title: 'AI Assistant',
+                              subtitle: 'Chat with our AI for instant help',
+                              onTap: () => context.push('/ai-assistant'),
+                              isDark: isDark,
+                            ),
+                            _buildQuickLink(
+                              icon: Icons.play_circle_outline,
+                              color: Colors.purple,
+                              title: 'Getting Started',
+                              subtitle: 'Begin your career analysis journey',
+                              onTap: () => context.push('/analyze'),
+                              isDark: isDark,
+                            ),
+                            _buildQuickLink(
+                              icon: Icons.bar_chart,
+                              color: Colors.orange,
+                              title: 'Skills Assessment',
+                              subtitle:
+                                  'Starting and understanding assessments',
+                              onTap: () => context.push('/skills'),
+                              isDark: isDark,
+                            ),
+                            _buildQuickLink(
+                              icon: Icons.explore,
+                              color: Colors.teal,
+                              title: 'Career Paths',
+                              subtitle: 'Viewing and following suggested paths',
+                              onTap: () => context.push('/career-paths'),
+                              isDark: isDark,
+                            ),
+                            _buildQuickLink(
+                              icon: Icons.person,
+                              color: Colors.indigo,
+                              title: 'Account & Profile',
+                              subtitle:
+                                  'Managing sign-in, registration, and profile',
+                              onTap: () => context.push('/profile'),
+                              isDark: isDark,
+                            ),
+                            _buildQuickLink(
+                              icon: Icons.lock,
+                              color: Colors.red,
+                              title: 'Privacy & Security',
+                              subtitle: 'Data usage and permissions',
+                              onTap: () => context.push('/privacy-policy'),
+                              isDark: isDark,
+                            ),
+                          ],
+                        );
+                      },
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Find answers to common questions and get the support you need',
-                    style: TextStyle(fontSize: 18, color: Colors.blue.shade100),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 32),
-                  TextField(
-                    controller: _searchController,
-                    onChanged: (value) => setState(() {}),
-                    decoration: InputDecoration(
-                      hintText: 'Search for help...',
-                      fillColor: Colors.white,
-                      filled: true,
-                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                children: [
-                  // Quick Links
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final width = constraints.maxWidth;
-                      int crossAxisCount;
-                      double childAspectRatio;
+                    const SizedBox(height: 48),
 
-                      if (width > 900) {
-                        crossAxisCount = 3;
-                        childAspectRatio = 1.6;
-                      } else if (width > 600) {
-                        crossAxisCount = 2;
-                        childAspectRatio = 1.5;
-                      } else {
-                        crossAxisCount = 1;
-                        childAspectRatio = 1.3;
-                      }
-
-                      return GridView.count(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: crossAxisCount,
-                        childAspectRatio: childAspectRatio,
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
-                        children: [
-                          _buildQuickLink(
-                            icon: Icons.support_agent,
-                            color: Colors.blue,
-                            title: 'Contact Support',
-                            subtitle: 'Get in touch with our support team',
-                            onTap: () => context.push('/contact'),
-                          ),
-                          _buildQuickLink(
-                            icon: Icons.smart_toy,
-                            color: Colors.green,
-                            title: 'AI Assistant',
-                            subtitle: 'Chat with our AI for instant help',
-                            onTap: () => context.push('/ai-assistant'),
-                          ),
-                          _buildQuickLink(
-                            icon: Icons.play_circle_outline,
-                            color: Colors.purple,
-                            title: 'Getting Started',
-                            subtitle: 'Begin your career analysis journey',
-                            onTap: () => context.push('/analyze'),
-                          ),
-                          _buildQuickLink(
-                            icon: Icons.bar_chart,
-                            color: Colors.orange,
-                            title: 'Skills Assessment',
-                            subtitle: 'Starting and understanding assessments',
-                            onTap: () => context.push('/skills'),
-                          ),
-                          _buildQuickLink(
-                            icon: Icons.explore,
-                            color: Colors.teal,
-                            title: 'Career Paths',
-                            subtitle: 'Viewing and following suggested paths',
-                            onTap: () => context.push('/career-paths'),
-                          ),
-                          _buildQuickLink(
-                            icon: Icons.person,
-                            color: Colors.indigo,
-                            title: 'Account & Profile',
-                            subtitle:
-                                'Managing sign-in, registration, and profile',
-                            onTap: () => context.push('/profile'),
-                          ),
-                          _buildQuickLink(
-                            icon: Icons.lock,
-                            color: Colors.red,
-                            title: 'Privacy & Security',
-                            subtitle: 'Data usage and permissions',
-                            onTap: () => context.push('/privacy-policy'),
+                    // FAQ Section
+                    Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: isDark
+                                ? Colors.black.withOpacity(0.2)
+                                : Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
                         ],
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 48),
-
-                  // FAQ Section
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Frequently Asked Questions',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Categories
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: _categories.map((category) {
-                              final isSelected =
-                                  _selectedCategory == category['id'];
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: ChoiceChip(
-                                  label: Text(category['name']!),
-                                  selected: isSelected,
-                                  onSelected: (selected) {
-                                    if (selected) {
-                                      setState(() {
-                                        _selectedCategory = category['id']!;
-                                      });
-                                    }
-                                  },
-                                  selectedColor: Colors.blue.shade600,
-                                  labelStyle: TextStyle(
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Colors.grey.shade700,
-                                    fontWeight: isSelected
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                  ),
-                                  backgroundColor: Colors.grey.shade100,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    side: BorderSide.none,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // FAQ List
-                        if (_filteredFAQs.isEmpty)
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 48),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.search_off,
-                                    size: 64,
-                                    color: Colors.grey.shade300,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  const Text(
-                                    'No results found',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    'Try adjusting your search terms or category filter',
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        _searchController.clear();
-                                        _selectedCategory = 'all';
-                                      });
-                                    },
-                                    child: const Text('Clear Filters'),
-                                  ),
-                                ],
-                              ),
+                      ),
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Frequently Asked Questions',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black,
                             ),
-                          )
-                        else
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _filteredFAQs.length,
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(height: 16),
-                            itemBuilder: (context, index) {
-                              final faq = _filteredFAQs[index];
-                              return Card(
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: BorderSide(color: Colors.grey.shade200),
-                                ),
-                                child: ExpansionTile(
-                                  title: Text(
-                                    faq['question'],
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Categories
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: _categories.map((category) {
+                                final isSelected =
+                                    _selectedCategory == category['id'];
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: ChoiceChip(
+                                    label: Text(category['name']!),
+                                    selected: isSelected,
+                                    onSelected: (selected) {
+                                      if (selected) {
+                                        setState(() {
+                                          _selectedCategory = category['id']!;
+                                        });
+                                      }
+                                    },
+                                    selectedColor: Colors.blue.shade600,
+                                    labelStyle: TextStyle(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : (isDark
+                                                ? Colors.white70
+                                                : Colors.grey.shade700),
+                                      fontWeight: isSelected
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                    backgroundColor: isDark
+                                        ? Colors.white10
+                                        : Colors.grey.shade100,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      side: BorderSide.none,
                                     ),
                                   ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // FAQ List
+                          if (_filteredFAQs.isEmpty)
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 48,
+                                ),
+                                child: Column(
                                   children: [
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                        16,
-                                        0,
-                                        16,
-                                        16,
+                                    Icon(
+                                      Icons.search_off,
+                                      size: 64,
+                                      color: isDark
+                                          ? Colors.white10
+                                          : Colors.grey.shade300,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'No results found',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark
+                                            ? Colors.white70
+                                            : Colors.black,
                                       ),
-                                      child: Text(
-                                        faq['answer'],
-                                        style: TextStyle(
-                                          color: Colors.grey.shade700,
-                                          height: 1.5,
-                                        ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Try adjusting your search terms or category filter',
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white38
+                                            : Colors.grey,
                                       ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          _searchController.clear();
+                                          _selectedCategory = 'all';
+                                        });
+                                      },
+                                      child: const Text('Clear Filters'),
                                     ),
                                   ],
                                 ),
+                              ),
+                            )
+                          else
+                            ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _filteredFAQs.length,
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 16),
+                              itemBuilder: (context, index) {
+                                final faq = _filteredFAQs[index];
+                                return Card(
+                                  elevation: 0,
+                                  color: isDark
+                                      ? Colors.white.withOpacity(0.05)
+                                      : Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: BorderSide(
+                                      color: isDark
+                                          ? Colors.white10
+                                          : Colors.grey.shade200,
+                                    ),
+                                  ),
+                                  child: ExpansionTile(
+                                    title: Text(
+                                      faq['question'],
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black,
+                                      ),
+                                    ),
+                                    iconColor: isDark
+                                        ? Colors.white70
+                                        : Colors.black54,
+                                    collapsedIconColor: isDark
+                                        ? Colors.white38
+                                        : Colors.black54,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          16,
+                                          0,
+                                          16,
+                                          16,
+                                        ),
+                                        child: Text(
+                                          faq['answer'],
+                                          style: TextStyle(
+                                            color: isDark
+                                                ? Colors.white60
+                                                : Colors.grey.shade700,
+                                            height: 1.5,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 48),
+
+                    // Additional Resources
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.blue.withOpacity(0.1)
+                            : Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Still need help?',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final isWide = constraints.maxWidth > 600;
+
+                              final emailSupport = Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Email Support',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Get detailed help via email',
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white38
+                                          : Colors.black54,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextButton(
+                                    onPressed: () => context.push('/contact'),
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    child: const Text('Send us a message →'),
+                                  ),
+                                ],
                               );
+
+                              final liveChat = Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Live Chat',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Chat with our AI assistant',
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white38
+                                          : Colors.black54,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextButton(
+                                    onPressed: () =>
+                                        context.push('/ai-assistant'),
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    child: const Text('Start chatting →'),
+                                  ),
+                                ],
+                              );
+
+                              if (isWide) {
+                                return Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(child: emailSupport),
+                                    const SizedBox(width: 24),
+                                    Expanded(child: liveChat),
+                                  ],
+                                );
+                              } else {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    emailSupport,
+                                    const SizedBox(height: 24),
+                                    liveChat,
+                                  ],
+                                );
+                              }
                             },
                           ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-
-                  const SizedBox(height: 48),
-
-                  // Additional Resources
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Still need help?',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            final isWide = constraints.maxWidth > 600;
-
-                            final emailSupport = Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Email Support',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 4),
-                                const Text('Get detailed help via email'),
-                                const SizedBox(height: 8),
-                                TextButton(
-                                  onPressed: () => context.push('/contact'),
-                                  style: TextButton.styleFrom(
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: Size.zero,
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  child: const Text('Send us a message →'),
-                                ),
-                              ],
-                            );
-
-                            final liveChat = Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Live Chat',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 4),
-                                const Text('Chat with our AI assistant'),
-                                const SizedBox(height: 8),
-                                TextButton(
-                                  onPressed: () =>
-                                      context.push('/ai-assistant'),
-                                  style: TextButton.styleFrom(
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: Size.zero,
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  child: const Text('Start chatting →'),
-                                ),
-                              ],
-                            );
-
-                            if (isWide) {
-                              return Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(child: emailSupport),
-                                  const SizedBox(width: 24),
-                                  Expanded(child: liveChat),
-                                ],
-                              );
-                            } else {
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  emailSupport,
-                                  const SizedBox(height: 24),
-                                  liveChat,
-                                ],
-                              );
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 
@@ -514,6 +620,7 @@ class _HelpCenterScreenState extends ConsumerState<HelpCenterScreen> {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    required bool isDark,
   }) {
     return InkWell(
       onTap: onTap,
@@ -521,11 +628,13 @@ class _HelpCenterScreenState extends ConsumerState<HelpCenterScreen> {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: isDark
+                  ? Colors.black.withOpacity(0.2)
+                  : Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -538,22 +647,33 @@ class _HelpCenterScreenState extends ConsumerState<HelpCenterScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                color: color.withOpacity(isDark ? 0.2 : 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: color, size: 24),
+              child: Icon(
+                icon,
+                color: isDark ? color.withOpacity(0.8) : color,
+                size: 24,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
               title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+              style: TextStyle(
+                color: isDark ? Colors.white60 : Colors.grey.shade600,
+                fontSize: 14,
+              ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),

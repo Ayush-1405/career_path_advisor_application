@@ -294,12 +294,25 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
       return AnimatedScreen(child: _buildShimmerLoading());
     }
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     if (_error != null) {
       return AnimatedScreen(
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('Dashboard'),
             automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/home');
+                }
+              },
+            ),
+            title: const Text('Dashboard'),
           ),
           body: Center(
             child: Column(
@@ -307,7 +320,12 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
               children: [
                 const Icon(Icons.error_outline, size: 48, color: Colors.red),
                 const SizedBox(height: 16),
-                Text(_error!),
+                Text(
+                  _error!,
+                  style: TextStyle(
+                    color: isDark ? Colors.white70 : AppTheme.gray700,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: _loadData,
@@ -327,11 +345,21 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
 
     return AnimatedScreen(
       child: Scaffold(
-        backgroundColor: AppTheme.gray50,
+        backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
+          ),
           title: const Text('Dashboard'),
           centerTitle: false,
-          automaticallyImplyLeading: false,
           actions: [
             IconButton(
               icon: _isLoading
@@ -419,12 +447,12 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Quick Actions',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.gray900,
+                          color: isDark ? Colors.white : AppTheme.gray900,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -455,18 +483,6 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                             color: AppTheme.userPrimaryPurple,
                             onTap: () => context.push('/suggestions'),
                           ),
-                          // _buildActionCard(
-                          //   title: 'My Applications',
-                          //   icon: Icons.assignment,
-                          //   color: Colors.amber.shade700,
-                          //   onTap: () => context.push('/my-applications'),
-                          // ),
-                          // _buildActionCard(
-                          //   title: 'Saved Careers',
-                          //   icon: Icons.bookmark_border,
-                          //   color: Colors.deepOrange,
-                          //   onTap: () => context.pushNamed('saved_careers'),
-                          // ),
                           _buildActionCard(
                             title: 'Skills Assessment',
                             icon: Icons.assignment_outlined,
@@ -497,12 +513,12 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
+                            Text(
                               'Recommended For You',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: AppTheme.gray900,
+                                color: isDark ? Colors.white : AppTheme.gray900,
                               ),
                             ),
                             TextButton(
@@ -538,13 +554,17 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                                   width: 200,
                                   margin: const EdgeInsets.only(right: 16),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: isDark
+                                        ? const Color(0xFF1E293B)
+                                        : Colors.white,
                                     borderRadius: BorderRadius.circular(16),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.05,
-                                        ),
+                                        color: isDark
+                                            ? Colors.black.withOpacity(0.2)
+                                            : Colors.black.withValues(
+                                                alpha: 0.05,
+                                              ),
                                         blurRadius: 10,
                                         offset: const Offset(0, 4),
                                       ),
@@ -565,7 +585,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                                               padding: const EdgeInsets.all(8),
                                               decoration: BoxDecoration(
                                                 color: AppTheme.userPrimaryBlue
-                                                    .withValues(alpha: 0.1),
+                                                    .withOpacity(0.1),
                                                 borderRadius:
                                                     BorderRadius.circular(8),
                                               ),
@@ -579,9 +599,12 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                                             Text(
                                               suggestion['careerPath'] ??
                                                   'Career Path',
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16,
+                                                color: isDark
+                                                    ? Colors.white
+                                                    : AppTheme.gray900,
                                               ),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
@@ -590,7 +613,9 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                                             Text(
                                               '${suggestion['matchScore'] ?? 0}% Match',
                                               style: TextStyle(
-                                                color: Colors.green.shade700,
+                                                color: isDark
+                                                    ? Colors.greenAccent
+                                                    : Colors.green.shade700,
                                                 fontWeight: FontWeight.w500,
                                                 fontSize: 12,
                                               ),
@@ -617,12 +642,12 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Recent Activity',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.gray900,
+                          color: isDark ? Colors.white : AppTheme.gray900,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -630,14 +655,22 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                         Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: isDark
+                                ? const Color(0xFF1E293B)
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppTheme.gray200),
+                            border: Border.all(
+                              color: isDark ? Colors.white10 : AppTheme.gray200,
+                            ),
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Text(
                               'No recent activity yet. Start by uploading your resume!',
-                              style: TextStyle(color: AppTheme.gray500),
+                              style: TextStyle(
+                                color: isDark
+                                    ? Colors.white38
+                                    : AppTheme.gray500,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -647,7 +680,9 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: recentActivities.take(5).length,
-                          separatorBuilder: (context, index) => const Divider(),
+                          separatorBuilder: (context, index) => Divider(
+                            color: isDark ? Colors.white10 : AppTheme.gray200,
+                          ),
                           itemBuilder: (context, index) {
                             final activity = recentActivities[index];
                             final timestamp = activity['timestamp'];
@@ -663,7 +698,9 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                                 'Activity';
 
                             IconData iconData = Icons.history;
-                            Color iconColor = AppTheme.gray600;
+                            Color iconColor = isDark
+                                ? Colors.white38
+                                : AppTheme.gray600;
 
                             if (type != null) {
                               if (type.contains('resume')) {
@@ -717,7 +754,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                                 leading: Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: iconColor.withValues(alpha: 0.1),
+                                    color: iconColor.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Icon(
@@ -731,8 +768,11 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                                     Expanded(
                                       child: Text(
                                         message,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontWeight: FontWeight.w500,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppTheme.gray900,
                                         ),
                                       ),
                                     ),
@@ -766,8 +806,12 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                                           color:
                                               status.contains('completed') ||
                                                   status == 'done'
-                                              ? Colors.green.shade700
-                                              : Colors.orange.shade700,
+                                              ? (isDark
+                                                    ? Colors.greenAccent
+                                                    : Colors.green.shade700)
+                                              : (isDark
+                                                    ? Colors.orangeAccent
+                                                    : Colors.orange.shade700),
                                         ),
                                       ),
                                     ),
@@ -776,8 +820,10 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                                 subtitle: timestamp != null
                                     ? Text(
                                         timestamp.toString(),
-                                        style: const TextStyle(
-                                          color: AppTheme.gray500,
+                                        style: TextStyle(
+                                          color: isDark
+                                              ? Colors.white38
+                                              : AppTheme.gray500,
                                           fontSize: 12,
                                         ),
                                       )
@@ -800,12 +846,27 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
   }
 
   Widget _buildShimmerLoading() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppTheme.gray50,
-      appBar: AppBar(title: const Text('Dashboard'), centerTitle: false),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : AppTheme.gray50,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
+        ),
+        title: const Text('Dashboard'),
+        centerTitle: false,
+      ),
       body: Shimmer.fromColors(
-        baseColor: Colors.grey.shade300,
-        highlightColor: Colors.grey.shade100,
+        baseColor: isDark ? Colors.white12 : Colors.grey.shade300,
+        highlightColor: isDark ? Colors.white24 : Colors.grey.shade100,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -814,7 +875,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
               Container(
                 height: 140,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
                   borderRadius: BorderRadius.circular(24),
                 ),
               ),
@@ -835,7 +896,11 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                 ],
               ),
               const SizedBox(height: 32),
-              Container(height: 20, width: 120, color: Colors.white),
+              Container(
+                height: 20,
+                width: 120,
+                color: Colors.white.withOpacity(0.05),
+              ),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -853,16 +918,18 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
   }
 
   Widget _shimmerCard(double height) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: height,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
         borderRadius: BorderRadius.circular(16),
       ),
     );
   }
 
   Widget _buildProfileCompletionCard(int completionRate) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: completionRate / 100),
       duration: const Duration(milliseconds: 1200),
@@ -870,11 +937,18 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
       builder: (context, value, _) {
         return Container(
           padding: const EdgeInsets.all(24),
-          decoration: AppTheme.getUserGradient().copyWith(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppTheme.userPrimaryBlue, AppTheme.userPrimaryPurple],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.userPrimaryBlue.withValues(alpha: 0.3),
+                color: isDark
+                    ? Colors.black.withOpacity(0.3)
+                    : AppTheme.userPrimaryBlue.withOpacity(0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -954,46 +1028,34 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                     builder: (context, scale, _) {
                       return Transform.scale(
                         scale: scale,
-                        child: Container(
-                          width: 70,
-                          height: 70,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: ClipOval(
+                        child: GestureDetector(
+                          onTap: () => context.push('/profile'),
+                          child: Container(
+                            width: 70,
+                            height: 70,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                              border: Border.all(color: Colors.white, width: 2),
+                              image:
+                                  _user?.profilePictureUrl != null &&
+                                      (_user!.profilePictureUrl ?? '')
+                                          .isNotEmpty
+                                  ? DecorationImage(
+                                      image: NetworkImage(
+                                        _resolveImageUrl(
+                                          _user!.profilePictureUrl!,
+                                        ),
+                                      ),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
+                            ),
                             child:
-                                _user?.profilePictureUrl != null &&
-                                    (_user!.profilePictureUrl ?? '').isNotEmpty
-                                ? Image.network(
-                                    _resolveImageUrl(_user!.profilePictureUrl!),
-                                    fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
-                                          if (loadingProgress == null)
-                                            return child;
-                                          return Center(
-                                            child: CircularProgressIndicator(
-                                              value:
-                                                  loadingProgress
-                                                          .expectedTotalBytes !=
-                                                      null
-                                                  ? loadingProgress
-                                                            .cumulativeBytesLoaded /
-                                                        loadingProgress
-                                                            .expectedTotalBytes!
-                                                  : null,
-                                              strokeWidth: 2,
-                                              color: Colors.white,
-                                            ),
-                                          );
-                                        },
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return _buildProfileAvatarFallback();
-                                    },
-                                  )
-                                : _buildProfileAvatarFallback(),
+                                _user?.profilePictureUrl == null ||
+                                    (_user!.profilePictureUrl ?? '').isEmpty
+                                ? _buildProfileAvatarFallback()
+                                : null,
                           ),
                         ),
                       );
@@ -1050,6 +1112,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
   }
 
   void _showAllActivities(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final activities = _stats['recentActivities'] is List
         ? _stats['recentActivities'] as List
         : <dynamic>[];
@@ -1062,9 +1125,9 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
       ),
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -1075,12 +1138,16 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
               children: [
                 Text(
                   'All Activities',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : AppTheme.gray900,
+                  ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: Icon(
+                    Icons.close,
+                    color: isDark ? Colors.white70 : AppTheme.gray700,
+                  ),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -1148,13 +1215,16 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
     required Color color,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: isDark
+                ? Colors.black.withOpacity(0.2)
+                : Colors.black.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1175,7 +1245,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
+                    color: color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(icon, color: color, size: 24),
@@ -1185,8 +1255,8 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        color: AppTheme.gray500,
+                      style: TextStyle(
+                        color: isDark ? Colors.white38 : AppTheme.gray500,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -1194,7 +1264,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                     Text(
                       value,
                       style: TextStyle(
-                        color: AppTheme.gray900,
+                        color: isDark ? Colors.white : AppTheme.gray900,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1215,13 +1285,16 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
     required Color color,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: isDark
+                ? Colors.black.withOpacity(0.2)
+                : Colors.black.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1241,7 +1314,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
+                    color: color.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(icon, color: color, size: 28),
@@ -1250,10 +1323,10 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.gray700,
+                    color: isDark ? Colors.white : AppTheme.gray700,
                   ),
                 ),
               ],

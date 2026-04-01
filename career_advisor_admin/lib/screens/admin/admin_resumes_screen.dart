@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/api_service.dart';
@@ -93,6 +94,16 @@ class _AdminResumesScreenState extends ConsumerState<AdminResumesScreen> {
         backgroundColor: Colors.grey[50],
         appBar: AppBar(
           automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/dashboard');
+              }
+            },
+          ),
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
@@ -173,7 +184,7 @@ class _AdminResumesScreenState extends ConsumerState<AdminResumesScreen> {
                               BoxShadow(
                                 color: const Color(
                                   0xFF0F172A,
-                                ).withValues(alpha: 0.02),
+                                ).withOpacity(0.02),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -211,7 +222,7 @@ class _AdminResumesScreenState extends ConsumerState<AdminResumesScreen> {
                               BoxShadow(
                                 color: const Color(
                                   0xFF0F172A,
-                                ).withValues(alpha: 0.02),
+                                ).withOpacity(0.02),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -435,7 +446,7 @@ class _AdminResumesScreenState extends ConsumerState<AdminResumesScreen> {
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+            color: const Color(0xFF0F172A).withOpacity(0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

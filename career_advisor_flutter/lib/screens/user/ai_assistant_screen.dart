@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
@@ -95,12 +96,14 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
 
     try {
       // Get Wit.ai analysis concurrently for NLP enhancement
-      final witAnalysis =
-          await ref.read(witAiServiceProvider).getMessageAnalysis(text);
+      final witAnalysis = await ref
+          .read(witAiServiceProvider)
+          .getMessageAnalysis(text);
       debugPrint('Wit.ai analysis: $witAnalysis');
 
-      final response =
-          await ref.read(apiServiceProvider).chatWithAssistant(text);
+      final response = await ref
+          .read(apiServiceProvider)
+          .chatWithAssistant(text);
       final replyText = response['reply'] ?? response['message'] ?? '...';
 
       final aiMessage = {
@@ -138,143 +141,179 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return AnimatedScreen(
       child: Scaffold(
-      backgroundColor: AppTheme.gray50,
-      appBar: AppBar(
-        title: const Text('AI Career Assistant'),
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: AppTheme.gray900,
-        automaticallyImplyLeading: false,
-      ),
-      body: Column(
-        children: [
-          // Intro Header
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.white,
-            child: const Column(
-              children: [
-                Text(
-                  'Get instant career advice, tips, and guidance from our AI-powered assistant',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppTheme.gray600),
-                ),
-              ],
-            ),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
           ),
-          const Divider(height: 1),
-
-          // Chat Area
-          Expanded(
-            child: Container(
-              color: AppTheme.gray50,
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(16),
-                itemCount: _messages.length + (_isTyping ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index == _messages.length) {
-                    return _buildTypingIndicator();
-                  }
-                  final message = _messages[index];
-                  return _buildMessageBubble(message);
-                },
+          title: const Text('AI Career Assistant'),
+          elevation: 0,
+          backgroundColor: theme.appBarTheme.backgroundColor,
+          foregroundColor: isDark ? Colors.white : AppTheme.gray900,
+        ),
+        body: Column(
+          children: [
+            // Intro Header
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              child: Column(
+                children: [
+                  Text(
+                    'Get instant career advice, tips, and guidance from our AI-powered assistant',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : AppTheme.gray600,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-
-          // Quick Questions & Input Area
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -4),
-                ),
-              ],
+            Divider(
+              height: 1,
+              color: isDark ? Colors.white10 : Colors.grey.shade200,
             ),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Quick Questions
-                SizedBox(
-                  height: 40,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _quickQuestions.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(width: 8),
-                    itemBuilder: (context, index) {
-                      return ActionChip(
-                        label: Text(_quickQuestions[index]),
-                        onPressed: () => _sendMessage(_quickQuestions[index]),
-                        backgroundColor: Colors.blue.shade50,
-                        labelStyle: const TextStyle(
-                          color: AppTheme.primaryColor,
-                        ),
-                        side: BorderSide.none,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      );
-                    },
+
+            // Chat Area
+            Expanded(
+              child: Container(
+                color: theme.scaffoldBackgroundColor,
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _messages.length + (_isTyping ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == _messages.length) {
+                      return _buildTypingIndicator();
+                    }
+                    final message = _messages[index];
+                    return _buildMessageBubble(message);
+                  },
+                ),
+              ),
+            ),
+
+            // Quick Questions & Input Area
+            Container(
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: isDark
+                        ? Colors.black.withOpacity(0.2)
+                        : Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -4),
                   ),
-                ),
-                const SizedBox(height: 16),
+                ],
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Quick Questions
+                  SizedBox(
+                    height: 40,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _quickQuestions.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(width: 8),
+                      itemBuilder: (context, index) {
+                        return ActionChip(
+                          label: Text(_quickQuestions[index]),
+                          onPressed: () => _sendMessage(_quickQuestions[index]),
+                          backgroundColor: isDark
+                              ? Colors.blue.withOpacity(0.1)
+                              : Colors.blue.shade50,
+                          labelStyle: TextStyle(
+                            color: isDark
+                                ? Colors.blueAccent
+                                : AppTheme.primaryColor,
+                          ),
+                          side: BorderSide.none,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
 
-                // Input Field
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _inputController,
-                        decoration: InputDecoration(
-                          hintText: 'Type your message...',
-                          filled: true,
-                          fillColor: AppTheme.gray50,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(24),
-                            borderSide: BorderSide.none,
+                  // Input Field
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _inputController,
+                          style: TextStyle(
+                            color: isDark ? Colors.white : AppTheme.gray900,
                           ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
+                          decoration: InputDecoration(
+                            hintText: 'Type your message...',
+                            hintStyle: TextStyle(
+                              color: isDark
+                                  ? Colors.white38
+                                  : Colors.grey.shade400,
+                            ),
+                            fillColor: isDark
+                                ? const Color(0xFF0F172A)
+                                : Colors.grey.shade50,
+                            filled: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
                           ),
+                          onSubmitted: (_) => _sendMessage(),
                         ),
-                        onSubmitted: (value) => _sendMessage(),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    CircleAvatar(
-                      backgroundColor: AppTheme.primaryColor,
-                      child: IconButton(
-                        icon: const Icon(
-                          Remix.send_plane_fill,
-                          color: Colors.white,
-                          size: 20,
+                      const SizedBox(width: 12),
+                      Container(
+                        decoration: const BoxDecoration(
+                          color: AppTheme.primaryColor,
+                          shape: BoxShape.circle,
                         ),
-                        onPressed: () => _sendMessage(),
+                        child: IconButton(
+                          icon: const Icon(
+                            Remix.send_plane_fill,
+                            color: Colors.white,
+                          ),
+                          onPressed: () => _sendMessage(),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
     );
   }
 
   Widget _buildMessageBubble(Map<String, dynamic> message) {
     final isUser = message['type'] == 'user';
     final isAi = message['type'] == 'ai';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -305,7 +344,9 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: isUser ? AppTheme.primaryColor : Colors.white,
+                color: isUser
+                    ? AppTheme.primaryColor
+                    : (isDark ? const Color(0xFF1E293B) : Colors.white),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
@@ -316,7 +357,9 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                     ? []
                     : [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
+                          color: isDark
+                              ? Colors.black.withOpacity(0.2)
+                              : Colors.black.withOpacity(0.05),
                           blurRadius: 5,
                           offset: const Offset(0, 2),
                         ),
@@ -326,12 +369,14 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (isAi) ...[
-                    const Text(
+                    Text(
                       'AI Assistant',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
+                        color: isDark
+                            ? Colors.blueAccent
+                            : AppTheme.primaryColor,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -339,7 +384,9 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                   Text(
                     message['content'] as String,
                     style: TextStyle(
-                      color: isUser ? Colors.white : AppTheme.gray900,
+                      color: isUser
+                          ? Colors.white
+                          : (isDark ? Colors.white : AppTheme.gray900),
                       height: 1.4,
                     ),
                   ),
@@ -352,11 +399,13 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
             const SizedBox(width: 8),
             CircleAvatar(
               radius: 16,
-              backgroundColor: Colors.blue.shade100,
+              backgroundColor: isDark
+                  ? Colors.blue.withOpacity(0.2)
+                  : Colors.blue.shade100,
               child: Text(
                 (_user?['name'] ?? 'U').substring(0, 1).toUpperCase(),
-                style: const TextStyle(
-                  color: AppTheme.primaryColor,
+                style: TextStyle(
+                  color: isDark ? Colors.blueAccent : AppTheme.primaryColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                 ),
@@ -369,6 +418,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   }
 
   Widget _buildTypingIndicator() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -386,7 +436,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -395,7 +445,9 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: isDark
+                      ? Colors.black.withOpacity(0.2)
+                      : Colors.black.withOpacity(0.05),
                   blurRadius: 5,
                   offset: const Offset(0, 2),
                 ),
@@ -427,7 +479,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
           width: 6,
           height: 6,
           decoration: BoxDecoration(
-            color: AppTheme.gray400.withValues(alpha: 0.5 + (value * 0.5)),
+            color: AppTheme.gray400.withOpacity(0.5 + (value * 0.5)),
             shape: BoxShape.circle,
           ),
         );

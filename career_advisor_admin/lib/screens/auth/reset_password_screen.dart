@@ -182,6 +182,16 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
         backgroundColor: AppTheme.gray50,
         appBar: AppBar(
           automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/dashboard');
+              }
+            },
+          ),
           backgroundColor: Colors.transparent,
           elevation: 0,
         ),

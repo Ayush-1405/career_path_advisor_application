@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
@@ -149,34 +150,59 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return AnimatedScreen(
       child: Scaffold(
-      backgroundColor: AppTheme.gray50,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Resume Analyzer'),
         automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
+        ),
+        title: const Text('Resume Analyzer'),
+        backgroundColor: theme.appBarTheme.backgroundColor,
+        foregroundColor: isDark ? Colors.white : AppTheme.gray900,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
+            Text(
               'Upload Your Resume',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: AppTheme.gray900,
+                color: isDark ? Colors.white : AppTheme.gray900,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Get detailed insights about your skills and experience. Supported formats: PDF, DOC, DOCX. Max size: 5MB.',
-              style: TextStyle(fontSize: 16, color: AppTheme.gray600),
+              style: TextStyle(
+                fontSize: 16, 
+                color: isDark ? Colors.white70 : AppTheme.gray600
+              ),
             ),
             const SizedBox(height: 32),
             // File picker
             Card(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              elevation: isDark ? 0 : 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(
+                  color: isDark ? Colors.white10 : Colors.transparent,
+                ),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
@@ -192,9 +218,9 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
                     Text(
                       _selectedFile?.name ?? 'No file selected',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: AppTheme.gray700,
+                        color: isDark ? Colors.white70 : AppTheme.gray700,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -202,7 +228,10 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
                       const SizedBox(height: 8),
                       Text(
                         '${(_selectedFile!.size / 1024).toStringAsFixed(1)} KB',
-                        style: TextStyle(fontSize: 14, color: AppTheme.gray500),
+                        style: TextStyle(
+                          fontSize: 14, 
+                          color: isDark ? Colors.white38 : AppTheme.gray500
+                        ),
                       ),
                     ],
                     const SizedBox(height: 16),
@@ -235,6 +264,7 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
                             label: const Text('Clear'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.red,
+                              side: const BorderSide(color: Colors.red),
                             ),
                           ),
                         ],
@@ -247,12 +277,12 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
             const SizedBox(height: 24),
             // Existing resumes section
             if (_existingResumes.isNotEmpty) ...[
-              const Text(
+              Text(
                 'Or Select from Previous Uploads',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.gray900,
+                  color: isDark ? Colors.white : AppTheme.gray900,
                 ),
               ),
               const SizedBox(height: 12),
@@ -269,7 +299,14 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
                       child: InkWell(
                         onTap: () => _analyzeExistingResume(resume),
                         child: Card(
-                          color: Colors.white,
+                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          elevation: isDark ? 0 : 1,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: isDark ? Colors.white10 : Colors.transparent,
+                            ),
+                          ),
                           child: Padding(
                             padding: const EdgeInsets.all(12),
                             child: Column(
@@ -282,9 +319,10 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.w500,
                                     fontSize: 14,
+                                    color: isDark ? Colors.white70 : AppTheme.gray900,
                                   ),
                                 ),
                               ],
@@ -303,7 +341,11 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
               onPressed: _isLoading ? null : _analyzeResume,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.userPrimaryBlue,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: _isLoading
                   ? const SizedBox(
@@ -326,16 +368,25 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
             if (_analysisResult != null) ...[
               const SizedBox(height: 32),
               Card(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                elevation: isDark ? 0 : 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: isDark ? Colors.white10 : Colors.transparent,
+                  ),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Analysis Results',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : AppTheme.gray900,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -389,21 +440,25 @@ class _ResultItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: AppTheme.gray600,
+            color: isDark ? Colors.white38 : AppTheme.gray600,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(fontSize: 16, color: AppTheme.gray900),
+          style: TextStyle(
+            fontSize: 16, 
+            color: isDark ? Colors.white70 : AppTheme.gray900
+          ),
         ),
       ],
     );
