@@ -23,7 +23,7 @@ class TermsOfServiceScreen extends ConsumerWidget {
               if (context.canPop()) {
                 context.pop();
               } else {
-                context.go('/home');
+                context.go('/feed');
               }
             },
           ),

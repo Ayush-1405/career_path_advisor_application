@@ -18,7 +18,7 @@ import '../screens/admin/edit_career_path_screen.dart';
 import '../screens/admin/admin_reports_screen.dart';
 import '../models/career_path.dart';
 import '../screens/admin/admin_applications_screen.dart';
-
+import '../screens/admin/admin_social_screen.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 CustomTransitionPage<void> _buildAnimatedPage(
@@ -179,6 +179,11 @@ final adminRouterProvider = Provider<GoRouter>((ref) {
         path: '/applications',
         pageBuilder: (context, state) =>
             _buildAnimatedPage(state, const AdminApplicationsScreen()),
+      ),
+      GoRoute(
+        path: '/social',
+        pageBuilder: (context, state) =>
+            _buildAnimatedPage(state, const AdminSocialScreen()),
       ),
     ],
   );

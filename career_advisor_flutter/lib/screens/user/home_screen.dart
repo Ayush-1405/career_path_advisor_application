@@ -3,9 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../utils/theme.dart';
 import '../../services/auth_service.dart';
+import '../../services/api_service.dart';
 import '../../models/user.dart';
 import '../../providers/app_auth_provider.dart';
 import '../../widgets/animated_screen.dart';
+import '../../providers/theme_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -17,20 +19,40 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   User? _user;
   bool _isLoading = true;
+  Map<String, dynamic> _socialStats = {
+    'connectionsCount': 0,
+  };
 
   @override
   void initState() {
     super.initState();
-    _loadUser();
+    _loadData();
   }
 
-  Future<void> _loadUser() async {
-    final user = await ref.read(authServiceProvider).getCurrentUser();
-    if (mounted) {
-      setState(() {
-        _user = user;
-        _isLoading = false;
-      });
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    try {
+      final authService = ref.read(authServiceProvider);
+      final apiService = ref.read(apiServiceProvider);
+
+      final results = await Future.wait([
+        authService.getCurrentUser(),
+        apiService.fetchUserSocialStats().catchError((_) => {}),
+      ]);
+
+      if (mounted) {
+        setState(() {
+          _user = results[0] as User?;
+          _socialStats =
+              results[1] as Map<String, dynamic>? ??
+              {'connectionsCount': 0};
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -73,6 +95,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final topPadding = MediaQuery.of(context).padding.top;
+
+    final themeMode = ref.watch(themeProvider);
+    final isDarkMode = themeMode == ThemeMode.dark;
 
     return AnimatedScreen(
       child: Scaffold(
@@ -118,19 +143,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                       Text(
                                         _getGreeting(),
                                         style: TextStyle(
-                                          color: Colors.white.withOpacity(0.8),
+                                          color: Colors.white.withAlpha(204),
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(
-                                        _user?.name ?? 'Guest',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            _user?.name ?? 'Guest',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              _buildFollowInfo(
+                                                'Connections',
+                                                _socialStats['connectionsCount'] ?? 0,
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -149,16 +189,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         context.push('/help-center'),
                                   ),
                                   IconButton(
-                                    icon: const Icon(
-                                      Icons.notifications_outlined,
+                                    icon: Icon(
+                                      isDarkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
                                       color: Colors.white,
                                     ),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      ref.read(themeProvider.notifier).toggleTheme();
+                                    },
                                   ),
                                   const SizedBox(width: 8),
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
+                                      color: Colors.white.withAlpha(51),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: IconButton(
@@ -191,8 +233,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         boxShadow: [
                           BoxShadow(
                             color: isDark
-                                ? Colors.black.withOpacity(0.2)
-                                : AppTheme.userPrimaryBlue.withOpacity(0.15),
+                                ? Colors.black.withAlpha(51)
+                                : AppTheme.userPrimaryBlue.withAlpha(38),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -210,8 +252,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: AppTheme.userPrimaryBlue.withOpacity(
-                                      0.1,
+                                    color: AppTheme.userPrimaryBlue.withAlpha(
+                                      26,
                                     ),
                                     borderRadius: BorderRadius.circular(16),
                                   ),
@@ -363,7 +405,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             Text(
                               'Find answers to common questions in our Help Center.',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
+                                color: Colors.white.withAlpha(178),
                                 fontSize: 13,
                               ),
                             ),
@@ -401,6 +443,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  Widget _buildFollowInfo(String label, int count) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$count',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
+        ),
+      ],
+    );
+  }
+
   String _getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) return 'Good Morning,';
@@ -433,8 +495,8 @@ class _QuickActionCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withOpacity(0.2)
-                : Colors.black.withOpacity(0.03),
+                ? Colors.black.withAlpha(51)
+                : Colors.black.withAlpha(8),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -453,7 +515,7 @@ class _QuickActionCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withAlpha(26),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(icon, color: color, size: 28),

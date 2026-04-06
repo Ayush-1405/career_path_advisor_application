@@ -8,6 +8,7 @@ import com.advisor.repository.CareerPathRepository;
 import com.advisor.repository.UserCareerPathRepository;
 import com.advisor.repository.UserSavedCareerPathRepository;
 import com.advisor.repository.UserRepository;
+import com.advisor.repository.ResumeAnalysisRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,7 @@ public class UserCareerPathService {
     private final UserRepository userRepository;
     private final UserSavedCareerPathRepository userSavedCareerPathRepository;
     private final DashboardService dashboardService;
+    private final ResumeAnalysisRepository resumeAnalysisRepository;
 
     public UserCareerPath applyForCareerPath(User user, String careerPathId) {
         CareerPath careerPath = careerPathRepository.findById(careerPathId)
@@ -105,5 +107,37 @@ public class UserCareerPathService {
 
     public void unsaveCareerPath(User user, String careerPathId) {
         userSavedCareerPathRepository.deleteByUser_IdAndCareerPath_Id(user.getId(), careerPathId);
+    }
+
+    public List<CareerPath> getRecommendations(String userId) {
+        // 1. Get the latest resume analysis
+        return resumeAnalysisRepository.findTopByUser_IdOrderByAnalyzedAtDesc(userId)
+                .map(analysis -> {
+                    // 2. Extract skills from strengths (comma-separated list)
+                    String strengths = analysis.getStrengths();
+                    if (strengths == null || strengths.isEmpty()) {
+                        return careerPathRepository.findAll(); // Fallback to all if no strengths
+                    }
+                    
+                    List<String> userSkills = java.util.Arrays.stream(strengths.split(","))
+                            .map(String::trim)
+                            .map(String::toLowerCase)
+                            .collect(java.util.stream.Collectors.toList());
+
+                    // 3. Match against CareerPaths
+                    return careerPathRepository.findAll().stream()
+                            .sorted((cp1, cp2) -> {
+                                long match1 = cp1.getRequiredSkills().stream()
+                                        .filter(s -> userSkills.contains(s.toLowerCase()))
+                                        .count();
+                                long match2 = cp2.getRequiredSkills().stream()
+                                        .filter(s -> userSkills.contains(s.toLowerCase()))
+                                        .count();
+                                return Long.compare(match2, match1); // Descending score
+                            })
+                            .limit(5)
+                            .collect(java.util.stream.Collectors.toList());
+                })
+                .orElseGet(careerPathRepository::findAll); // Fallback to all
     }
 }

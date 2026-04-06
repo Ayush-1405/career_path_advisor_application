@@ -16,15 +16,15 @@ void processDir(String path, String fallback) {
       final indent = match.group(1);
       return '''${indent}automaticallyImplyLeading: false,
 ${indent}leading: IconButton(
-${indent}  icon: const Icon(Icons.arrow_back),
-${indent}  onPressed: () {
-${indent}    if (context.canPop()) {
-${indent}      context.pop();
-${indent}    } else {
-${indent}      context.go('$fallback');
-${indent}    }
-${indent}  },
-${indent}),''';
+$indent  icon: const Icon(Icons.arrow_back),
+$indent  onPressed: () {
+$indent    if (context.canPop()) {
+$indent      context.pop();
+$indent    } else {
+$indent      context.go('$fallback');
+$indent    }
+$indent  },
+$indent),''';
     });
 
     if (content != newContent) {

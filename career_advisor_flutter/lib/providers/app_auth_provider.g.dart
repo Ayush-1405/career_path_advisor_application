@@ -1,10 +1,29 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
 part of 'app_auth_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appAuthHash() => r'29547631d52a46e86138bb7cb140cf1c35717d43';
+String _$currentUserHash() => r'9e957e4308d419e2fc949ef6f06b0db31a6764f9';
+
+/// See also [currentUser].
+@ProviderFor(currentUser)
+final currentUserProvider = FutureProvider<User?>.internal(
+  currentUser,
+  name: r'currentUserProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$currentUserHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef CurrentUserRef = FutureProviderRef<User?>;
+String _$appAuthHash() => r'e51905f463fe26c28ec61d5b21f1e047a4b4d8f0';
 
 /// See also [AppAuth].
 @ProviderFor(AppAuth)

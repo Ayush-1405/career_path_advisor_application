@@ -24,6 +24,8 @@ public class ResumeAnalysis {
   
   private String feedback;
   
+  private String careerPath;
+  
   private String analysisData; // Store detailed analysis results
   
   private java.time.LocalDateTime analyzedAt = java.time.LocalDateTime.now();

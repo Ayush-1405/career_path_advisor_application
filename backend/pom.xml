@@ -58,6 +58,12 @@
 			<version>${lombok.version}</version>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
 		<!-- Bean validation for @Valid and constraint annotations -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

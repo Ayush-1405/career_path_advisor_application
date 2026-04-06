@@ -103,7 +103,7 @@ public class CareerPathsController {
 
     @PostMapping("/{id}/apply")
     public ResponseEntity<?> apply(@PathVariable String id, Authentication auth) {
-        User u = userRepository.findByEmail(auth.getName()).orElseThrow();
+        User u = userRepository.findById(auth.getName()).orElseThrow();
         try {
             UserCareerPath application = userCareerPathService.applyForCareerPath(u, id);
             return ResponseEntity.ok(application);
@@ -114,19 +114,24 @@ public class CareerPathsController {
 
     @GetMapping("/my-applications")
     public ResponseEntity<List<UserCareerPath>> myApplications(Authentication auth) {
-        User u = userRepository.findByEmail(auth.getName()).orElseThrow();
+        User u = userRepository.findById(auth.getName()).orElseThrow();
         return ResponseEntity.ok(userCareerPathService.getUserApplications(u));
     }
 
     @GetMapping("/my-saved")
     public ResponseEntity<List<com.advisor.entity.UserSavedCareerPath>> mySaved(Authentication auth) {
-        User u = userRepository.findByEmail(auth.getName()).orElseThrow();
+        User u = userRepository.findById(auth.getName()).orElseThrow();
         return ResponseEntity.ok(userCareerPathService.getUserSavedCareers(u));
+    }
+
+    @GetMapping("/recommendations")
+    public ResponseEntity<List<CareerPath>> getRecommendations(Authentication auth) {
+        return ResponseEntity.ok(userCareerPathService.getRecommendations(auth.getName()));
     }
 
     @GetMapping("/user/{userId}/applications")
     public ResponseEntity<List<UserCareerPath>> userApplications(@PathVariable String userId, Authentication auth) {
-        User requester = userRepository.findByEmail(auth.getName()).orElseThrow();
+        User requester = userRepository.findById(auth.getName()).orElseThrow();
         if (!requester.getId().equals(userId)) {
             return ResponseEntity.status(403).build();
         }
@@ -136,13 +141,13 @@ public class CareerPathsController {
 
     @PostMapping("/{id}/save")
     public ResponseEntity<com.advisor.entity.UserSavedCareerPath> save(@PathVariable String id, Authentication auth) {
-        User u = userRepository.findByEmail(auth.getName()).orElseThrow();
+        User u = userRepository.findById(auth.getName()).orElseThrow();
         return ResponseEntity.ok(userCareerPathService.saveCareerPath(u, id));
     }
 
     @DeleteMapping("/{id}/save")
     public ResponseEntity<Void> unsave(@PathVariable String id, Authentication auth) {
-        User u = userRepository.findByEmail(auth.getName()).orElseThrow();
+        User u = userRepository.findById(auth.getName()).orElseThrow();
         userCareerPathService.unsaveCareerPath(u, id);
         return ResponseEntity.ok().build();
     }

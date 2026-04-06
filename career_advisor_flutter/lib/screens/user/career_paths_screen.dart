@@ -282,7 +282,7 @@ class _CareerPathsScreenState extends ConsumerState<CareerPathsScreen> {
               if (context.canPop()) {
                 context.pop();
               } else {
-                context.go('/home');
+                context.go('/feed');
               }
             },
           ),

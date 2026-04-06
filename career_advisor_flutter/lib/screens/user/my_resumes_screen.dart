@@ -7,6 +7,7 @@ import '../../services/api_service.dart';
 import '../../services/token_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:ui';
 import '../../widgets/animated_screen.dart';
 
 class MyResumesScreen extends ConsumerStatefulWidget {
@@ -34,67 +35,6 @@ class _MyResumesScreenState extends ConsumerState<MyResumesScreen> {
         _error = null;
       });
 
-      final token = await ref
-          .read(tokenServiceProvider.notifier)
-          .getUserToken();
-      if (token == null) {
-        setState(() {
-          _resumes = [];
-          _isLoading = false;
-          _error = 'Login required';
-        });
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          context.push('/login');
-        });
-        return;
-      }
-
-      final userMap = await ref.read(tokenServiceProvider.notifier).getUser();
-      String userId =
-          userMap?['id']?.toString() ?? userMap?['userId']?.toString() ?? '';
-      if (userId.isEmpty) {
-        try {
-          final parts = token.split('.');
-          if (parts.length >= 2) {
-            final normalized = base64Url.normalize(parts[1]);
-            final payload = jsonDecode(
-              utf8.decode(base64Url.decode(normalized)),
-            );
-            userId =
-                payload['userId']?.toString() ??
-                payload['id']?.toString() ??
-                '';
-          }
-        } catch (_) {}
-      }
-      if (userId.isEmpty) {
-        setState(() {
-          _resumes = [];
-          _isLoading = false;
-          _error = 'Login required';
-        });
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          context.push('/login');
-        });
-        return;
-      }
-
-      final cacheKey = 'my_resumes_$userId';
-      final prefs = await SharedPreferences.getInstance();
-      final lastUser = prefs.getString('my_resumes_last_user');
-      final cached = lastUser == userId ? prefs.getString(cacheKey) : null;
-      if (cached != null) {
-        final list = (jsonDecode(cached) as List);
-        if (mounted) {
-          setState(() {
-            _resumes = list;
-            _isLoading = false;
-          });
-        }
-      }
-
       final resumes = await ref.read(apiServiceProvider).fetchMyResumes();
 
       if (mounted) {
@@ -103,9 +43,6 @@ class _MyResumesScreenState extends ConsumerState<MyResumesScreen> {
           _isLoading = false;
         });
       }
-
-      await prefs.setString(cacheKey, jsonEncode(_resumes));
-      await prefs.setString('my_resumes_last_user', userId);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -142,7 +79,7 @@ class _MyResumesScreenState extends ConsumerState<MyResumesScreen> {
 
     try {
       await ref.read(apiServiceProvider).deleteResume(id);
-      _loadResumes(); // Reload list
+      _loadResumes(); 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Resume deleted successfully')),
@@ -164,151 +101,232 @@ class _MyResumesScreenState extends ConsumerState<MyResumesScreen> {
 
     return AnimatedScreen(
       child: Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/home');
-              }
-            },
-          ),
-          title: const Text('My Resumes'),
-          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-          foregroundColor: isDark ? Colors.white : AppTheme.gray900,
-          elevation: 0,
-        ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _error != null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(_error!, style: TextStyle(color: isDark ? Colors.redAccent : Colors.red)),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _loadResumes,
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  )
-                : _resumes.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.description_outlined,
-                              size: 64,
-                              color: isDark ? Colors.white12 : Colors.grey,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No resumes uploaded yet',
-                              style: TextStyle(fontSize: 18, color: isDark ? Colors.white70 : Colors.grey),
-                            ),
-                            const SizedBox(height: 24),
-                            ElevatedButton(
-                              onPressed: () => context.push('/analyze'),
-                              child: const Text('Upload Resume'),
-                            ),
-                          ],
-                        ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _loadResumes,
-                        child: ListView.separated(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _resumes.length,
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 16),
-                          itemBuilder: (context, index) {
-                            final resume = _resumes[index];
-                            final date = resume['uploadedAt'] != null
-                                ? DateTime.tryParse(resume['uploadedAt'])
-                                : null;
-                            final dateStr = date != null
-                                ? DateFormat.yMMMd().add_jm().format(date)
-                                : 'Unknown date';
-
-                            return Card(
-                              elevation: 0,
-                              color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                side: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200),
-                              ),
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.all(16),
-                                leading: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        AppTheme.primaryColor.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.description,
-                                    color: AppTheme.primaryColor,
-                                  ),
-                                ),
-                                title: Text(
-                                  resume['fileName'] ?? 'Untitled Resume',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: isDark ? Colors.white : Colors.black,
-                                  ),
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Uploaded: $dateStr',
-                                      style: TextStyle(
-                                        color: isDark ? Colors.white38 : Colors.grey[600],
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    if (resume['skills'] != null)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 8),
-                                        child: Text(
-                                          'Skills: ${resume['skills']}',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                              color: isDark ? Colors.white60 : Colors.grey[800]),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                trailing: IconButton(
-                                  icon: const Icon(
-                                    Icons.delete_outline,
-                                    color: Colors.red,
-                                  ),
-                                  onPressed: () => _deleteResume(resume['id']),
-                                ),
-                                onTap: () => _showAnalysis(resume),
-                              ),
-                            );
-                          },
+        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 120.0,
+              floating: false,
+              pinned: true,
+              backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                title: Text(
+                  'My Resumes',
+                  style: TextStyle(
+                    color: isDark ? Colors.white : AppTheme.gray900,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                background: Stack(
+                  children: [
+                    if (isDark)
+                      Positioned(
+                        right: -30,
+                        top: -30,
+                        child: CircleAvatar(
+                          radius: 80,
+                          backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
                         ),
                       ),
+                  ],
+                ),
+              ),
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : AppTheme.gray900),
+                onPressed: () => context.canPop() ? context.pop() : context.go('/feed'),
+              ),
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.add, color: isDark ? Colors.white : AppTheme.gray900),
+                  onPressed: () => context.push('/analyze'),
+                ),
+              ],
+            ),
+            if (_isLoading)
+              const SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_error != null)
+              SliverFillRemaining(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(_error!, style: const TextStyle(color: Colors.red)),
+                      const SizedBox(height: 16),
+                      ElevatedButton(onPressed: _loadResumes, child: const Text('Retry')),
+                    ],
+                  ),
+                ),
+              )
+            else if (_resumes.isEmpty)
+              SliverFillRemaining(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.description_outlined, size: 80, color: Colors.grey),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'No resumes yet',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text('Upload your first resume to get started.'),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () => context.push('/analyze'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6366F1),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        ),
+                        child: const Text('Upload Now'),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.all(20),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final resume = _resumes[index];
+                      return _buildResumeCard(resume, isDark);
+                    },
+                    childCount: _resumes.length,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 
-  Future<void> _showAnalysis(dynamic resume) async {
-    // Show loading dialog
+  Widget _buildResumeCard(dynamic resume, bool isDark) {
+    final date = resume['uploadedAt'] != null
+        ? DateTime.tryParse(resume['uploadedAt'])
+        : null;
+    final dateStr = date != null ? DateFormat('MMM dd, yyyy').format(date) : 'Unknown';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+        ],
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.grey.shade100,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _viewResumeDetails(resume),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6366F1).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(Icons.article_rounded, color: Color(0xFF6366F1), size: 28),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          resume['fileName'] ?? 'Untitled Resume',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : AppTheme.gray900,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.calendar_today, size: 12, color: isDark ? Colors.white38 : AppTheme.gray500),
+                            const SizedBox(width: 4),
+                            Text(
+                              dateStr,
+                              style: TextStyle(fontSize: 12, color: isDark ? Colors.white38 : AppTheme.gray500),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.more_vert, color: isDark ? Colors.white38 : AppTheme.gray400),
+                    onPressed: () => _showResumeOptions(resume),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showResumeOptions(dynamic resume) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.analytics, color: Color(0xFF6366F1)),
+              title: const Text('View AI Analysis'),
+              onTap: () {
+                Navigator.pop(context);
+                _viewResumeDetails(resume);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline, color: Colors.red),
+              title: const Text('Delete Resume'),
+              onTap: () {
+                Navigator.pop(context);
+                _deleteResume(resume['id']);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _viewResumeDetails(dynamic resume) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -316,212 +334,128 @@ class _MyResumesScreenState extends ConsumerState<MyResumesScreen> {
     );
 
     try {
-      final analysis = await ref
-          .read(apiServiceProvider)
-          .getResumeAnalysis(resume['id']);
-      if (mounted) {
-        Navigator.pop(context); // Dismiss loading
-        _showAnalysisDetails(resume, analysis);
-      }
+      final analysis = await ref.read(apiServiceProvider).getResumeAnalysis(resume['id']);
+      if (!mounted) return;
+      Navigator.pop(context);
+      
+      _showAnalysisModal(resume, analysis);
     } catch (e) {
-      if (mounted) {
-        Navigator.pop(context); // Dismiss loading
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to load analysis: $e')));
-        // Fallback to showing basic resume info
-        _showBasicDetails(resume);
-      }
+      if (mounted) Navigator.pop(context);
+      _showAnalysisModal(resume, null); // Fallback to basic details
     }
   }
 
-  void _showBasicDetails(dynamic resume) {
+  void _showAnalysisModal(dynamic resume, dynamic analysis) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-        title: Text(
-          resume['fileName'] ?? 'Resume Details',
-          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F172A) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withOpacity(0.3), borderRadius: BorderRadius.circular(2))),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      resume['fileName'] ?? 'Resume Analysis',
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 24),
+                    if (analysis != null) ...[
+                      _buildScoreSection(analysis['overallScore'] ?? 0),
+                      const SizedBox(height: 32),
+                      _buildInfoSection('Strengths', analysis['strengths']?.toString() ?? 'Checking...', Colors.green),
+                      const SizedBox(height: 20),
+                      _buildInfoSection('Pathways', analysis['improvements']?.toString() ?? 'Analyzing...', Colors.orange),
+                    ] else ...[
+                      const Center(child: Text('No detailed analysis available for this resume.')),
+                    ],
+                    const SizedBox(height: 40),
+                    ElevatedButton(
+                      onPressed: () => context.go('/home'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6366F1),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 56),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: const Text('View Career Paths'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScoreSection(int score) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF6366F1).withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF6366F1).withOpacity(0.1)),
+      ),
+      child: Row(
+        children: [
+          Stack(
+            alignment: Alignment.center,
             children: [
-              _detailRow('Education', resume['education'], isDark),
-              const SizedBox(height: 12),
-              _detailRow('Experience', resume['experience'], isDark),
-              const SizedBox(height: 12),
-              _detailRow('Skills', resume['skills'], isDark),
+              SizedBox(
+                width: 60,
+                height: 60,
+                child: CircularProgressIndicator(
+                  value: score / 100,
+                  backgroundColor: Colors.grey.withOpacity(0.1),
+                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF6366F1)),
+                  strokeWidth: 6,
+                ),
+              ),
+              Text('$score', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+          const SizedBox(width: 20),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Career Readiness', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text('Based on your current skill set and extraction', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _showAnalysisDetails(dynamic resume, dynamic analysis) {
-    if (analysis == null) {
-      _showBasicDetails(resume);
-      return;
-    }
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // Safely extract score
-    final int score = (analysis['overallScore'] is num)
-        ? (analysis['overallScore'] as num).toInt()
-        : int.tryParse(analysis['overallScore']?.toString() ?? '0') ?? 0;
-
-    final bool isGoodScore = score >= 70;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => SingleChildScrollView(
-          controller: scrollController,
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white12 : Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      resume['fileName'] ?? 'Analysis Result',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isGoodScore
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'Score: $score/100',
-                      style: TextStyle(
-                        color: isGoodScore ? (isDark ? Colors.green.shade400 : Colors.green) : (isDark ? Colors.orange.shade400 : Colors.orange),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              _detailRow('Overall Feedback', analysis['feedback']?.toString(), isDark),
-              const SizedBox(height: 16),
-              if (analysis['strengths'] != null) ...[
-                Text(
-                  'Strengths',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.green.shade400 : Colors.green,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  analysis['strengths'].toString(),
-                  style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
-                ),
-                const SizedBox(height: 16),
-              ],
-              if (analysis['improvements'] != null) ...[
-                Text(
-                  'Areas for Improvement',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.orange.shade400 : Colors.orange,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  analysis['improvements'].toString(),
-                  style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
-                ),
-                const SizedBox(height: 16),
-              ],
-              Divider(color: isDark ? Colors.white10 : null),
-              const SizedBox(height: 16),
-              Text(
-                'Extracted Details',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold, 
-                  fontSize: 18,
-                  color: isDark ? Colors.white : Colors.black,
-                ),
-              ),
-              const SizedBox(height: 16),
-              _detailRow('Education', resume['education'], isDark),
-              const SizedBox(height: 12),
-              _detailRow('Experience', resume['experience'], isDark),
-              const SizedBox(height: 12),
-              _detailRow('Skills', resume['skills'], isDark),
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _detailRow(String label, String? value, bool isDark) {
+  Widget _buildInfoSection(String title, String content, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: isDark ? AppTheme.userPrimaryBlue.withOpacity(0.8) : AppTheme.primaryColor,
-            fontSize: 12,
-          ),
+        Row(
+          children: [
+            Container(width: 4, height: 16, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
+            const SizedBox(width: 8),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          value ?? 'N/A',
-          style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
-        ),
+        const SizedBox(height: 12),
+        Text(content, style: const TextStyle(color: Colors.grey, height: 1.5)),
       ],
     );
   }

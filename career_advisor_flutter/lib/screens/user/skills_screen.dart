@@ -139,7 +139,7 @@ class _SkillsScreenState extends ConsumerState<SkillsScreen> {
                 if (context.canPop()) {
                   context.pop();
                 } else {
-                  context.go('/home');
+                  context.go('/feed');
                 }
               },
             ),
@@ -165,7 +165,7 @@ class _SkillsScreenState extends ConsumerState<SkillsScreen> {
                 if (context.canPop()) {
                   context.pop();
                 } else {
-                  context.go('/home');
+                  context.go('/feed');
                 }
               },
             ),
@@ -209,7 +209,7 @@ class _SkillsScreenState extends ConsumerState<SkillsScreen> {
               if (context.canPop()) {
                 context.pop();
               } else {
-                context.go('/home');
+                context.go('/feed');
               }
             },
           ),

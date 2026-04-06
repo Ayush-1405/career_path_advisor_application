@@ -1,3 +1,4 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'auth_service.dart';
 
@@ -5,7 +6,7 @@ part of 'auth_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authServiceHash() => r'27df4d2701c4f5a67ff1e821da227026512cdaca';
+String _$authServiceHash() => r'42e623ed92fd0dcaaca1e1919700663ce8da2447';
 
 /// See also [authService].
 @ProviderFor(authService)
@@ -20,5 +21,7 @@ final authServiceProvider = Provider<AuthService>.internal(
 );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
-
+// ignore: unused_element
 typedef AuthServiceRef = ProviderRef<AuthService>;
+// ignore_for_file: type=lint
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

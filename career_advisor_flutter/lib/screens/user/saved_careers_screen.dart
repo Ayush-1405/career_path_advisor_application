@@ -184,7 +184,7 @@ class _SavedCareersScreenState extends ConsumerState<SavedCareersScreen>
             if (context.canPop()) {
               context.pop();
             } else {
-              context.go('/home');
+              context.go('/feed');
             }
           },
         ),

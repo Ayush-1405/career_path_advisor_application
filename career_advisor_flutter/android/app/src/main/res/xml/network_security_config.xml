@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Allow HTTPS everywhere by default -->
-    <base-config cleartextTrafficPermitted="false">
+    <!--
+        Allow cleartext (HTTP) for all traffic during development.
+        Android does NOT support CIDR ranges in <domain> tags,
+        so we use base-config to cover all IPs including 172.20.10.x hotspot addresses.
+    -->
+    <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>

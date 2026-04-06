@@ -42,6 +42,8 @@ public class User {
 
   private LocalDateTime lastLogin;
 
+  private LocalDateTime lastActive;
+
   private LocalDateTime createdAt = LocalDateTime.now();
 
   private LocalDateTime updatedAt = LocalDateTime.now();

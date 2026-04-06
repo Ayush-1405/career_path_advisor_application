@@ -11,6 +11,8 @@ public interface ResumeAnalysisRepository extends MongoRepository<ResumeAnalysis
   void deleteByUser_Id(String userId);
   List<ResumeAnalysis> findByResume_Id(String resumeId);
   List<ResumeAnalysis> findByResumeId(String resumeId);
+  
+  java.util.Optional<ResumeAnalysis> findTopByUser_IdOrderByAnalyzedAtDesc(String userId);
 
   @org.springframework.data.mongodb.repository.Query(value = "{}", fields = "{ 'overallScore' : 1 }")
   List<ResumeAnalysis> findAllScoresOnly();

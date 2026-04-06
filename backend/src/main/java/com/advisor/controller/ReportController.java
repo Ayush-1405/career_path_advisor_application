@@ -29,7 +29,7 @@ public class ReportController {
 
   @PostMapping(value = "/generate", produces = MediaType.APPLICATION_JSON_VALUE)
   public Map<String, Object> generateJson(@RequestBody ReportRequest request, Authentication auth) {
-    User u = userRepository.findByEmail(auth.getName()).orElseThrow();
+    User u = userRepository.findById(auth.getName()).orElseThrow();
     List<ResumeAnalysis> list = analysisRepository.findByUserId(u.getId());
     ResumeAnalysis latest = list.isEmpty() ? null : list.get(list.size() - 1);
 
@@ -59,7 +59,7 @@ public class ReportController {
 
   @PostMapping(value = "/pdf", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
   public ResponseEntity<byte[]> generatePdf(@RequestBody ReportRequest request, Authentication auth) {
-    User u = userRepository.findByEmail(auth.getName()).orElseThrow();
+    User u = userRepository.findById(auth.getName()).orElseThrow();
     List<ResumeAnalysis> list = analysisRepository.findByUserId(u.getId());
     ResumeAnalysis latest = list.isEmpty() ? null : list.get(list.size() - 1);
 

@@ -674,4 +674,29 @@ class ApiService {
     );
     return _handleResponse(response);
   }
+
+  // Admin Social
+  Future<dynamic> fetchAdminPosts() async {
+    final response = await _dio.get(
+      '/api/admin/social/posts',
+      options: Options(extra: {'isAdmin': true}),
+    );
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> deleteAdminPost(String postId) async {
+    final response = await _dio.delete(
+      '/api/admin/social/posts/$postId',
+      options: Options(extra: {'isAdmin': true}),
+    );
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> fetchAdminSocialStats() async {
+    final response = await _dio.get(
+      '/api/admin/social/stats',
+      options: Options(extra: {'isAdmin': true}),
+    );
+    return _handleResponse(response);
+  }
 }

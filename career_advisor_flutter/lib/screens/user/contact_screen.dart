@@ -79,7 +79,7 @@ class _ContactScreenState extends ConsumerState<ContactScreen> {
               if (context.canPop()) {
                 context.pop();
               } else {
-                context.go('/home');
+                context.go('/feed');
               }
             },
           ),

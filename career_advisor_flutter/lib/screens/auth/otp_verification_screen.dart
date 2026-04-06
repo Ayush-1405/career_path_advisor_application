@@ -60,9 +60,9 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
               decoration: const InputDecoration(
                 labelText: 'API Base URL',
                 hintText:
-                    'https://careerpathadvisorapplication-production.up.railway.app/',
+                    'http://172.20.10.2:8080',
                 helperText:
-                    'Production: https://careerpathadvisorapplication-production.up.railway.app/\nLocal: http://10.0.2.2:8080 or http://192.168.x.x:8080',
+                    'Local: http://172.20.10.2:8080\nFor Physical Device: Use computer LAN IP',
                 helperMaxLines: 4,
               ),
             ),
@@ -210,7 +210,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
         await ref.read(appAuthProvider.notifier).checkAuth();
 
         if (!mounted) return;
-        context.go(widget.isAdmin ? '/admin/dashboard' : '/dashboard');
+        context.go(widget.isAdmin ? '/admin/dashboard' : '/feed');
         return;
       }
 
@@ -237,7 +237,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
               .read(tokenServiceProvider.notifier)
               .saveUser(Map<String, dynamic>.from(userMap));
           if (!mounted) return;
-          context.go('/dashboard');
+          context.go('/feed');
           return;
         }
         // Fallback if server didn't return token: rely on session presence
@@ -245,7 +245,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
             .read(tokenServiceProvider.notifier)
             .hasUserSession();
         if (!mounted) return;
-        context.go(hasSession ? '/dashboard' : '/login');
+        context.go(hasSession ? '/feed' : '/login');
       } catch (_) {
         if (!mounted) return;
         context.go('/login');
@@ -300,7 +300,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
               if (context.canPop()) {
                 context.pop();
               } else {
-                context.go('/home');
+                context.go('/feed');
               }
             },
           ),
@@ -327,14 +327,14 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   color: isDark
-                      ? Colors.white.withOpacity(0.1)
+                      ? Colors.white.withAlpha(26)
                       : const Color(0xFFE2E8F0),
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: isDark
-                        ? Colors.black.withOpacity(0.2)
-                        : const Color(0xFF0F172A).withOpacity(0.04),
+                        ? Colors.black.withAlpha(51)
+                        : const Color(0xFF0F172A).withAlpha(10),
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),
@@ -634,8 +634,9 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                       validator: (v) {
                         final t = v?.trim() ?? '';
                         if (t.length != 6) return 'Enter 6 digits';
-                        if (!RegExp(r'^\d{6}$').hasMatch(t))
+                        if (!RegExp(r'^\d{6}$').hasMatch(t)) {
                           return 'Digits only';
+                        }
                         return null;
                       },
                     ),

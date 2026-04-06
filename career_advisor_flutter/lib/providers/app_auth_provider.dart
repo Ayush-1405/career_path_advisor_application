@@ -1,6 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../services/token_service.dart';
 import '../services/auth_service.dart';
+import '../models/user.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 part 'app_auth_provider.g.dart';
 
@@ -15,19 +17,13 @@ enum AuthStatus {
 class AppAuth extends _$AppAuth {
   @override
   Future<AuthStatus> build() async {
-    // We don't watch tokenServiceProvider because it doesn't emit state changes for auth
-    // Instead we rely on manual invalidation or checking shared preferences
     final tokenService = ref.read(tokenServiceProvider.notifier);
 
-    // Listen to token service changes (e.g. logout triggered by 401)
     final sub = tokenService.onAuthChange.listen((_) {
-      // Invalidate self to re-run build() and check tokens again
-      // Use Future.microtask to avoid "modify while building" error
       Future.microtask(() => ref.invalidateSelf());
     });
     ref.onDispose(sub.cancel);
 
-    // Check admin first (priority?) or just check both
     final adminToken = await tokenService.getAdminToken();
     if (adminToken != null) {
       return AuthStatus.authenticatedAdmin;
@@ -62,7 +58,7 @@ class AppAuth extends _$AppAuth {
     final data = result.value;
     if (data is Map<String, dynamic> && data['status'] == 'REQUIRES_OTP') {
       state = const AsyncValue.data(AuthStatus.unauthenticated);
-      return; // UI will handle redirection based on the returned value from loginUser call if it was a direct call, but here we might need to handle it differently or return the status.
+      return;
     }
 
     state = const AsyncValue.data(AuthStatus.authenticatedUser);
@@ -102,9 +98,6 @@ class AppAuth extends _$AppAuth {
           ? AuthStatus.authenticatedAdmin
           : AuthStatus.authenticatedUser;
     });
-    if (state.hasError) {
-      throw state.error!;
-    }
   }
 
   Future<bool> registerUser({
@@ -121,4 +114,13 @@ class AppAuth extends _$AppAuth {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => build());
   }
+}
+
+@Riverpod(keepAlive: true)
+Future<User?> currentUser(CurrentUserRef ref) async {
+  final authStatus = ref.watch(appAuthProvider);
+  if (authStatus.value == AuthStatus.authenticatedUser) {
+    return ref.read(authServiceProvider).getCurrentUser();
+  }
+  return null;
 }

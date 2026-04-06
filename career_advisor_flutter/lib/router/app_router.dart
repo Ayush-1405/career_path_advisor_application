@@ -28,12 +28,14 @@ import '../screens/user/terms_of_service_screen.dart';
 import '../screens/user/my_resumes_screen.dart';
 import '../screens/user/my_applications_screen.dart';
 import '../screens/user/saved_careers_screen.dart';
+import '../screens/user/member_profile_screen.dart';
 import '../screens/user/resume_builder_screen.dart';
 
 import '../screens/user/home_screen.dart';
 import '../screens/user/social_feed_screen.dart';
 import '../screens/user/connections_screen.dart';
 import '../screens/user/chat_list_screen.dart';
+import '../screens/user/chat_room_screen.dart';
 import '../widgets/main_scaffold.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -112,10 +114,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       if (authStatus == AuthStatus.authenticatedUser) {
         if (isGuestRoute || location == '/') {
-          return '/home';
+          return '/feed';
         }
         if (location.startsWith('/admin')) {
-          return '/home'; // Block user from admin pages
+          return '/feed'; // Block user from admin pages
         }
         // Allow shared routes and other user routes
       }
@@ -224,6 +226,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 _buildAnimatedPage(state, const UserProfileScreen()),
           ),
           GoRoute(
+            path: '/profile/member/:userId',
+            pageBuilder: (context, state) {
+              final userId = state.pathParameters['userId']!;
+              return _buildAnimatedPage(state, MemberProfileScreen(userId: userId));
+            },
+          ),
+          GoRoute(
             path: '/dashboard',
             pageBuilder: (context, state) =>
                 _buildAnimatedPage(state, const UserDashboardScreen()),
@@ -232,6 +241,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
 
       // Other individual routes
+      GoRoute(
+        path: '/chat/:roomId',
+        pageBuilder: (context, state) {
+          final roomId = state.pathParameters['roomId']!;
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          final userId = extra['userId'] as String? ?? '';
+          final userName = extra['userName'] as String? ?? 'User';
+          final userAvatar = extra['userAvatar'] as String?;
+          return _buildAnimatedPage(state, ChatRoomScreen(
+            roomId: roomId,
+            otherUserId: userId,
+            otherUserName: userName,
+            otherUserAvatar: userAvatar,
+          ));
+        },
+      ),
       GoRoute(
         path: '/suggestions',
         pageBuilder: (context, state) =>
@@ -258,6 +283,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final id = state.uri.queryParameters['id'];
           return _buildAnimatedPage(state, CareerPathsScreen(initialId: id));
         },
+        routes: [
+          GoRoute(
+            path: ':id',
+            pageBuilder: (context, state) {
+              final id = state.pathParameters['id'];
+              return _buildAnimatedPage(state, CareerPathsScreen(initialId: id));
+            },
+          ),
+        ],
       ),
       GoRoute(
         name: 'saved_careers',

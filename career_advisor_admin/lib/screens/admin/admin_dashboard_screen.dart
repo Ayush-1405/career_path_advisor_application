@@ -337,6 +337,13 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                     color: const Color(0xFF64748B),
                     onTap: () => context.push('/settings'),
                   ),
+                  _AdminActionCard(
+                    icon: Icons.forum_rounded,
+                    title: 'Social',
+                    description: 'Network moderation',
+                    color: const Color(0xFFEAB308), // Yellow 500
+                    onTap: () => context.push('/social'),
+                  ),
                 ]),
               ),
             ),

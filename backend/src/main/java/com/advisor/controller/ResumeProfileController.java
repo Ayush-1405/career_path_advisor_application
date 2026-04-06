@@ -35,7 +35,7 @@ public class ResumeProfileController {
      */
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file, Authentication auth) {
-        User user = userRepository.findByEmail(auth.getName()).orElseThrow();
+        User user = userRepository.findById(auth.getName()).orElseThrow();
         var stored = resumeStorageService.storeResume(file);
         ResumeProfile profile = resumeProfileService.uploadAndParse(user, stored);
 
@@ -57,7 +57,7 @@ public class ResumeProfileController {
      */
     @GetMapping("/{userId}")
     public ResponseEntity<ResumeProfile> getByUser(@PathVariable String userId, Authentication auth) {
-        User user = userRepository.findByEmail(auth.getName()).orElseThrow();
+        User user = userRepository.findById(auth.getName()).orElseThrow();
         if (!user.getId().equals(userId)) {
             return ResponseEntity.status(403).build();
         }
@@ -71,7 +71,7 @@ public class ResumeProfileController {
      */
     @PutMapping("/update")
     public ResponseEntity<ResumeProfile> update(@RequestBody ResumeUpdateRequest request, Authentication auth) {
-        User user = userRepository.findByEmail(auth.getName()).orElseThrow();
+        User user = userRepository.findById(auth.getName()).orElseThrow();
         ResumeProfile updated = resumeProfileService.updateFromRequest(user, request);
         try {
             dashboardService.trackUserActivity(user.getId(), "resume_update", null);
@@ -85,7 +85,7 @@ public class ResumeProfileController {
      */
     @PostMapping("/generate-pdf")
     public ResponseEntity<byte[]> generatePdf(@RequestBody Map<String, String> body, Authentication auth) {
-        User user = userRepository.findByEmail(auth.getName()).orElseThrow();
+        User user = userRepository.findById(auth.getName()).orElseThrow();
         String userId = body.getOrDefault("userId", user.getId());
         if (!user.getId().equals(userId)) {
             return ResponseEntity.status(403).build();

@@ -154,7 +154,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
               if (context.canPop()) {
                 context.pop();
               } else {
-                context.go('/home');
+                context.go('/feed');
               }
             },
           ),
@@ -479,7 +479,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
           width: 6,
           height: 6,
           decoration: BoxDecoration(
-            color: AppTheme.gray400.withOpacity(0.5 + (value * 0.5)),
+            color: AppTheme.gray400.withAlpha((127 + (value * 127)).round()),
             shape: BoxShape.circle,
           ),
         );

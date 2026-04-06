@@ -46,9 +46,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               decoration: const InputDecoration(
                 labelText: 'API Base URL',
                 hintText:
-                    'https://careerpathadvisorapplication-production.up.railway.app/',
+                    'http://172.20.10.2:8080',
                 helperText:
-                    'Production: https://careerpathadvisorapplication-production.up.railway.app/\nLocal: http://10.0.2.2:8080 or http://192.168.x.x:8080',
+                    'Local: http://172.20.10.2:8080\nFor Physical Device: Use computer LAN IP',
                 helperMaxLines: 4,
               ),
             ),
@@ -236,10 +236,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       padding: const EdgeInsets.all(12),
                       margin: const EdgeInsets.only(bottom: 24),
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.red.withOpacity(0.1) : Colors.red.shade50,
+                        color: isDark
+                            ? Colors.red.withAlpha(26)
+                            : Colors.red.shade50,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: isDark ? Colors.red.withOpacity(0.2) : Colors.red.shade200,
+                          color: isDark
+                              ? Colors.red.withAlpha(51)
+                              : Colors.red.shade200,
                         ),
                       ),
                       child: Column(
@@ -249,14 +253,18 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             children: [
                               Icon(
                                 Icons.error_outline,
-                                color: isDark ? Colors.redAccent : Colors.red.shade700,
+                                color: isDark
+                                    ? Colors.redAccent
+                                    : Colors.red.shade700,
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
                                   _error!,
                                   style: TextStyle(
-                                    color: isDark ? Colors.redAccent : Colors.red.shade700,
+                                    color: isDark
+                                        ? Colors.redAccent
+                                        : Colors.red.shade700,
                                   ),
                                 ),
                               ),
@@ -271,24 +279,32 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       padding: const EdgeInsets.all(12),
                       margin: const EdgeInsets.only(bottom: 24),
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.green.withOpacity(0.1) : Colors.green.shade50,
+                        color: isDark
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.green.shade50,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: isDark ? Colors.green.withOpacity(0.2) : Colors.green.shade200,
+                          color: isDark
+                              ? Colors.green.withOpacity(0.2)
+                              : Colors.green.shade200,
                         ),
                       ),
                       child: Row(
                         children: [
                           Icon(
                             Icons.check_circle_outline,
-                            color: isDark ? Colors.greenAccent : Colors.green.shade700,
+                            color: isDark
+                                ? Colors.greenAccent
+                                : Colors.green.shade700,
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               _success!,
                               style: TextStyle(
-                                color: isDark ? Colors.greenAccent : Colors.green.shade700,
+                                color: isDark
+                                    ? Colors.greenAccent
+                                    : Colors.green.shade700,
                               ),
                             ),
                           ),
@@ -316,7 +332,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         color: isDark ? Colors.white70 : AppTheme.gray600,
                       ),
                       filled: true,
-                      fillColor: isDark ? const Color(0xFF1E293B) : AppTheme.white,
+                      fillColor: isDark
+                          ? const Color(0xFF1E293B)
+                          : AppTheme.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -376,7 +394,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   TextButton(
                     onPressed: () => context.pop(),
                     style: TextButton.styleFrom(
-                      foregroundColor: isDark ? Colors.white70 : AppTheme.gray600,
+                      foregroundColor: isDark
+                          ? Colors.white70
+                          : AppTheme.gray600,
                     ),
                     child: const Text('Back to Login'),
                   ),

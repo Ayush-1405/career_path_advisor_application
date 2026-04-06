@@ -3,13 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:animations/animations.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/base_url_provider.dart';
 import '../../utils/theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
 import '../../models/user.dart';
 import '../../widgets/animated_screen.dart';
+
+import '../../providers/social_feed_provider.dart';
+import '../../models/post.dart';
 
 int _staggerDelay(int index) => 50 + (index * 60);
 
@@ -40,6 +43,10 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
     'totalActivities': 0,
     'recentActivities': [],
     'appliedCount': 0,
+  };
+
+  Map<String, dynamic> _socialStats = {
+    'connectionsCount': 0,
   };
 
   @override
@@ -124,12 +131,18 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
           debugPrint('Error fetching applications: $e');
           return [];
         }),
+        apiService.fetchUserSocialStats().then((data) => data).catchError((e) {
+          debugPrint('Error fetching social stats: $e');
+          return <String, dynamic>{};
+        }),
       ]);
 
       final stats = results[0] as Map<String, dynamic>? ?? {};
       final suggestions = results[1] as List<dynamic>? ?? [];
       final resumes = results[2] as List<dynamic>? ?? [];
       final applications = results[3] as List<dynamic>? ?? [];
+      final socialStats = results[4] as Map<String, dynamic>? ?? {};
+
       final activities = stats['recentActivities'];
       bool skillsAssessed = false;
       final rawSkills = stats['skillsAssessed'];
@@ -216,6 +229,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
             'appliedCount': applications.length,
           };
           _suggestions = suggestions;
+          _socialStats = socialStats;
           _isLoading = false;
         });
         _animationController.forward();
@@ -296,6 +310,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final myPostsState = ref.watch(myPostsProvider);
 
     if (_error != null) {
       return AnimatedScreen(
@@ -308,7 +323,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                 if (context.canPop()) {
                   context.pop();
                 } else {
-                  context.go('/home');
+                  context.go('/feed');
                 }
               },
             ),
@@ -354,22 +369,47 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
               if (context.canPop()) {
                 context.pop();
               } else {
-                context.go('/home');
+                context.go('/feed');
               }
             },
           ),
           title: const Text('Dashboard'),
           centerTitle: false,
           actions: [
-            IconButton(
-              icon: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.refresh),
-              onPressed: _isLoading ? null : _loadData,
+            Stack(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined),
+                  color: isDark ? Colors.white70 : AppTheme.gray700,
+                  onPressed: () {
+                    _showNotificationsSheet(context, isDark);
+                  },
+                ),
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 14,
+                      minHeight: 14,
+                    ),
+                    child: const Text(
+                      '3',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -636,7 +676,15 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                   const SizedBox(height: 32),
                 ],
 
-                // 5. Recent Activity
+                // 5. User Feed Activity
+                _buildAnimatedCard(
+                  index: 4,
+                  child: _buildUserFeedActivity(isDark, myPostsState),
+                ),
+
+                const SizedBox(height: 32),
+
+                // 6. Recent Activity
                 _buildAnimatedCard(
                   index: 4,
                   child: Column(
@@ -857,7 +905,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
             if (context.canPop()) {
               context.pop();
             } else {
-              context.go('/home');
+              context.go('/feed');
             }
           },
         ),
@@ -875,7 +923,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
               Container(
                 height: 140,
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+                  color: isDark ? Colors.white.withAlpha(12) : Colors.white,
                   borderRadius: BorderRadius.circular(24),
                 ),
               ),
@@ -922,7 +970,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
     return Container(
       height: height,
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+        color: isDark ? Colors.white.withAlpha(12) : Colors.white,
         borderRadius: BorderRadius.circular(16),
       ),
     );
@@ -947,8 +995,8 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
             boxShadow: [
               BoxShadow(
                 color: isDark
-                    ? Colors.black.withOpacity(0.3)
-                    : AppTheme.userPrimaryBlue.withOpacity(0.3),
+                    ? Colors.black.withAlpha(76)
+                    : AppTheme.userPrimaryBlue.withAlpha(76),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -977,7 +1025,17 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        _buildFollowInfo(
+                          'Connections',
+                          _socialStats['connectionsCount'] ?? 0,
+                          isDark,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
                     if (completionRate < 100)
                       ElevatedButton(
                         onPressed: () => context.push('/profile'),
@@ -1042,7 +1100,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                                       (_user!.profilePictureUrl ?? '')
                                           .isNotEmpty
                                   ? DecorationImage(
-                                      image: NetworkImage(
+                                      image: CachedNetworkImageProvider(
                                         _resolveImageUrl(
                                           _user!.profilePictureUrl!,
                                         ),
@@ -1208,6 +1266,224 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
     );
   }
 
+  Widget _buildUserFeedActivity(
+    bool isDark,
+    AsyncValue<List<Post>> myPostsState,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'My Feed Activity',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : AppTheme.gray900,
+              ),
+            ),
+            TextButton(
+              onPressed: () => context.push('/feed'),
+              child: const Text('Go to Feed'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        myPostsState.when(
+          data: (posts) {
+            if (posts.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(24),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? Colors.white10 : AppTheme.gray200,
+                  ),
+                ),
+                child: const Center(child: Text('No posts yet.')),
+              );
+            }
+            return ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: posts.take(3).length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final post = posts[index];
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? Colors.white10 : AppTheme.gray200,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              post.content,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: isDark ? Colors.white70 : Colors.black87,
+                              ),
+                            ),
+                          ),
+                          PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_vert, size: 20),
+                            onSelected: (value) {
+                              if (value == 'edit') {
+                                _showEditPostDialog(post, isDark);
+                              } else if (value == 'delete') {
+                                _confirmDeletePost(post.id);
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 'edit',
+                                child: Text('Edit'),
+                              ),
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Text('Delete'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.thumb_up_outlined,
+                            size: 14,
+                            color: AppTheme.gray500,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${post.likesCount}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.gray500,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Icon(
+                            Icons.comment_outlined,
+                            size: 14,
+                            color: AppTheme.gray500,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${post.comments.length}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.gray500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, st) => const Center(child: Text('Failed to load posts')),
+        ),
+      ],
+    );
+  }
+
+  void _showEditPostDialog(Post post, bool isDark) {
+    final controller = TextEditingController(text: post.content);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Post'),
+        content: TextField(
+          controller: controller,
+          maxLines: 4,
+          decoration: const InputDecoration(border: OutlineInputBorder()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (controller.text.trim().isNotEmpty) {
+                await ref
+                    .read(socialFeedProvider.notifier)
+                    .updatePost(post.id, controller.text.trim());
+                ref.invalidate(myPostsProvider);
+                if (mounted) Navigator.pop(context);
+              }
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeletePost(String postId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Post'),
+        content: const Text('Are you sure you want to delete this post?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await ref.read(socialFeedProvider.notifier).deletePost(postId);
+              ref.invalidate(myPostsProvider);
+              if (mounted) Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFollowInfo(String label, int count, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$count',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
+        ),
+      ],
+    );
+  }
+
   Widget _buildStatCard({
     required String title,
     required String value,
@@ -1336,4 +1612,82 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
       ),
     );
   }
+
+  void _showNotificationsSheet(BuildContext context, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Container(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7),
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Notifications',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : AppTheme.gray900,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView(
+                  children: [
+                    ListTile(
+                      leading: const CircleAvatar(
+                        backgroundColor: Colors.blue,
+                        child: Icon(Icons.forum, color: Colors.white),
+                      ),
+                      title: Text('New messages available', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+                      subtitle: const Text('Check your inbox in My Network.'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.push('/chat-list');
+                      },
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const CircleAvatar(
+                        backgroundColor: Colors.green,
+                        child: Icon(Icons.work, color: Colors.white),
+                      ),
+                      title: Text('Your application was viewed!', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+                      subtitle: const Text('An admin has opened your career path submission.'),
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const CircleAvatar(
+                        backgroundColor: Colors.orange,
+                        child: Icon(Icons.star, color: Colors.white),
+                      ),
+                      title: Text('New matching career paths', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+                      subtitle: const Text('We found 3 new careers matching your skills.'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
+

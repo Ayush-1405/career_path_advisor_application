@@ -19,6 +19,7 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
   Map<String, dynamic>? _analysisResult;
   List<dynamic> _existingResumes = [];
   bool _isLoadingResumes = false;
+  String _analysisStep = '';
 
   @override
   void initState() {
@@ -41,10 +42,12 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
   Future<void> _analyzeExistingResume(dynamic resume) async {
     setState(() {
       _isLoading = true;
-      _selectedFile = null; // Clear selected file if analyzing existing
+      _analysisStep = 'Fetching previous analysis...';
+      _selectedFile = null;
     });
 
     try {
+      await Future.delayed(const Duration(seconds: 1));
       final result = await ref
           .read(apiServiceProvider)
           .getResumeAnalysis(resume['id']);
@@ -76,8 +79,6 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
 
       if (result != null) {
         final file = result.files.single;
-
-        // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -107,12 +108,21 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
 
     setState(() {
       _isLoading = true;
+      _analysisStep = 'Uploading resume...';
     });
 
     try {
       if (_selectedFile!.path == null) {
         throw Exception('File path not available');
       }
+
+      // Simulation steps for UX
+      await Future.delayed(const Duration(milliseconds: 500));
+      setState(() => _analysisStep = 'Extracting skills and experience...');
+      await Future.delayed(const Duration(milliseconds: 800));
+      setState(() => _analysisStep = 'Calculating domain match score...');
+      await Future.delayed(const Duration(milliseconds: 600));
+      setState(() => _analysisStep = 'Finalizing feedback...');
 
       final result = await ref
           .read(apiServiceProvider)
@@ -124,26 +134,15 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
             ? result
             : {'message': 'Analysis complete'};
       });
-      _fetchExistingResumes(); // Refresh list after new upload
+      _fetchExistingResumes();
     } catch (e) {
       if (!mounted) return;
-      // Fallback to simulation if API fails (for demo purposes if backend isn't ready)
-      // OR just show error. User asked for "dynamic perfect", so I should show error if it fails.
-      // But to be safe and not break the UX if backend is missing endpoints:
-      debugPrint('Resume upload failed: $e');
-
-      // I will keep the simulation as a fallback ONLY if the error is 404 or connection refused,
-      // but strictly speaking "dynamicaly perfect" means I should trust the API.
-      // However, if I break the app because the backend is missing, that's bad.
-      // I'll show the error.
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error analyzing resume: $e')));
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -152,176 +151,131 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    
     return AnimatedScreen(
       child: Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/home');
-            }
-          },
+        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : AppTheme.gray900),
+            onPressed: () => context.canPop() ? context.pop() : context.go('/feed'),
+          ),
+          title: Text(
+            'Resume Deep Scan',
+            style: TextStyle(
+              color: isDark ? Colors.white : AppTheme.gray900,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
-        title: const Text('Resume Analyzer'),
-        backgroundColor: theme.appBarTheme.backgroundColor,
-        foregroundColor: isDark ? Colors.white : AppTheme.gray900,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Upload Your Resume',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : AppTheme.gray900,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Get detailed insights about your skills and experience. Supported formats: PDF, DOC, DOCX. Max size: 5MB.',
-              style: TextStyle(
-                fontSize: 16, 
-                color: isDark ? Colors.white70 : AppTheme.gray600
-              ),
-            ),
-            const SizedBox(height: 32),
-            // File picker
-            Card(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              elevation: isDark ? 0 : 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: isDark ? Colors.white10 : Colors.transparent,
-                ),
-              ),
-              child: Padding(
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header Gradient Card
+              Container(
                 padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF6366F1).withOpacity(0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.upload_file,
-                      size: 64,
-                      color: _selectedFile != null
-                          ? Colors.green
-                          : AppTheme.userPrimaryBlue,
-                    ),
+                    const Icon(Icons.psychology, color: Colors.white, size: 40),
                     const SizedBox(height: 16),
-                    Text(
-                      _selectedFile?.name ?? 'No file selected',
-                      textAlign: TextAlign.center,
+                    const Text(
+                      'AI Intelligent Analysis',
                       style: TextStyle(
-                        fontSize: 16,
-                        color: isDark ? Colors.white70 : AppTheme.gray700,
-                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (_selectedFile != null) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        '${(_selectedFile!.size / 1024).toStringAsFixed(1)} KB',
-                        style: TextStyle(
-                          fontSize: 14, 
-                          color: isDark ? Colors.white38 : AppTheme.gray500
-                        ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Upload your resume to receive AI-powered career growth insights and skill matching results.',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 14,
                       ),
-                    ],
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: _pickFile,
-                          icon: const Icon(Icons.folder_open),
-                          label: Text(
-                            _selectedFile != null
-                                ? 'Change File'
-                                : 'Select File',
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.userPrimaryBlue,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                        if (_selectedFile != null) ...[
-                          const SizedBox(width: 16),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                _selectedFile = null;
-                                _analysisResult = null;
-                              });
-                            },
-                            icon: const Icon(Icons.clear),
-                            label: const Text('Clear'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.red,
-                              side: const BorderSide(color: Colors.red),
-                            ),
-                          ),
-                        ],
-                      ],
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            // Existing resumes section
-            if (_existingResumes.isNotEmpty) ...[
-              Text(
-                'Or Select from Previous Uploads',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : AppTheme.gray900,
+              const SizedBox(height: 32),
+
+              if (_isLoading) _buildLoadingState(isDark)
+              else if (_analysisResult != null) _buildResultState(isDark)
+              else _buildUploadState(isDark),
+              
+              const SizedBox(height: 32),
+              
+              if (_existingResumes.isNotEmpty && !_isLoading && _analysisResult == null) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Previous Scans',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : AppTheme.gray900,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => context.push('/my-resumes'),
+                      child: const Text('View All'),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 120,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _existingResumes.length,
-                  itemBuilder: (context, index) {
-                    final resume = _existingResumes[index];
-                    return Container(
-                      width: 200,
-                      margin: const EdgeInsets.only(right: 12),
-                      child: InkWell(
-                        onTap: () => _analyzeExistingResume(resume),
-                        child: Card(
-                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                          elevation: isDark ? 0 : 1,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(
-                              color: isDark ? Colors.white10 : Colors.transparent,
-                            ),
-                          ),
-                          child: Padding(
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 100,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _existingResumes.length,
+                    itemBuilder: (context, index) {
+                      final resume = _existingResumes[index];
+                      return Container(
+                        width: 160,
+                        margin: const EdgeInsets.only(right: 12),
+                        child: InkWell(
+                          onTap: () => _analyzeExistingResume(resume),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
                             padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
+                            ),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.description, color: AppTheme.userPrimaryBlue),
+                                const Icon(Icons.history, color: Color(0xFF6366F1), size: 24),
                                 const SizedBox(height: 8),
                                 Text(
                                   resume['fileName'] ?? 'Resume',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.center,
                                   style: TextStyle(
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w500,
-                                    fontSize: 14,
                                     color: isDark ? Colors.white70 : AppTheme.gray900,
                                   ),
                                 ),
@@ -329,136 +283,266 @@ class _AnalyzeScreenState extends ConsumerState<AnalyzeScreen> {
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-            // Analyze button
-            ElevatedButton(
-              onPressed: _isLoading ? null : _analyzeResume,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.userPrimaryBlue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text(
-                      'Analyze Resume',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-            ),
-            // Analysis results
-            if (_analysisResult != null) ...[
-              const SizedBox(height: 32),
-              Card(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                elevation: isDark ? 0 : 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(
-                    color: isDark ? Colors.white10 : Colors.transparent,
+                      );
+                    },
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUploadState(bool isDark) {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: _pickFile,
+          child: Container(
+            height: 200,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: _selectedFile != null ? const Color(0xFF6366F1) : (isDark ? Colors.white10 : Colors.grey.shade200),
+                width: 2,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Stack(
+                children: [
+                  Positioned(
+                    right: -20,
+                    bottom: -20,
+                    child: Icon(
+                      Icons.upload_file,
+                      size: 150,
+                      color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.02),
+                    ),
+                  ),
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          _selectedFile != null ? Icons.check_circle : Icons.cloud_upload_outlined,
+                          size: 48,
+                          color: _selectedFile != null ? Colors.green : const Color(0xFF6366F1),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _selectedFile?.name ?? 'Tap to select resume',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : AppTheme.gray900,
+                          ),
+                        ),
+                        if (_selectedFile == null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'PDF, DOCX up to 5MB',
+                            style: TextStyle(fontSize: 12, color: isDark ? Colors.white38 : AppTheme.gray500),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        ElevatedButton(
+          onPressed: _isLoading ? null : _analyzeResume,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF6366F1),
+            foregroundColor: Colors.white,
+            minimumSize: const Size(double.infinity, 56),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            elevation: 0,
+          ),
+          child: const Text('Start Deep Scan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingState(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 80,
+            width: 80,
+            child: CircularProgressIndicator(
+              strokeWidth: 6,
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6366F1)),
+            ),
+          ),
+          const SizedBox(height: 32),
+          Text(
+            'Processing...',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : AppTheme.gray900,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _analysisStep,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: isDark ? Colors.white38 : AppTheme.gray500),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResultState(bool isDark) {
+    final score = _analysisResult!['overallScore'] ?? 0;
+    
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6366F1).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        '$score',
+                        style: const TextStyle(
+                          color: Color(0xFF6366F1),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Scan Complete',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : AppTheme.gray900,
+                          ),
+                        ),
+                        Text(
+                          'Overall matching score',
+                          style: TextStyle(color: isDark ? Colors.white38 : AppTheme.gray500),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              _buildModernResultItem('Strengths', _analysisResult!['strengths']?.toString() ?? 'Checking...', isDark, Colors.green),
+              const SizedBox(height: 16),
+              _buildModernResultItem('Improvements', _analysisResult!['improvements']?.toString() ?? 'N/A', isDark, Colors.orange),
+              if (_analysisResult!['careerPath'] != null) ...[
+                const SizedBox(height: 16),
+                _buildModernResultItem('Career Roadmap', _analysisResult!['careerPath']?.toString() ?? 'Analyzing...', isDark, const Color(0xFF6366F1)),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        // CALL TO ACTION
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF10B981), Color(0xFF059669)],
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: InkWell(
+            onTap: () => context.go('/home'), // Home shows recommendations usually
+            child: Row(
+              children: [
+                const Icon(Icons.rocket_launch, color: Colors.white, size: 28),
+                const SizedBox(width: 16),
+                const Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Analysis Results',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : AppTheme.gray900,
-                        ),
+                        'Boost Your Career',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
-                      const SizedBox(height: 16),
-                      _ResultItem(
-                        label: 'Overall Score',
-                        value: '${_analysisResult!['overallScore'] ?? 0}/100',
-                      ),
-                      const SizedBox(height: 16),
-                      _ResultItem(
-                        label: 'Strengths',
-                        value:
-                            _analysisResult!['strengths']
-                                ?.toString()
-                                .split(',')
-                                .join(', ') ??
-                            'None detected',
-                      ),
-                      const SizedBox(height: 16),
-                      _ResultItem(
-                        label: 'Areas for Improvement',
-                        value:
-                            _analysisResult!['improvements']
-                                ?.toString()
-                                .split(',')
-                                .join(', ') ??
-                            'None detected',
-                      ),
-                      const SizedBox(height: 16),
-                      _ResultItem(
-                        label: 'Experience Level',
-                        value: _analysisResult!['experienceLevel'] ?? 'Not specified',
+                      Text(
+                        'Explore paths matching your skills',
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
                       ),
                     ],
                   ),
                 ),
-              ),
-            ],
-          ],
+                const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+              ],
+            ),
+          ),
         ),
-      ),
-    ),
+        const SizedBox(height: 16),
+        TextButton(
+          onPressed: () => setState(() {
+            _analysisResult = null;
+            _selectedFile = null;
+          }),
+          child: const Text('Scan Another Resume'),
+        ),
+      ],
     );
   }
-}
 
-class _ResultItem extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _ResultItem({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildModernResultItem(String label, String value, bool isDark, Color accentColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white38 : AppTheme.gray600,
-          ),
+        Row(
+          children: [
+            Container(width: 4, height: 16, decoration: BoxDecoration(color: accentColor, borderRadius: BorderRadius.circular(2))),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? Colors.white70 : AppTheme.gray700),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         Text(
           value,
-          style: TextStyle(
-            fontSize: 16, 
-            color: isDark ? Colors.white70 : AppTheme.gray900
-          ),
+          style: TextStyle(fontSize: 14, color: isDark ? Colors.white38 : AppTheme.gray600, height: 1.5),
         ),
       ],
     );

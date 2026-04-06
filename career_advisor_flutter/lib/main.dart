@@ -5,6 +5,7 @@ import 'providers/base_url_provider.dart';
 import 'router/app_router.dart';
 import 'utils/theme.dart';
 import 'providers/theme_provider.dart';
+import 'utils/config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +31,7 @@ void main() async {
       if (urlOverride.endsWith('/')) {
         urlOverride = urlOverride.substring(0, urlOverride.length - 1);
       }
+      AppConfig.baseUrl = urlOverride;
     } else {
       debugPrint('Release mode: Ignoring local API override $savedUrl');
     }

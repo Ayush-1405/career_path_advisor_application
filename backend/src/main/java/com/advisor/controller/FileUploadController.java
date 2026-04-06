@@ -40,6 +40,16 @@ public class FileUploadController {
         return uploadFile(file, "images");
     }
 
+    @PostMapping("/chat")
+    public ResponseEntity<Map<String, String>> uploadChatFile(@RequestParam("file") MultipartFile file) {
+        return uploadFile(file, "chats");
+    }
+
+    @PostMapping("/video")
+    public ResponseEntity<Map<String, String>> uploadVideo(@RequestParam("file") MultipartFile file) {
+        return uploadFile(file, "videos");
+    }
+
     @PostMapping("/resume")
     public ResponseEntity<Map<String, String>> uploadResume(@RequestParam("file") MultipartFile file) {
         var settings = systemSettingsService.getSettings();

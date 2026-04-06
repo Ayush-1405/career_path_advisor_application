@@ -42,6 +42,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
      .authorizeHttpRequests(auth -> auth
          .requestMatchers("/api/auth/**").permitAll()
          .requestMatchers("/api/career-paths/**").permitAll()
+         .requestMatchers("/uploads/**").permitAll()
          .requestMatchers("/error").permitAll()
          .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
          .requestMatchers("/api/admin/**").hasRole("ADMIN")

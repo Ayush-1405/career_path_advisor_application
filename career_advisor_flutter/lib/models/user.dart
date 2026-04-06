@@ -12,6 +12,7 @@ class User {
   final String? websiteUrl;
   final int? profileCompletion;
   final String? resumeUrl;
+  final bool isPrivate;
 
   User({
     required this.id,
@@ -27,6 +28,7 @@ class User {
     this.websiteUrl,
     this.profileCompletion,
     this.resumeUrl,
+    this.isPrivate = false,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -44,6 +46,7 @@ class User {
       websiteUrl: json['websiteUrl'],
       profileCompletion: json['profileCompletion'],
       resumeUrl: json['resumeUrl'],
+      isPrivate: json['isPrivate'] ?? false,
     );
   }
 
@@ -62,6 +65,7 @@ class User {
       'websiteUrl': websiteUrl,
       'profileCompletion': profileCompletion,
       'resumeUrl': resumeUrl,
+      'isPrivate': isPrivate,
     };
   }
 

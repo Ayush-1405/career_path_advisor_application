@@ -20,8 +20,7 @@ class ApiService {
 
   // Helper to handle response
   dynamic _handleResponse(Response response) {
-    // Dio throws exception on 4xx/5xx by default unless validateStatus is changed.
-    // Assuming default behavior, we only get here on 2xx.
+    
     final data = response.data;
 
     // Handle standard API response wrapper { success: true, data: ... }
@@ -34,8 +33,7 @@ class ApiService {
 
   // Skills Assessment
   Future<List<Map<String, dynamic>>> getSkillsQuestions() async {
-    // TODO: Replace with actual API call when endpoint is available
-    // For now, return the standard assessment questions
+    
     return [
       {
         'question': 'How would you rate your JavaScript skills?',
@@ -276,6 +274,38 @@ class ApiService {
     }
   }
 
+  Future<String?> uploadChatFile({String? filePath, Uint8List? bytes, required String filename}) async {
+    final MultipartFile multipartFile;
+    if (filePath != null && filePath.isNotEmpty) {
+      multipartFile = await MultipartFile.fromFile(filePath, filename: filename);
+    } else if (bytes != null) {
+      multipartFile = MultipartFile.fromBytes(bytes, filename: filename);
+    } else {
+      return null;
+    }
+
+    try {
+      final response = await _dio.post(
+        '/api/uploads/chat',
+        data: FormData.fromMap({'file': multipartFile}),
+      );
+      final data = _handleResponse(response);
+      if (data is Map && data.containsKey('url')) {
+        String url = data['url'];
+        if (!url.startsWith('http')) {
+          final base = _dio.options.baseUrl.endsWith('/')
+              ? _dio.options.baseUrl.substring(0, _dio.options.baseUrl.length - 1)
+              : _dio.options.baseUrl;
+          return url.startsWith('/') ? '$base$url' : '$base/$url';
+        }
+        return url;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   // User dashboard
   Future<dynamic> fetchDashboardStats() async {
     final response = await _dio.get('/api/users/me/stats');
@@ -387,21 +417,6 @@ class ApiService {
   }
 
   // Career Suggestions
-  Future<List<Map<String, dynamic>>> fetchCareerSuggestions() async {
-    try {
-      final response = await _dio.get('/api/user/career-suggestions');
-      final data = _handleResponse(response);
-      if (data is List) {
-        return List<Map<String, dynamic>>.from(
-          data.map((x) => Map<String, dynamic>.from(x)),
-        );
-      }
-      return [];
-    } catch (e) {
-      // Return empty list on error to prevent UI crash
-      return [];
-    }
-  }
 
   Future<List<dynamic>> fetchRecentActivity({
     int page = 0,
@@ -672,6 +687,238 @@ class ApiService {
       data: payload,
       options: Options(extra: {'isAdmin': true}),
     );
+    return _handleResponse(response);
+  }
+
+  // Social Feed
+  Future<dynamic> fetchFeed() async {
+    final response = await _dio.get('/api/feed');
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> createPost(
+    String content, {
+    bool isAchievement = false,
+    List<String>? mediaUrls,
+    String? mediaType,
+  }) async {
+    final response = await _dio.post(
+      '/api/feed',
+      data: {
+        'content': content,
+        'isAchievement': isAchievement,
+        if (mediaUrls != null && mediaUrls.isNotEmpty) 'mediaUrls': mediaUrls,
+        if (mediaType != null) 'mediaType': mediaType,
+      },
+    );
+    return _handleResponse(response);
+  }
+
+  /// Upload a single image or video file. Automatically picks the right endpoint.
+  Future<String> uploadMediaFile(String filePath, String fileName) async {
+    final ext = fileName.toLowerCase().split('.').last;
+    final isVideo = ['mp4', 'mov', 'avi', 'mkv', 'webm', '3gp'].contains(ext);
+    final endpoint = isVideo ? '/api/uploads/video' : '/api/uploads/image';
+
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(filePath, filename: fileName),
+    });
+    final response = await _dio.post(
+      endpoint,
+      data: formData,
+      options: Options(
+        contentType: Headers.multipartFormDataContentType,
+        // 5 min timeout for large video files
+        sendTimeout: const Duration(minutes: 5),
+        receiveTimeout: const Duration(minutes: 2),
+      ),
+    );
+    final data = response.data;
+    // The upload endpoint returns raw JSON (not wrapped in {success,data})
+    String? url;
+    if (data is Map) {
+      url = data['url'] as String?;
+    }
+    if (url == null || url.isEmpty) {
+      throw Exception('Upload failed: server did not return a URL');
+    }
+    return url;
+  }
+
+  Future<dynamic> likePost(String postId) async {
+    final response = await _dio.post('/api/feed/$postId/like');
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> commentOnPost(String postId, String text) async {
+    final response = await _dio.post(
+      '/api/feed/$postId/comment',
+      data: {'text': text},
+    );
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> updatePost(String postId, String content) async {
+    final response = await _dio.put(
+      '/api/feed/$postId',
+      data: {'content': content},
+    );
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> deletePost(String postId) async {
+    final response = await _dio.delete('/api/feed/$postId');
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> fetchMyPosts() async {
+    final response = await _dio.get('/api/feed/my-posts');
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> fetchUserSocialStats({String? userId}) async {
+    final endpoint = userId != null 
+        ? '/api/connections/stats/$userId'
+        : '/api/connections/stats';
+    final response = await _dio.get(endpoint);
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> fetchUserProfile(String userId) async {
+    final response = await _dio.get('/api/user/profile/$userId');
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> fetchUserPosts(String userId) async {
+    final response = await _dio.get('/api/feed/user/$userId');
+    return _handleResponse(response);
+  }
+
+  // Connections
+  Future<dynamic> fetchMyNetwork() async {
+    final response = await _dio.get('/api/connections/network');
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> fetchSuggestedFriends() async {
+    final response = await _dio.get('/api/connections/suggestions');
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> followUser(String userId) async {
+    final response = await _dio.post('/api/connections/follow/$userId');
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> fetchInvitations() async {
+    final response = await _dio.get('/api/connections/invitations');
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> fetchSentRequests() async {
+    final response = await _dio.get('/api/connections/sent');
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> acceptRequest(String userId) async {
+    final response = await _dio.post('/api/connections/accept/$userId');
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> rejectRequest(String userId) async {
+    final response = await _dio.post('/api/connections/reject/$userId');
+    return _handleResponse(response);
+  }
+
+  // Chats
+  Future<dynamic> fetchMyChats() async {
+    final response = await _dio.get('/api/chats');
+    return _handleResponse(response);
+  }
+
+  Future<List<dynamic>> fetchCareerRecommendations() async {
+    final response = await _dio.get('/api/career-paths/recommendations');
+    return _handleResponse(response);
+  }
+
+  Future<List<dynamic>> fetchCareerSuggestions() async {
+    return fetchCareerRecommendations();
+  }
+
+  Future<dynamic> fetchMessages(String roomId) async {
+    final response = await _dio.get('/api/chats/$roomId');
+    return _handleResponse(response);
+  }
+
+  Future<String?> getOrCreateChatRoom(String otherUserId) async {
+    try {
+      final response = await _dio.get('/api/chats/room/$otherUserId');
+      final data = _handleResponse(response);
+      if (data is Map && data.containsKey('chatRoomId')) {
+        return data['chatRoomId']?.toString();
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<dynamic> sendMessage(String receiverId, String content) async {
+    final response = await _dio.post(
+      '/api/chats/send/$receiverId',
+      data: {'content': content},
+    );
+    return _handleResponse(response);
+  }
+
+  Future<void> pingUserActivity() async {
+    try {
+      await _dio.post('/api/user/ping');
+    } catch (_) {}
+  }
+
+  Future<Map<String, dynamic>?> getUserStatus(String userId) async {
+    try {
+      final response = await _dio.get('/api/user/status/$userId');
+      final data = _handleResponse(response);
+      if (data is Map<String, dynamic>) return data;
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> markMessagesAsRead(String roomId) async {
+    try {
+      await _dio.put('/api/chats/$roomId/read');
+    } catch (_) {}
+  }
+
+  Future<void> deleteChat(String roomId) async {
+    await _dio.delete('/api/chats/$roomId');
+  }
+
+  Future<void> clearMessages(String roomId) async {
+    await _dio.delete('/api/chats/$roomId/messages');
+  }
+
+  Future<void> clearAllChats() async {
+    await _dio.delete('/api/chats/all');
+  }
+
+  // Notifications
+  Future<dynamic> fetchNotifications() async {
+    final response = await _dio.get('/api/notifications');
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> markNotificationAsRead(String id) async {
+    final response = await _dio.put('/api/notifications/$id/read');
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> markAllNotificationsAsRead() async {
+    final response = await _dio.put('/api/notifications/read-all');
     return _handleResponse(response);
   }
 }

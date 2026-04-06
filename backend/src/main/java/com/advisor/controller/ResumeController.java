@@ -22,7 +22,7 @@ public class ResumeController {
 
   @PostMapping
   public ResumeAnalysis add(@RequestBody Resume resume, Authentication auth) {
-    User u = userRepository.findByEmail(auth.getName()).orElseThrow();
+    User u = userRepository.findById(auth.getName()).orElseThrow();
     resume.setUser(u);
     ResumeAnalysis analysis = analysisService.analyzeAndSave(resume, u);
     
@@ -35,13 +35,13 @@ public class ResumeController {
 
   @GetMapping("/me")
   public List<Resume> myResumes(Authentication auth) {
-    User u = userRepository.findByEmail(auth.getName()).orElseThrow();
+    User u = userRepository.findById(auth.getName()).orElseThrow();
     return resumeRepository.findByUser_Id(u.getId());
   }
 
   @GetMapping("/{id}/analysis")
   public ResumeAnalysis getAnalysis(@PathVariable String id, Authentication auth) {
-    User u = userRepository.findByEmail(auth.getName()).orElseThrow();
+    User u = userRepository.findById(auth.getName()).orElseThrow();
     Resume r = resumeRepository.findById(id).orElseThrow(() -> new RuntimeException("Resume not found"));
     if (!r.getUser().getId().equals(u.getId())) {
       throw new RuntimeException("Unauthorized");
@@ -51,7 +51,7 @@ public class ResumeController {
 
   @DeleteMapping("/{id}")
   public void delete(@PathVariable String id, Authentication auth) {
-    User u = userRepository.findByEmail(auth.getName()).orElseThrow();
+    User u = userRepository.findById(auth.getName()).orElseThrow();
     Resume r = resumeRepository.findById(id).orElseThrow(() -> new RuntimeException("Resume not found"));
     if (!r.getUser().getId().equals(u.getId())) {
       throw new RuntimeException("Unauthorized");

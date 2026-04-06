@@ -115,7 +115,7 @@ class _HelpCenterScreenState extends ConsumerState<HelpCenterScreen> {
               if (context.canPop()) {
                 context.pop();
               } else {
-                context.go('/home');
+                context.go('/feed');
               }
             },
           ),
@@ -264,7 +264,7 @@ class _HelpCenterScreenState extends ConsumerState<HelpCenterScreen> {
                               icon: Icons.explore,
                               color: Colors.teal,
                               title: 'Career Paths',
-                              subtitle: 'Viewing and following suggested paths',
+                              subtitle: 'Viewing and exploring suggested paths',
                               onTap: () => context.push('/career-paths'),
                               isDark: isDark,
                             ),

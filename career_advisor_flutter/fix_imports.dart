@@ -14,7 +14,7 @@ void fixImports(String path) {
       if (!content.contains('package:go_router/go_router.dart')) {
         // Find the last import statment to insert after it, or just prepend
         // Prepending is easiest
-        content = "import 'package:go_router/go_router.dart';\n" + content;
+        content = "import 'package:go_router/go_router.dart';\n$content";
         file.writeAsStringSync(content);
         print('Fixed imports in ${file.path}');
       }

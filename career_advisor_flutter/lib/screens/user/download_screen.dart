@@ -122,7 +122,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
                 if (context.canPop()) {
                   context.pop();
                 } else {
-                  context.go('/home');
+                  context.go('/feed');
                 }
               },
             ),
@@ -171,7 +171,7 @@ class _DownloadScreenState extends ConsumerState<DownloadScreen> {
               if (context.canPop()) {
                 context.pop();
               } else {
-                context.go('/home');
+                context.go('/feed');
               }
             },
           ),

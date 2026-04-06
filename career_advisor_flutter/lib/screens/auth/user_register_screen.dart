@@ -123,9 +123,9 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
               decoration: const InputDecoration(
                 labelText: 'API Base URL',
                 hintText:
-                    'https://careerpathadvisorapplication-production.up.railway.app/',
+                    'http://172.20.10.2:8080',
                 helperText:
-                    'production: https://careerpathadvisorapplication-production.up.railway.app/\nFor Physical Device: Use computer LAN IP',
+                    'Local: http://172.20.10.2:8080\nFor Physical Device: Use computer LAN IP',
                 helperMaxLines: 3,
               ),
             ),
@@ -172,7 +172,7 @@ class _UserRegisterScreenState extends ConsumerState<UserRegisterScreen> {
               if (context.canPop()) {
                 context.pop();
               } else {
-                context.go('/home');
+                context.go('/feed');
               }
             },
           ),

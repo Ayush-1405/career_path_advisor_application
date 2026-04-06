@@ -31,9 +31,10 @@ public class AdminUserManagementService {
                 .map(this::convertToUserProfileDto);
     }
 
-    public UserProfileDto getUserById(String userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public UserProfileDto getUserById(String userIdOrEmail) {
+        User user = userRepository.findById(userIdOrEmail)
+                .orElseGet(() -> userRepository.findByEmail(userIdOrEmail)
+                .orElseThrow(() -> new RuntimeException("User not found with ID or Email: " + userIdOrEmail)));
         return convertToUserProfileDto(user);
     }
 

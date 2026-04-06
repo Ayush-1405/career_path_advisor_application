@@ -491,8 +491,9 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                       validator: (v) {
                         final t = v?.trim() ?? '';
                         if (t.length != 6) return 'Enter 6 digits';
-                        if (!RegExp(r'^\d{6}$').hasMatch(t))
+                        if (!RegExp(r'^\d{6}$').hasMatch(t)) {
                           return 'Digits only';
+                        }
                         return null;
                       },
                     ),
