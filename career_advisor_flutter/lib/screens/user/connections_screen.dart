@@ -12,15 +12,18 @@ import '../../providers/app_auth_provider.dart';
 import '../../providers/notifications_provider.dart';
 import '../../models/notification.dart';
 import '../../utils/image_helper.dart';
+import '../../providers/navigation_provider.dart';
 
 class ConnectionsScreen extends ConsumerStatefulWidget {
-  const ConnectionsScreen({super.key});
+  final int initialIndex;
+  const ConnectionsScreen({super.key, this.initialIndex = 0});
 
   @override
   ConsumerState<ConnectionsScreen> createState() => _ConnectionsScreenState();
 }
 
-class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
+class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   Timer? _pollingTimer;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
@@ -28,6 +31,16 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(
+      length: 4,
+      vsync: this,
+      initialIndex: widget.initialIndex,
+    );
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        ref.read(connectionsTabIndexProvider.notifier).state = _tabController.index;
+      }
+    });
     _pollingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       ref.read(connectionsProvider.notifier).fetchData(background: true);
       ref.read(notificationsProvider.notifier).fetchNotifications(background: true);
@@ -36,6 +49,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     _pollingTimer?.cancel();
     _searchController.dispose();
     super.dispose();
@@ -106,15 +120,14 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
             Expanded(
               child: connectionsState.when(
                 data: (state) {
-                  return DefaultTabController(
-                    length: 4,
-                    child: Column(
-                      children: [
-                        Container(
-                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                          child: TabBar(
-                            isScrollable: true,
-                            labelColor: AppTheme.userPrimaryBlue,
+                  return Column(
+                    children: [
+                      Container(
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        child: TabBar(
+                          controller: _tabController,
+                          isScrollable: true,
+                          labelColor: AppTheme.userPrimaryBlue,
                             unselectedLabelColor: isDark ? Colors.white54 : const Color(0xFF666666),
                             indicatorColor: AppTheme.userPrimaryBlue,
                             indicatorWeight: 3,
@@ -129,6 +142,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                         ),
                         Expanded(
                           child: TabBarView(
+                            controller: _tabController,
                             children: [
                               _buildNetworkList(
                                 context,
@@ -158,8 +172,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                           ),
                         ),
                       ],
-                    ),
-                  );
+                    );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (err, st) => Center(
@@ -411,7 +424,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
         padding: const EdgeInsets.all(12),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
-          mainAxisExtent: 290, // Slightly increased to avoid internal overflows
+          mainAxisExtent: 310, // Increased to accommodate bio info
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
         ),
@@ -512,6 +525,20 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                             fontSize: 11,
                           ),
                         ),
+                        if (user.bio != null && user.bio!.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            user.bio!,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: isDark ? Colors.white38 : Colors.grey.shade500,
+                              fontSize: 10,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

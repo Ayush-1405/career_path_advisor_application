@@ -15,7 +15,7 @@ class MyChatsNotifier extends StateNotifier<AsyncValue<List<ChatRoom>>> {
   }
 
   Future<void> fetchChats({bool background = false}) async {
-    if (!background) {
+    if (!background && state.valueOrNull == null) {
       state = const AsyncValue.loading();
     }
     try {
@@ -78,8 +78,8 @@ class MyChatsNotifier extends StateNotifier<AsyncValue<List<ChatRoom>>> {
   }
 }
 
-// AutoDispose since multiple chat rooms can be opened
-final chatMessagesProvider = StateNotifierProvider.family.autoDispose<ChatMessagesNotifier, AsyncValue<List<ChatMessage>>, String>((ref, roomId) {
+// Family provider for specific chat room messages - removed autoDispose for persistence
+final chatMessagesProvider = StateNotifierProvider.family<ChatMessagesNotifier, AsyncValue<List<ChatMessage>>, String>((ref, roomId) {
   final apiService = ref.watch(apiServiceProvider);
   return ChatMessagesNotifier(apiService, roomId);
 });
@@ -93,7 +93,7 @@ class ChatMessagesNotifier extends StateNotifier<AsyncValue<List<ChatMessage>>> 
   }
 
   Future<void> fetchMessages({bool background = false}) async {
-    if (!background) {
+    if (!background && state.valueOrNull == null) {
       state = const AsyncValue.loading();
     }
     try {

@@ -43,7 +43,7 @@ class ConnectionsNotifier extends StateNotifier<AsyncValue<ConnectionsState>> {
   }
 
   Future<void> fetchData({bool background = false}) async {
-    if (!background) {
+    if (!background && state.valueOrNull == null) {
       state = const AsyncValue.loading();
     }
     try {

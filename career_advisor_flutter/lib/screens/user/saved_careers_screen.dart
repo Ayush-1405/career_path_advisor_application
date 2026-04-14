@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:remixicon/remixicon.dart';
-import 'dart:convert';
-import '../../services/token_service.dart';
-import '../../services/api_service.dart';
 import '../../utils/theme.dart';
 import '../../widgets/animated_screen.dart';
+import '../../providers/navigation_provider.dart';
+import '../../providers/saved_careers_provider.dart';
 
 class SavedCareersScreen extends ConsumerStatefulWidget {
   final int initialIndex;
@@ -21,10 +19,6 @@ class SavedCareersScreen extends ConsumerStatefulWidget {
 class _SavedCareersScreenState extends ConsumerState<SavedCareersScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _isLoading = true;
-  List<Map<String, dynamic>> _savedCareers = [];
-  List<Map<String, dynamic>> _appliedCareers = [];
-  String? _error;
 
   @override
   void initState() {
@@ -34,7 +28,11 @@ class _SavedCareersScreenState extends ConsumerState<SavedCareersScreen>
       vsync: this,
       initialIndex: widget.initialIndex,
     );
-    _loadData();
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        ref.read(savedCareersTabIndexProvider.notifier).state = _tabController.index;
+      }
+    });
   }
 
   @override
@@ -43,136 +41,11 @@ class _SavedCareersScreenState extends ConsumerState<SavedCareersScreen>
     super.dispose();
   }
 
-  Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final token = await ref
-          .read(tokenServiceProvider.notifier)
-          .getUserToken();
-      if (token == null) {
-        if (mounted) {
-          setState(() {
-            _savedCareers = [];
-            _appliedCareers = [];
-            _isLoading = false;
-            _error = 'Login required';
-          });
-        }
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          context.push('/login');
-        });
-        return;
-      }
-
-      // Identify current user for per-user storage scoping
-      final userMap = await ref.read(tokenServiceProvider.notifier).getUser();
-      String userId =
-          userMap?['id']?.toString() ?? userMap?['userId']?.toString() ?? '';
-      if (userId.isEmpty) {
-        try {
-          final parts = token.split('.');
-          if (parts.length >= 2) {
-            final normalized = base64Url.normalize(parts[1]);
-            final payload = jsonDecode(
-              utf8.decode(base64Url.decode(normalized)),
-            );
-            userId =
-                payload['userId']?.toString() ??
-                payload['id']?.toString() ??
-                '';
-          }
-        } catch (_) {}
-      }
-
-      final prefs = await SharedPreferences.getInstance();
-
-      // Use per-user keys; no legacy/global fallback
-      final savedKey = 'bookmarked_career_paths_$userId';
-      final appliedKey = 'applied_career_paths_$userId';
-
-      // Server truth for saved careers
-      final savedItems = await ref
-          .read(apiServiceProvider)
-          .fetchMySavedCareers();
-      final savedCareers = <Map<String, dynamic>>[];
-      final savedIds = <String>{};
-      for (final item in savedItems) {
-        if (item is Map<String, dynamic>) {
-          final cp = item['careerPath'] as Map<String, dynamic>?;
-          if (cp != null) {
-            final id = cp['id']?.toString() ?? '';
-            if (id.isNotEmpty) {
-              savedIds.add(id);
-              savedCareers.add({
-                'id': id,
-                'title': cp['title'],
-                'category': cp['category'],
-              });
-            }
-          }
-        }
-      }
-
-      // Server truth for applied careers (user-scoped, with admin status)
-      final apps = await ref.read(apiServiceProvider).fetchMyApplications();
-      final appliedCareers = <Map<String, dynamic>>[];
-      final appliedIdSet = <String>{};
-      for (final item in apps) {
-        if (item is Map<String, dynamic>) {
-          final userObj = item['user'] as Map<String, dynamic>?;
-          final uid = userObj?['id']?.toString() ?? '';
-          if (uid.isNotEmpty && uid != userId) {
-            continue;
-          }
-          final cp = item['careerPath'] as Map<String, dynamic>?;
-          if (cp != null) {
-            final id = cp['id']?.toString() ?? '';
-            if (id.isNotEmpty) {
-              appliedIdSet.add(id);
-              appliedCareers.add({
-                'id': id,
-                'title': cp['title'],
-                'category': cp['category'],
-                'status': item['status']?.toString() ?? 'APPLIED',
-                'updatedAt': item['updatedAt']?.toString(),
-              });
-            }
-          }
-        }
-      }
-
-      final saved = savedCareers;
-      final applied = appliedCareers;
-
-      if (mounted) {
-        setState(() {
-          _savedCareers = saved;
-          _appliedCareers = applied;
-          _isLoading = false;
-        });
-      }
-
-      await prefs.setStringList(savedKey, savedIds.toList());
-      await prefs.setStringList(appliedKey, appliedIdSet.toList());
-    } catch (e) {
-      debugPrint('Error loading saved careers: $e');
-      if (mounted) {
-        setState(() {
-          _error = 'Failed to load data. Please try again.';
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final savedState = ref.watch(savedCareersProvider);
+    
     return AnimatedScreen(
       child: Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -203,36 +76,36 @@ class _SavedCareersScreenState extends ConsumerState<SavedCareersScreen>
           ],
         ),
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppTheme.primaryColor),
-            )
-          : _error != null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    _error!,
-                    style: const TextStyle(color: AppTheme.gray600),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadData,
-                    child: const Text('Retry'),
-                  ),
-                ],
+      body: savedState.when(
+        data: (data) => TabBarView(
+          controller: _tabController,
+          children: [
+            _buildCareerList(data.saved, isApplied: false),
+            _buildCareerList(data.applied, isApplied: true),
+          ],
+        ),
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryColor),
+        ),
+        error: (err, _) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              const Text(
+                'Failed to load data. Please try again.',
+                style: TextStyle(color: AppTheme.gray600),
               ),
-            )
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildCareerList(_savedCareers, isApplied: false),
-                _buildCareerList(_appliedCareers, isApplied: true),
-              ],
-            ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => ref.read(savedCareersProvider.notifier).loadData(),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      ),
     ),
     );
   }

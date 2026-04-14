@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../providers/base_url_provider.dart';
 import '../../utils/theme.dart';
-import '../../services/auth_service.dart';
-import '../../services/api_service.dart';
-import '../../models/user.dart';
 import '../../widgets/animated_screen.dart';
-
+import '../../providers/dashboard_provider.dart';
+import '../../models/user.dart';
 import '../../providers/social_feed_provider.dart';
 import '../../models/post.dart';
+import '../../providers/base_url_provider.dart';
 
 int _staggerDelay(int index) => 50 + (index * 60);
 
@@ -30,10 +27,6 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
   bool _isLoading = true;
   String? _error;
   List<dynamic> _suggestions = [];
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-
   Map<String, dynamic> _stats = {
     'resumeUploaded': false,
     'resumeCount': 0,
@@ -44,10 +37,11 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
     'recentActivities': [],
     'appliedCount': 0,
   };
+  Map<String, dynamic> _socialStats = {'connectionsCount': 0};
 
-  Map<String, dynamic> _socialStats = {
-    'connectionsCount': 0,
-  };
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
@@ -68,9 +62,19 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
           ),
         );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
-    });
+    // Populate initial state from provider if data is already available
+    final initialData = ref.read(dashboardProvider).valueOrNull;
+    if (initialData != null) {
+      _user = initialData.user;
+      _stats = initialData.stats;
+      _socialStats = initialData.socialStats;
+      _suggestions = initialData.suggestions;
+      _isLoading = false;
+      _animationController.forward();
+    } else {
+      // Trigger initial load if no data exists
+      ref.read(dashboardProvider.notifier).loadData();
+    }
   }
 
   @override
@@ -80,181 +84,16 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
   }
 
   Future<void> _loadData() async {
-    if (!mounted) return;
-
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+    ref.read(dashboardProvider.notifier).loadData(background: true);
     _animationController.reset();
-
-    try {
-      final apiService = ref.read(apiServiceProvider);
-
-      // Try to get fresh profile
-      User? user;
-      try {
-        final profileMap = await apiService.getUserProfile();
-        user = User.fromJson(profileMap);
-      } catch (e) {
-        debugPrint('Failed to fetch fresh profile: $e');
-        if (!mounted) return;
-        user = await ref.read(authServiceProvider).getCurrentUser();
-      }
-
-      if (user == null) {
-        if (mounted) context.go('/login');
-        return;
-      }
-
-      setState(() {
-        _user = user;
-      });
-
-      // Fetch data
-      final results = await Future.wait([
-        apiService.fetchDashboardStats().then((data) => data).catchError((e) {
-          debugPrint('Error fetching stats: $e');
-          return <String, dynamic>{};
-        }),
-        apiService.fetchCareerSuggestions().then((data) => data).catchError((
-          e,
-        ) {
-          debugPrint('Error fetching suggestions: $e');
-          return <Map<String, dynamic>>[];
-        }),
-        apiService.fetchMyResumes().then((data) => data).catchError((e) {
-          debugPrint('Error fetching resumes: $e');
-          return [];
-        }),
-        apiService.fetchMyApplications().then((data) => data).catchError((e) {
-          debugPrint('Error fetching applications: $e');
-          return [];
-        }),
-        apiService.fetchUserSocialStats().then((data) => data).catchError((e) {
-          debugPrint('Error fetching social stats: $e');
-          return <String, dynamic>{};
-        }),
-      ]);
-
-      final stats = results[0] as Map<String, dynamic>? ?? {};
-      final suggestions = results[1] as List<dynamic>? ?? [];
-      final resumes = results[2] as List<dynamic>? ?? [];
-      final applications = results[3] as List<dynamic>? ?? [];
-      final socialStats = results[4] as Map<String, dynamic>? ?? {};
-
-      final activities = stats['recentActivities'];
-      bool skillsAssessed = false;
-      final rawSkills = stats['skillsAssessed'];
-      if (rawSkills is bool) {
-        skillsAssessed = rawSkills;
-      } else if (rawSkills is String) {
-        final v = rawSkills.trim().toLowerCase();
-        skillsAssessed = v == 'true' || v == 'done' || v == 'completed';
-      }
-      if (!skillsAssessed && activities is List) {
-        for (final a in activities) {
-          if (a is Map) {
-            final desc = (a['description'] ?? a['message'] ?? a['title'] ?? '')
-                .toString()
-                .toLowerCase();
-            final type = (a['type'] ?? a['activityType'] ?? '')
-                .toString()
-                .toLowerCase();
-            if (type.contains('skills_assessment') ||
-                type.contains('skills_assessment_completed') ||
-                desc.contains('skills assessment')) {
-              skillsAssessed = true;
-              break;
-            }
-          }
-        }
-      }
-      // Fallback: local cache when user completed skills test (backend may not have synced)
-      if (!skillsAssessed) {
-        try {
-          final prefs = await SharedPreferences.getInstance();
-          skillsAssessed =
-              prefs.getBool('skills_assessment_completed') ?? false;
-        } catch (_) {}
-      }
-
-      final rawRate = stats['completionRate'];
-      final parsedRate = (rawRate is int)
-          ? rawRate
-          : (rawRate is num)
-          ? (rawRate).round()
-          : null;
-      final rawTotal = stats['totalActivities'];
-      final activitiesList = activities is List
-          ? List<dynamic>.from(activities)
-          : <dynamic>[];
-      final parsedTotal = (rawTotal is int)
-          ? rawTotal
-          : (rawTotal is num)
-          ? (rawTotal).toInt()
-          : null;
-
-      final profileBasedRate = _user != null
-          ? (_user!.calculatedCompletionPercentage * 100).round()
-          : 0;
-      final backendRate = parsedRate ?? 0;
-      final finalCompletionRate = (backendRate > 0)
-          ? backendRate
-          : (_user?.profileCompletion ?? profileBasedRate);
-
-      // Build activities: use backend list when present; otherwise synthesize from known data
-      List<dynamic> finalActivities = activitiesList;
-      if (finalActivities.isEmpty && _user != null) {
-        finalActivities = _buildSyntheticActivities(
-          resumesCount: resumes.length,
-          applicationsCount: applications.length,
-          skillsDone: skillsAssessed,
-        );
-      }
-
-      if (mounted) {
-        setState(() {
-          _stats = {
-            'resumeUploaded': stats['resumeUploaded'] ?? (resumes.isNotEmpty),
-            'resumeCount': resumes.length,
-            'suggestionsAvailable':
-                stats['suggestionsAvailable'] ?? suggestions.length,
-            'skillsAssessed': skillsAssessed,
-            'completionRate': (finalCompletionRate.clamp(0, 100)).round(),
-            'totalActivities': (parsedTotal != null && parsedTotal > 0)
-                ? parsedTotal
-                : finalActivities.length,
-            'recentActivities': finalActivities,
-            'appliedCount': applications.length,
-          };
-          _suggestions = suggestions;
-          _socialStats = socialStats;
-          _isLoading = false;
-        });
-        _animationController.forward();
-      }
-
-      try {
-        await ref.read(apiServiceProvider).trackUserActivity('dashboard_visit');
-      } catch (e) {
-        // Ignore tracking errors
-      }
-    } catch (e) {
-      debugPrint('Error loading dashboard stats: $e');
-      if (mounted) {
-        setState(() {
-          _error = 'Failed to load dashboard data. Please try again.';
-          _isLoading = false;
-        });
-      }
-    }
+    _animationController.forward();
   }
 
   List<Map<String, dynamic>> _buildSyntheticActivities({
     required int resumesCount,
     required int applicationsCount,
     required bool skillsDone,
+    User? user,
   }) {
     final now = DateTime.now().toIso8601String();
     final activities = <Map<String, dynamic>>[];
@@ -293,8 +132,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
         'type': 'profile_viewed',
         'activityType': 'profile_viewed',
         'description': 'Profile viewed',
-        'message':
-            'Welcome! Complete your profile to get personalized suggestions.',
+        'message': 'Welcome! Complete your profile to get personalized suggestions.',
         'timestamp': now,
         'status': 'pending',
       });
@@ -304,13 +142,31 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    // Sync provider data to local state
+    ref.listen<AsyncValue<DashboardData>>(dashboardProvider, (previous, next) {
+      next.whenData((data) {
+        if (mounted) {
+          setState(() {
+            _user = data.user;
+            _stats = data.stats;
+            _socialStats = data.socialStats;
+            _suggestions = data.suggestions;
+            _isLoading = false;
+            _error = null;
+          });
+          _animationController.forward();
+        }
+      });
+    });
+
+    final myPostsState = ref.watch(myPostsProvider);
+
     if (_isLoading && _user == null) {
       return AnimatedScreen(child: _buildShimmerLoading());
     }
-
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final myPostsState = ref.watch(myPostsProvider);
 
     if (_error != null) {
       return AnimatedScreen(

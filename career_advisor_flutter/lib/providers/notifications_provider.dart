@@ -14,7 +14,7 @@ class NotificationsNotifier extends StateNotifier<AsyncValue<List<AppNotificatio
   }
 
   Future<void> fetchNotifications({bool background = false}) async {
-    if (!background) state = const AsyncValue.loading();
+    if (!background && state.valueOrNull == null) state = const AsyncValue.loading();
     try {
       final response = await _apiService.fetchNotifications();
       if (response is Map && response.containsKey('data') && response['data'] is List) {

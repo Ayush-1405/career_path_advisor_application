@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../providers/app_auth_provider.dart';
+import '../providers/navigation_provider.dart';
 
 import '../screens/splash_screen.dart';
 import '../screens/landing_page.dart';
@@ -36,6 +37,7 @@ import '../screens/user/social_feed_screen.dart';
 import '../screens/user/connections_screen.dart';
 import '../screens/user/chat_list_screen.dart';
 import '../screens/user/chat_room_screen.dart';
+import '../screens/user/global_search_screen.dart';
 import '../widgets/main_scaffold.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -212,8 +214,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/connections',
-            pageBuilder: (context, state) =>
-                _buildAnimatedPage(state, const ConnectionsScreen()),
+            pageBuilder: (context, state) {
+              final tab = state.uri.queryParameters['tab'];
+              final initialIndex = tab != null ? (int.tryParse(tab) ?? 0) : ref.read(connectionsTabIndexProvider);
+              return _buildAnimatedPage(
+                state,
+                ConnectionsScreen(initialIndex: initialIndex),
+              );
+            },
           ),
           GoRoute(
             path: '/chat',
@@ -236,6 +244,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/dashboard',
             pageBuilder: (context, state) =>
                 _buildAnimatedPage(state, const UserDashboardScreen()),
+          ),
+          GoRoute(
+            path: '/search',
+            pageBuilder: (context, state) =>
+                _buildAnimatedPage(state, const GlobalSearchScreen()),
           ),
         ],
       ),
@@ -298,7 +311,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/user/saved-careers',
         pageBuilder: (context, state) {
           final tab = state.uri.queryParameters['tab'];
-          final initialIndex = tab == '1' ? 1 : 0;
+          final initialIndex = tab != null ? (int.tryParse(tab) ?? 0) : ref.read(savedCareersTabIndexProvider);
           return _buildAnimatedPage(
             state,
             SavedCareersScreen(initialIndex: initialIndex),

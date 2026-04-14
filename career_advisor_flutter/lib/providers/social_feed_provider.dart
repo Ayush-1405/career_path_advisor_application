@@ -15,7 +15,7 @@ class SocialFeedNotifier extends StateNotifier<AsyncValue<List<Post>>> {
   }
 
   Future<void> fetchFeed({bool background = false}) async {
-    if (!background) {
+    if (!background && state.valueOrNull == null) {
       state = const AsyncValue.loading();
     }
     try {
@@ -162,7 +162,7 @@ class MyPostsNotifier extends StateNotifier<AsyncValue<List<Post>>> {
   }
 
   Future<void> fetchMyPosts({bool background = false}) async {
-    if (!background && state.value == null) {
+    if (!background && state.valueOrNull == null) {
       state = const AsyncValue.loading();
     }
     try {

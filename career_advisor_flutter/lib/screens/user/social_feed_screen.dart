@@ -954,26 +954,32 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
       child: Scaffold(
         backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFE9E5DF),
         appBar: AppBar(
-          title: Container(
-            height: 36,
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEEF3F8),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search',
-                hintStyle: TextStyle(
-                  color: isDark ? Colors.white38 : const Color(0xFF666666),
-                  fontSize: 14,
-                ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  size: 20,
-                  color: isDark ? Colors.white38 : const Color(0xFF666666),
-                ),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+          title: InkWell(
+            onTap: () => context.push('/search'),
+            borderRadius: BorderRadius.circular(4),
+            child: Container(
+              height: 36,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEEF3F8),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.search,
+                    size: 20,
+                    color: isDark ? Colors.white38 : const Color(0xFF666666),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Search',
+                    style: TextStyle(
+                      color: isDark ? Colors.white38 : const Color(0xFF666666),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -984,7 +990,7 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
             IconButton(
               icon: const Icon(Icons.message_outlined),
               color: isDark ? Colors.white70 : AppTheme.gray600,
-              onPressed: () => context.push('/chat-list'),
+              onPressed: () => context.push('/chat'),
             ),
           ],
         ),
