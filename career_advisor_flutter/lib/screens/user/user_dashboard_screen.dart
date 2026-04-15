@@ -9,7 +9,7 @@ import '../../providers/dashboard_provider.dart';
 import '../../models/user.dart';
 import '../../providers/social_feed_provider.dart';
 import '../../models/post.dart';
-import '../../providers/base_url_provider.dart';
+import '../../utils/image_helper.dart';
 
 int _staggerDelay(int index) => 50 + (index * 60);
 
@@ -458,9 +458,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                                       BoxShadow(
                                         color: isDark
                                             ? Colors.black.withOpacity(0.2)
-                                            : Colors.black.withValues(
-                                                alpha: 0.05,
-                                              ),
+                                            : Colors.black.withOpacity(0.05),
                                         blurRadius: 10,
                                         offset: const Offset(0, 4),
                                       ),
@@ -689,12 +687,8 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                                         color:
                                             status.contains('completed') ||
                                                 status == 'done'
-                                            ? Colors.green.withValues(
-                                                alpha: 0.15,
-                                              )
-                                            : Colors.orange.withValues(
-                                                alpha: 0.15,
-                                              ),
+                                            ? Colors.green.withOpacity(0.15)
+                                            : Colors.orange.withOpacity(0.15),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
@@ -957,9 +951,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
                                           .isNotEmpty
                                   ? DecorationImage(
                                       image: CachedNetworkImageProvider(
-                                        _resolveImageUrl(
-                                          _user!.profilePictureUrl!,
-                                        ),
+                                        ImageHelper.getImageUrl(_user?.profilePictureUrl) ?? '',
                                       ),
                                       fit: BoxFit.cover,
                                     )
@@ -984,15 +976,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen>
     );
   }
 
-  String _resolveImageUrl(String url) {
-    if (url.isEmpty) return url;
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    final base = ref.read(baseUrlProvider);
-    final baseClean = base.endsWith('/')
-        ? base.substring(0, base.length - 1)
-        : base;
-    return url.startsWith('/') ? '$baseClean$url' : '$baseClean/$url';
-  }
+
 
   Widget _buildProfileAvatarFallback() {
     return Center(
